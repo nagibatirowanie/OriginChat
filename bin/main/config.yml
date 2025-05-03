@@ -1,0 +1,26 @@
+# Основной конфиг плагина OriginChat
+version: 1
+
+# Общие настройки плагина
+settings:
+  # Включить/выключить отладочные сообщения
+  debug: false
+  # Префикс плагина в сообщениях
+  prefix: '&7[&bOriginChat&7]'
+
+# Настройки форматирования чата
+chat:
+  # Формат сообщений в чате (поддерживает MiniMessage и HEX цвета)
+  format: '<gray>[<color:#00AAFF>%player_name%</color>]</gray> <white>%message%</white>'
+  # Включить/выключить поддержку HEX цветов
+  hex-colors: true
+  # Включить/выключить поддержку MiniMessage
+  mini-message: true
+  # Максимальная длина сообщения
+  max-message-length: 256
+
+# Настройки модулей
+modules:
+  # Включенные модули
+  enabled:
+    - 'chat'

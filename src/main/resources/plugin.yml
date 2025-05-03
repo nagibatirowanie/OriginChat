@@ -1,0 +1,27 @@
+name: OriginChat
+version: '0.2.0-ALPHA'
+main: me.nagibatirowanie.originchat.OriginChat
+api-version: '1.17'
+authors: [ nagibatirowanie ]
+description: 'Продвинутый плагин для форматирования чата с поддержкой модулей'
+
+# Зависимости плагина
+depend: []
+softdepend: [PlaceholderAPI]
+
+# Команды плагина
+commands:
+  originchat:
+    description: Основная команда плагина OriginChat
+    aliases: [ochat, oc]
+    usage: /originchat <reload|module|help>
+    permission: originchat.admin
+
+# Права плагина
+permissions:
+  originchat.admin:
+    description: Доступ к административным командам плагина
+    default: op
+  originchat.module.chat:
+    description: Доступ к функциям модуля чата
+    default: true
