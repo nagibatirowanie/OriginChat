@@ -8,6 +8,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -23,6 +25,31 @@ public class ColorUtil {
     // MiniMessage парсер для обработки тегов
     private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
     
+    private static final Map<String, String> COLOR_MAP = new HashMap<String, String>() {{
+        put("&0", "<black>");
+        put("&1", "<dark_blue>");
+        put("&2", "<dark_green>");
+        put("&3", "<dark_aqua>");
+        put("&4", "<dark_red>");
+        put("&5", "<dark_purple>");
+        put("&6", "<gold>");
+        put("&7", "<gray>");
+        put("&8", "<dark_gray>");
+        put("&9", "<blue>");
+        put("&a", "<green>");
+        put("&b", "<aqua>");
+        put("&c", "<red>");
+        put("&d", "<light_purple>");
+        put("&e", "<yellow>");
+        put("&f", "<white>");
+        put("&l", "<bold>");
+        put("&m", "<strikethrough>");
+        put("&n", "<underlined>");
+        put("&o", "<italic>");
+        put("&k", "<obfuscated>");
+        put("&r", "<reset>");
+    }};
+
     // Legacy сериализатор для конвертации компонентов в строки с поддержкой цветов
     private static final LegacyComponentSerializer LEGACY_SERIALIZER = LegacyComponentSerializer.builder()
             .hexColors()
@@ -76,19 +103,17 @@ public class ColorUtil {
      * @param text текст для форматирования
      * @return отформатированный текст
      */
+
     public static String format(String text) {
         if (text == null || text.isEmpty()) return "";
-        // Сначала обрабатываем MiniMessage теги
-        if (text.contains("<") && text.contains(">")) {
-            text = formatMiniMessage(text);
-        }
-        // Затем HEX цвета
-        if (text.contains("#")) {
-            text = formatHexColors(text);
-        }
-        // Затем стандартные цветовые коды
-        text = formatLegacyColors(text);
-        return text;
+        
+        // Создаем компонент с помощью toComponent и затем сериализуем его обратно в строку
+        // Это гарантирует согласованность между format и toComponent
+        Component component = toComponent(text);
+        
+        // Используем LEGACY_SERIALIZER для обратной сериализации, но без секционных символов
+        // Это предотвратит предупреждения о устаревших форматирующих кодах
+        return LEGACY_SERIALIZER.serialize(component);
     }
     
     /**
@@ -100,19 +125,9 @@ public class ColorUtil {
     public static String format(Player player, String text) {
         if (text == null || text.isEmpty()) return "";
         // Сначала заменяем плейсхолдеры
-        text = setPlaceholders(player, text);
-        // Затем MiniMessage
-        if (text.contains("<") && text.contains(">")) {
-            text = formatMiniMessage(text);
-        }
-        // Затем HEX и стандартные цветовые коды
-        if (text.contains("&") || text.contains("#")) {
-            String colorCodes = text;
-            colorCodes = formatHexColors(colorCodes);
-            colorCodes = formatLegacyColors(colorCodes);
-            text = colorCodes;
-        }
-        return text;
+        String processed = setPlaceholders(player, text);
+        // Затем используем основной метод format
+        return format(processed);
     }
 
     /**
@@ -158,7 +173,8 @@ public class ColorUtil {
             // Парсим текст с помощью MiniMessage
             Component component = MINI_MESSAGE.deserialize(text);
             
-            // Конвертируем компонент обратно в строку с поддержкой цветов
+            // Используем LEGACY_SERIALIZER для обратной сериализации
+            // Это предотвратит предупреждения о устаревших форматирующих кодах
             return LEGACY_SERIALIZER.serialize(component);
         } catch (Exception e) {
             Bukkit.getLogger().warning("Ошибка при обработке MiniMessage: " + e.getMessage());
@@ -174,11 +190,27 @@ public class ColorUtil {
     public static Component toComponent(String text) {
         if (text == null || text.isEmpty()) return Component.empty();
         
-        // Сначала применяем все форматирование
-        String formatted = format(text);
+        // Проверяем, содержит ли текст MiniMessage теги
+        if (text.contains("<") && text.contains(">")) {
+            try {
+                // Если есть MiniMessage теги, используем MiniMessage напрямую
+                return MINI_MESSAGE.deserialize(convertToMiniMessage(text));
+            } catch (Exception e) {
+                Bukkit.getLogger().warning("Ошибка при создании компонента через MiniMessage: " + e.getMessage());
+                // В случае ошибки продолжаем обработку стандартными методами
+            }
+        }
         
-        // Затем конвертируем в компонент
-        return LegacyComponentSerializer.legacySection().deserialize(formatted);
+        // Если нет MiniMessage тегов или произошла ошибка, используем стандартный подход
+        // Но сначала преобразуем все & коды в MiniMessage формат
+        String miniMessageText = text;
+        if (miniMessageText.contains("&") || miniMessageText.contains("#")) {
+            miniMessageText = convertToMiniMessage(miniMessageText);
+            return MINI_MESSAGE.deserialize(miniMessageText);
+        }
+        
+        // Если нет ни & кодов, ни # цветов, просто создаем текстовый компонент
+        return Component.text(text);
     }
     
     /**
@@ -190,11 +222,11 @@ public class ColorUtil {
     public static Component toComponent(Player player, String text) {
         if (text == null || text.isEmpty()) return Component.empty();
         
-        // Сначала форматируем текст с заменой плейсхолдеров
-        String formatted = format(player, text);
+        // Сначала заменяем плейсхолдеры
+        String processed = setPlaceholders(player, text);
         
-        // Затем конвертируем в компонент
-        return LegacyComponentSerializer.legacySection().deserialize(formatted);
+        // Затем создаем компонент с помощью обновленного метода
+        return toComponent(processed);
     }
 
     /**
@@ -206,4 +238,32 @@ public class ColorUtil {
         if (text == null || text.isEmpty()) return "";
         return ChatColor.stripColor(text);
     }
+    
+
+    /**
+ * Конвертировать стандартные цветовые коды в формат MiniMessage
+ * @param text текст с цветовыми кодами
+ * @return текст с тегами MiniMessage
+ */
+public static String convertToMiniMessage(String text) {
+    if (text == null || text.isEmpty()) return "";
+    
+    String result = text;
+    for (Map.Entry<String, String> entry : COLOR_MAP.entrySet()) {
+        result = result.replace(entry.getKey(), entry.getValue());
+    }
+    
+    // Конвертация HEX цветов в формат MiniMessage
+    Matcher matcher = HEX_PATTERN.matcher(result);
+    StringBuffer buffer = new StringBuffer();
+    
+    while (matcher.find()) {
+        String hex = matcher.group(2);
+        matcher.appendReplacement(buffer, "<color:#" + hex + ">");
+    }
+    
+    matcher.appendTail(buffer);
+    return buffer.toString();
+}
+    
 }

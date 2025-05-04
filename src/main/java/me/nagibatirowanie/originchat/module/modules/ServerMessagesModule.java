@@ -26,12 +26,12 @@ public class ServerMessagesModule extends AbstractModule implements Listener {
     private List<String> personalWelcomeMessages;
 
     public ServerMessagesModule(OriginChat plugin) {
-        super(plugin, "servermessages", "Серверные сообщения", "Управление сообщениями входа/выхода игроков", "1.0");
+        super(plugin, "server_messages", "Серверные сообщения", "Управление сообщениями входа/выхода игроков", "1.0");
     }
 
     @Override
     public void onEnable() {
-        loadModuleConfig("modules/servermessages");
+        loadModuleConfig("modules/server_messages");
         loadConfig();
         Bukkit.getPluginManager().registerEvents(this, plugin);
         log("Модуль серверных сообщений успешно загружен.");
@@ -72,7 +72,7 @@ public class ServerMessagesModule extends AbstractModule implements Listener {
                 config.set("personal_welcome_messages", personalWelcomeMessages);
             }
             
-            saveModuleConfig("modules/servermessages");
+            saveModuleConfig("modules/server_messages");
         } catch (Exception e) {
             plugin.getPluginLogger().severe("Ошибка при загрузке конфигурации ServerMessagesModule: " + e.getMessage());
             e.printStackTrace();
@@ -85,14 +85,14 @@ public class ServerMessagesModule extends AbstractModule implements Listener {
 
         if (personalWelcomeEnabled && !personalWelcomeMessages.isEmpty()) {
             String welcomeMessage = getRandomMessage(personalWelcomeMessages, player);
-            player.sendMessage(ColorUtil.format(player, welcomeMessage));
+            player.sendMessage(ColorUtil.toComponent(player, welcomeMessage));
         }
 
         if (joinMessageEnabled && !joinMessages.isEmpty()) {
             String joinMessage = getRandomMessage(joinMessages, player);
-            event.setJoinMessage(ColorUtil.format(player, joinMessage));
+            event.joinMessage(ColorUtil.toComponent(player, joinMessage));
         } else {
-            event.setJoinMessage(null);
+            event.joinMessage(null);
         }
     }
 
@@ -102,9 +102,9 @@ public class ServerMessagesModule extends AbstractModule implements Listener {
 
         if (leaveMessageEnabled && !leaveMessages.isEmpty()) {
             String leaveMessage = getRandomMessage(leaveMessages, player);
-            event.setQuitMessage(ColorUtil.format(player, leaveMessage));
+            event.quitMessage(ColorUtil.toComponent(player, leaveMessage));
         } else {
-            event.setQuitMessage(null);
+            event.quitMessage(null);
         }
     }
 

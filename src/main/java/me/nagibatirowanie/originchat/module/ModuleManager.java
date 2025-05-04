@@ -2,6 +2,8 @@ package me.nagibatirowanie.originchat.module;
 
 import me.nagibatirowanie.originchat.OriginChat;
 import me.nagibatirowanie.originchat.module.modules.ChatModule;
+import me.nagibatirowanie.originchat.module.modules.LocaleAdvancementsModule;
+import me.nagibatirowanie.originchat.module.modules.LocaleDeathsModule;
 import me.nagibatirowanie.originchat.module.modules.PrivateMessageModule;
 import me.nagibatirowanie.originchat.module.modules.RoleplayModule;
 import me.nagibatirowanie.originchat.module.modules.ServerMessagesModule;
@@ -37,6 +39,8 @@ public class ModuleManager {
         registerModule(new PrivateMessageModule(plugin));
         registerModule(new RoleplayModule(plugin));
         registerModule(new ServerMessagesModule(plugin));
+        registerModule(new LocaleAdvancementsModule(plugin));
+        registerModule(new LocaleDeathsModule(plugin));
 
         // Получение списка включенных модулей из конфига
         List<String> enabledFromConfig = plugin.getConfigManager().getMainConfig().getStringList("modules.enabled");

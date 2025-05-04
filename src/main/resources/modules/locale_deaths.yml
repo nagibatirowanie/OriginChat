@@ -1,0 +1,21 @@
+# Конфигурация модуля локализованных сообщений о смерти
+
+death_messages:
+  # Включить модуль
+  enabled: true
+  
+  # Отключить стандартные сообщения о смерти
+  disable-vanilla-messages: true
+  
+  # Воспроизводить звук при смерти игрока
+  play_sound: true
+  
+  # Звук, который будет воспроизводиться при смерти игрока
+  # Список доступных звуков: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Sound.html
+  death_sound: "ENTITY_CAT_DEATH"
+  
+  # Префикс сообщения о смерти
+  prefix: "&c☠ "
+  
+  # Суффикс сообщения о смерти
+  suffix: ""

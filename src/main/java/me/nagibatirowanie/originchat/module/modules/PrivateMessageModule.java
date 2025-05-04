@@ -34,13 +34,13 @@ public class PrivateMessageModule extends AbstractModule implements CommandExecu
     private String msgNoReplyTarget;
 
     public PrivateMessageModule(OriginChat plugin) {
-        super(plugin, "pm", "Приватные сообщения", "Модуль для отправки личных сообщений между игроками", "1.0");
+        super(plugin, "private_messages", "Приватные сообщения", "Модуль для отправки личных сообщений между игроками", "1.0");
     }
 
     @Override
     public void onEnable() {
         // Загрузка конфигурации
-        loadModuleConfig("modules/pm");
+        loadModuleConfig("modules/private_messages");
         if (config == null) {
             config = plugin.getConfigManager().getMainConfig();
         }

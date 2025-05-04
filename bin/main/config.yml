@@ -16,6 +16,8 @@ modules:
   enabled:
     - 'chat'
     - 'tab'
-    - 'pm'
+    - 'private_messages'
     - 'roleplay'
-    - 'servermessages'
+    - 'server_messages'
+    - 'locale_advancements'
+    - 'locale_deaths'

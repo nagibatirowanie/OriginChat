@@ -97,16 +97,22 @@ public class TabModule extends AbstractModule {
     private void setupLuckPerms() {
         if ("luckperms".equalsIgnoreCase(prioritySortingType)) {
             try {
-                luckPerms = Bukkit.getServicesManager().getRegistration(LuckPerms.class).getProvider();
+                Class<?> lpClass = Class.forName("net.luckperms.api.LuckPerms");
+                luckPerms = Bukkit.getServicesManager().getRegistration((Class<net.luckperms.api.LuckPerms>) lpClass).getProvider();
                 if (luckPerms == null) {
                     log("LuckPerms не найден! Используется сортировка по группам из конфигурации.");
                     prioritySortingType = "group";
                 } else {
                     log("LuckPerms успешно подключен");
                 }
+            } catch (ClassNotFoundException e) {
+                log("LuckPerms не установлен на сервере. Используется сортировка по группам.");
+                prioritySortingType = "group";
+                luckPerms = null;
             } catch (Exception e) {
                 log("Ошибка при подключении LuckPerms: " + e.getMessage());
                 prioritySortingType = "group";
+                luckPerms = null;
             }
         }
     }
@@ -125,22 +131,16 @@ public class TabModule extends AbstractModule {
             List<Group> sortedGroups = groups.stream()
                     .sorted(Comparator.<Group>comparingInt(g -> g.getWeight().orElse(0)).reversed())
                     .collect(Collectors.toList());
-            
             int position = 0;
             for (Group group : sortedGroups) {
                 String teamName = String.format("%03d_%s", position, group.getName());
                 if (teamName.length() > 16) {
                     teamName = teamName.substring(0, 16);
                 }
-                
                 Team team = scoreboard.registerNewTeam(teamName);
                 team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.ALWAYS);
-                // Отключаем отображение команды рядом с ником
                 team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
-                
-                // Сохраняем соответствие группы и команды
                 groupTeamNames.put(group.getName().toLowerCase(), teamName);
-                
                 position++;
             }
         } else {
@@ -236,23 +236,23 @@ public class TabModule extends AbstractModule {
                         return "default";
                     }
                 }
-                
-                // Получаем основную группу пользователя
                 QueryOptions queryOptions = luckPerms.getContextManager().getQueryOptions(player);
                 String primaryGroup = user.getPrimaryGroup();
-                
-                // Ищем группу с наибольшим весом
                 Optional<String> highestWeightGroup = user.getInheritedGroups(queryOptions).stream()
                         .max(Comparator.comparingInt(g -> g.getWeight().orElse(0)))
                         .map(Group::getName);
-                
                 return highestWeightGroup.orElse(primaryGroup);
-            } catch (Exception e) {
-                log("Ошибка при получении группы LuckPerms для " + player.getName() + ": " + e.getMessage());
-                return "default";
+            } catch (Throwable e) {
+                log("LuckPerms не доступен или произошла ошибка для " + player.getName() + ": " + e.getMessage());
+                prioritySortingType = "group";
+                luckPerms = null;
+                return groupPriorities.entrySet().stream()
+                        .filter(entry -> player.hasPermission("group." + entry.getKey()))
+                        .max(Map.Entry.comparingByValue())
+                        .map(Map.Entry::getKey)
+                        .orElse("default");
             }
         } else {
-            // Если используется режим group, ищем группу с наивысшим приоритетом
             return groupPriorities.entrySet().stream()
                     .filter(e -> player.hasPermission("group." + e.getKey()))
                     .max(Map.Entry.comparingByValue())
