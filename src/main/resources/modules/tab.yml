@@ -1,0 +1,21 @@
+# Конфигурация модуля таба
+version: 1
+
+enabled: true
+
+header:
+  - "&bДобро пожаловать на сервер!"
+  - "&7Онлайн: {online}/{max_online}"
+footer:
+  - "&eПриятной игры!"
+  - "&7discord.gg/yourserver"
+
+show_ping: false
+player_format: "%luckperms_prefix%&f{player}"
+priority_sorting_type: "luckperms"
+group_priorities:
+  owner: 100
+  admin: 90
+  moderator: 80
+  vip: 50
+  player: 10

@@ -1,6 +1,18 @@
 # Конфигурация модуля чата
 version: 1
 
+# Включен ли модуль
+enabled: true
+
+# Поддержка HEX цветов
+hex-colors: true
+
+# Поддержка MiniMessage формата
+mini-message: true
+
+# Максимальная длина сообщения
+max-message-length: 256
+
 # Настройки форматирования чата
 format:
   # Основной формат сообщений (поддерживает MiniMessage и HEX цвета)
@@ -8,20 +20,42 @@ format:
   # Формат для личных сообщений
   private-message: '<gray>[<color:#FF55FF>ЛС</color>] <color:#00AAFF>%sender%</color> -> <color:#00AAFF>%receiver%</color>:</gray> <white>%message%</white>'
 
-# Настройки фильтрации
-filter:
-  # Включить/выключить фильтрацию запрещенных слов
-  enabled: false
-  # Список запрещенных слов
-  words: []
-  # Сообщение при попытке отправить запрещенное слово
-  message: '&cВаше сообщение содержит запрещенные слова!'
+# Конфигурация чатов
+chats:
+  # Глобальный чат (без префикса)
+  global:
+    prefix: "!"
+    radius: -1
+    format: "<gray>[Глобальный]</gray> <white>{player}: {message}</white>"
+    permission-write: ""
+    permission-view: ""
+  
+  # Локальный чат (префикс: !)
+  local:
+    prefix: ""
+    radius: 50
+    format: "<yellow>[Локальный]</yellow> <white>{player}: {message}</white>"
+    permission-write: ""
+    permission-view: ""
+  
+  # Приватный чат (префикс: @)
+  private:
+    prefix: "@"
+    radius: -1
+    format: "<red>[Приватный]</red> <white>{player}: {message}</white>"
+    permission-write: "originchat.chat.private"
+    permission-view: "originchat.chat.private"
+  
+  # Чат администрации (префикс: #)
+  admin:
+    prefix: "#"
+    radius: -1
+    format: "<gold>[Админ]</gold> <white>{player}: {message}</white>"
+    permission-write: "originchat.chat.admin"
+    permission-view: "originchat.chat.admin"
 
-# Настройки задержки между сообщениями
 cooldown:
-  # Включить/выключить задержку между сообщениями
-  enabled: false
-  # Время задержки в секундах
-  time: 3
-  # Сообщение при попытке отправить сообщение слишком быстро
-  message: '&cПодождите %time% секунд перед отправкой следующего сообщения!'
+  default: 3
+  originchat.moder: 2
+  originchat.admin: 0
+cooldown-message: "⏳ Подождите {cooldown} секунд перед следующим сообщением!"

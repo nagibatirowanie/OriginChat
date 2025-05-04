@@ -3,7 +3,7 @@ version: '0.2.0-ALPHA'
 main: me.nagibatirowanie.originchat.OriginChat
 api-version: '1.17'
 authors: [ nagibatirowanie ]
-description: 'Продвинутый плагин для форматирования чата с поддержкой модулей'
+description: 'Продвинутый плагин для форматирования чата'
 
 # Зависимости плагина
 depend: []
@@ -16,6 +16,65 @@ commands:
     aliases: [ochat, oc]
     usage: /originchat <reload|module|help>
     permission: originchat.admin
+  msg:
+    description: Отправить приватное сообщение игроку
+    aliases: [tell, w, whisper]
+    usage: /msg <игрок> <сообщение>
+    permission: originchat.pm.send
+  r:
+    description: Ответить на последнее полученное приватное сообщение
+    aliases: [reply]
+    usage: /r <сообщение>
+    permission: originchat.pm.reply
+  # Команды ролевой игры
+  me:
+    description: Действие от первого лица
+    usage: /me <действие>
+    permission: originchat.roleplay.me
+  gme:
+    description: Глобальное действие от первого лица
+    usage: /gme <действие>
+    permission: originchat.roleplay.gme
+  do:
+    description: Описание окружения
+    usage: /do <описание>
+    permission: originchat.roleplay.do
+  gdo:
+    description: Глобальное описание окружения
+    usage: /gdo <описание>
+    permission: originchat.roleplay.gdo
+  try:
+    description: Попытка действия с случайным результатом
+    usage: /try <действие>
+    permission: originchat.roleplay.try
+  gtry:
+    description: Глобальная попытка действия с случайным результатом
+    usage: /gtry <действие>
+    permission: originchat.roleplay.gtry
+  todo:
+    description: Действие с описанием
+    usage: /todo <действие>
+    permission: originchat.roleplay.todo
+  gtodo:
+    description: Глобальное действие с описанием
+    usage: /gtodo <действие>
+    permission: originchat.roleplay.gtodo
+  roll:
+    description: Бросок кубика
+    usage: /roll <мин> <макс>
+    permission: originchat.roleplay.roll
+  groll:
+    description: Глобальный бросок кубика
+    usage: /groll <мин> <макс>
+    permission: originchat.roleplay.groll
+  ball:
+    description: Магический шар
+    usage: /ball <вопрос>
+    permission: originchat.roleplay.ball
+  gball:
+    description: Глобальный магический шар
+    usage: /gball <вопрос>
+    permission: originchat.roleplay.gball
 
 # Права плагина
 permissions:
@@ -24,4 +83,50 @@ permissions:
     default: op
   originchat.module.chat:
     description: Доступ к функциям модуля чата
+    default: true
+  originchat.module.servermessages:
+    description: Доступ к функциям модуля серверных сообщений
+    default: true
+  originchat.pm.send:
+    description: Доступ к отправке приватных сообщений
+    default: true
+  originchat.pm.reply:
+    description: Доступ к ответу на приватные сообщения
+    default: true
+  # Права для ролевых команд
+  originchat.roleplay.me:
+    description: Доступ к команде /me
+    default: true
+  originchat.roleplay.gme:
+    description: Доступ к команде /gme
+    default: true
+  originchat.roleplay.do:
+    description: Доступ к команде /do
+    default: true
+  originchat.roleplay.gdo:
+    description: Доступ к команде /gdo
+    default: true
+  originchat.roleplay.try:
+    description: Доступ к команде /try
+    default: true
+  originchat.roleplay.gtry:
+    description: Доступ к команде /gtry
+    default: true
+  originchat.roleplay.todo:
+    description: Доступ к команде /todo
+    default: true
+  originchat.roleplay.gtodo:
+    description: Доступ к команде /gtodo
+    default: true
+  originchat.roleplay.roll:
+    description: Доступ к команде /roll
+    default: true
+  originchat.roleplay.groll:
+    description: Доступ к команде /groll
+    default: true
+  originchat.roleplay.ball:
+    description: Доступ к команде /ball
+    default: true
+  originchat.roleplay.gball:
+    description: Доступ к команде /gball
     default: true

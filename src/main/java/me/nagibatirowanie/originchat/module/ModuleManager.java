@@ -2,6 +2,10 @@ package me.nagibatirowanie.originchat.module;
 
 import me.nagibatirowanie.originchat.OriginChat;
 import me.nagibatirowanie.originchat.module.modules.ChatModule;
+import me.nagibatirowanie.originchat.module.modules.PrivateMessageModule;
+import me.nagibatirowanie.originchat.module.modules.RoleplayModule;
+import me.nagibatirowanie.originchat.module.modules.ServerMessagesModule;
+import me.nagibatirowanie.originchat.module.modules.TabModule;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,6 +33,10 @@ public class ModuleManager {
     public void loadModules() {
         // Регистрация всех модулей
         registerModule(new ChatModule(plugin));
+        registerModule(new TabModule(plugin));
+        registerModule(new PrivateMessageModule(plugin));
+        registerModule(new RoleplayModule(plugin));
+        registerModule(new ServerMessagesModule(plugin));
 
         // Получение списка включенных модулей из конфига
         List<String> enabledFromConfig = plugin.getConfigManager().getMainConfig().getStringList("modules.enabled");
