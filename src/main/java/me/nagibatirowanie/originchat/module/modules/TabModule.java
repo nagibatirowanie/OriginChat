@@ -241,8 +241,21 @@ public class TabModule extends AbstractModule {
 
 
     private void updatePlayerTab(Player player) {
-        String header = String.join("\n", headerLines);
-        String footer = String.join("\n", footerLines);
+        // Get localized header and footer for this player
+        List<String> localizedHeaderLines = plugin.getConfigManager().getLocalizedMessageList("tab", "header", player);
+        List<String> localizedFooterLines = plugin.getConfigManager().getLocalizedMessageList("tab", "footer", player);
+        
+        // If localized messages are not available, use default from config
+        if (localizedHeaderLines.isEmpty()) {
+            localizedHeaderLines = headerLines;
+        }
+        
+        if (localizedFooterLines.isEmpty()) {
+            localizedFooterLines = footerLines;
+        }
+        
+        String header = String.join("\n", localizedHeaderLines);
+        String footer = String.join("\n", localizedFooterLines);
         
         header = applyPlaceholders(player, header);
         footer = applyPlaceholders(player, footer);

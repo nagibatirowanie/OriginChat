@@ -97,7 +97,7 @@ public abstract class AbstractModule implements Module {
     protected String getLocalizedName(String locale) {
         String key = "modules." + id + ".name";
         String localized = plugin.getLocaleManager().getMessage(key, locale);
-        if (localized != null && !localized.startsWith("§cMessage not found")) {
+        if (localized != null && !localized.startsWith("§cMessage not found") && !localized.equals(key)) {
             return localized;
         }
         return name;
@@ -106,7 +106,7 @@ public abstract class AbstractModule implements Module {
     protected String getLocalizedDescription(String locale) {
         String key = "modules." + id + ".description";
         String localized = plugin.getLocaleManager().getMessage(key, locale);
-        if (localized != null && !localized.startsWith("§cMessage not found")) {
+        if (localized != null && !localized.startsWith("§cMessage not found") && !localized.equals(key)) {
             return localized;
         }
         return description;

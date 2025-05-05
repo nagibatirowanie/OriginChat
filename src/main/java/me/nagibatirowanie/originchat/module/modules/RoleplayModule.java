@@ -24,6 +24,7 @@ package me.nagibatirowanie.originchat.module.modules;
 
 import me.nagibatirowanie.originchat.OriginChat;
 import me.nagibatirowanie.originchat.module.AbstractModule;
+import me.nagibatirowanie.originchat.utils.ColorUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -132,7 +133,8 @@ public class RoleplayModule extends AbstractModule implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
-            sender.sendMessage(getMessage("errors.only_players"));
+            String localizedMessage = plugin.getConfigManager().getLocalizedMessage("roleplay", "errors.not-a-player", (Player)null);
+            sender.sendMessage(ColorUtil.format(localizedMessage));
             return true;
         }
         Player player = (Player) sender;
@@ -140,19 +142,20 @@ public class RoleplayModule extends AbstractModule implements CommandExecutor {
         int range = commandRanges.getOrDefault(commandName, 100);
         boolean isGlobal = commandName.startsWith("g");
         if (args.length == 0 && requiresTextArgument(commandName)) {
-            String errorKey = "errors.missing_argument." + commandName.replaceFirst("^g", "");
-            player.sendMessage(getMessage(errorKey));
+            String errorKey = "errors.not-enough-arguments";
+            String localizedMessage = plugin.getConfigManager().getLocalizedMessage("roleplay", errorKey, player);
+            player.sendMessage(ColorUtil.format(localizedMessage));
             return true;
         }
         String message = String.join(" ", args);
         switch (commandName) {
             case "me":
             case "gme":
-                sendRoleplayMessage(player, range, isGlobal, commandFormats.get(commandName), message);
+                sendRoleplayMessage(player, range, isGlobal, commandName, message);
                 break;
             case "do":
             case "gdo":
-                sendRoleplayMessage(player, range, isGlobal, commandFormats.get(commandName), message);
+                sendRoleplayMessage(player, range, isGlobal, commandName, message);
                 break;
             case "try":
             case "gtry":
@@ -160,7 +163,7 @@ public class RoleplayModule extends AbstractModule implements CommandExecutor {
                 break;
             case "todo":
             case "gtodo":
-                sendRoleplayMessage(player, range, isGlobal, commandFormats.get(commandName), message);
+                sendRoleplayMessage(player, range, isGlobal, commandName, message);
                 break;
             case "roll":
             case "groll":
@@ -179,14 +182,23 @@ public class RoleplayModule extends AbstractModule implements CommandExecutor {
     // Handle try/gtry command
     private void handleTryCommand(Player player, int range, boolean isGlobal, String message) {
         boolean success = random.nextBoolean();
+        // Получаем список результатов из локализации
+        List<String> resultsList = plugin.getConfigManager().getLocalizedMessageList("roleplay", "results", player);
+        // Используем первые два элемента списка для успеха/неудачи
+        // Если список пуст или недостаточно элементов, используем значения по умолчанию
+        String resultText = success ? 
+                (resultsList.size() > 0 ? resultsList.get(0) : "success") : 
+                (resultsList.size() > 1 ? resultsList.get(1) : "failure");
+        
         String formatKey = success ? (isGlobal ? "gtry_success" : "try_success") : (isGlobal ? "gtry_failure" : "try_failure");
-        sendRoleplayMessage(player, range, isGlobal, commandFormats.get(formatKey), message);
+        sendRoleplayMessage(player, range, isGlobal, formatKey, message);
     }
 
     // Handle roll/groll command
     private void handleRollCommand(Player player, int range, boolean isGlobal, String[] args) {
         if (args.length < 2) {
-            player.sendMessage(getMessage("errors.invalid_roll_usage"));
+            String localizedMessage = plugin.getConfigManager().getLocalizedMessage("roleplay", "errors.not-enough-arguments", player);
+            player.sendMessage(ColorUtil.format(localizedMessage));
             return;
         }
         try {
@@ -198,25 +210,95 @@ public class RoleplayModule extends AbstractModule implements CommandExecutor {
                 max = temp;
             }
             int result = random.nextInt(max - min + 1) + min;
-            String format = commandFormats.get(isGlobal ? "groll" : "roll");
-            String formatted = format.replace("{player}", player.getName())
+            
+            // Используем локализованный формат для команды roll/groll
+            String commandKey = isGlobal ? "groll" : "roll";
+            String localizedFormat = plugin.getConfigManager().getLocalizedMessage("roleplay", "format." + commandKey, player);
+            String formatted = localizedFormat.replace("{player}", player.getName())
                     .replace("{min}", String.valueOf(min))
                     .replace("{max}", String.valueOf(max))
                     .replace("{result}", String.valueOf(result));
-            sendRoleplayMessage(player, range, isGlobal, formatted, "");
+            
+            // Отправляем сообщение всем игрокам в зависимости от типа команды (локальная/глобальная)
+            if (isGlobal) {
+                for (Player target : Bukkit.getOnlinePlayers()) {
+                    String targetFormat = plugin.getConfigManager().getLocalizedMessage("roleplay", "format." + commandKey, target);
+                    String targetFormatted = targetFormat.replace("{player}", player.getName())
+                            .replace("{min}", String.valueOf(min))
+                            .replace("{max}", String.valueOf(max))
+                            .replace("{result}", String.valueOf(result));
+                    target.sendMessage(ColorUtil.format(target, targetFormatted));
+                }
+            } else {
+                for (Player target : player.getWorld().getPlayers()) {
+                    if (target.getLocation().distance(player.getLocation()) <= range) {
+                        String targetFormat = plugin.getConfigManager().getLocalizedMessage("roleplay", "format." + commandKey, target);
+                        String targetFormatted = targetFormat.replace("{player}", player.getName())
+                                .replace("{min}", String.valueOf(min))
+                                .replace("{max}", String.valueOf(max))
+                                .replace("{result}", String.valueOf(result));
+                        target.sendMessage(ColorUtil.format(target, targetFormatted));
+                    }
+                }
+            }
         } catch (NumberFormatException e) {
-            player.sendMessage(getMessage("errors.invalid_roll_usage"));
+            String localizedMessage = plugin.getConfigManager().getLocalizedMessage("roleplay", "errors.not-enough-arguments", player);
+            player.sendMessage(ColorUtil.format(localizedMessage));
         }
     }
 
     // Handle ball/gball command
     private void handleBallCommand(Player player, int range, boolean isGlobal, String message) {
-        String answer = magicBallAnswers.get(random.nextInt(magicBallAnswers.size()));
-        String format = commandFormats.get(isGlobal ? "gball" : "ball");
-        String formatted = format.replace("{player}", player.getName())
-                .replace("{question}", message)
-                .replace("{answer}", answer);
-        sendRoleplayMessage(player, range, isGlobal, formatted, "");
+        String commandKey = isGlobal ? "gball" : "ball";
+        
+        // Отправляем сообщение всем игрокам в зависимости от типа команды (локальная/глобальная)
+        if (isGlobal) {
+            for (Player target : Bukkit.getOnlinePlayers()) {
+                // Получаем список результатов для каждого целевого игрока индивидуально
+                List<String> targetResultsList = plugin.getConfigManager().getLocalizedMessageList("roleplay", "results", target);
+                
+                // Выбираем ответ на языке целевого игрока
+                String answer;
+                if (targetResultsList.size() > 2) {
+                    // Выбираем случайный ответ из списка результатов, начиная с индекса 2
+                    int randomIndex = random.nextInt(targetResultsList.size() - 2) + 2;
+                    answer = targetResultsList.get(randomIndex);
+                } else {
+                    // Используем резервный список ответов
+                    answer = magicBallAnswers.get(random.nextInt(magicBallAnswers.size()));
+                }
+                
+                String localizedFormat = plugin.getConfigManager().getLocalizedMessage("roleplay", "format." + commandKey, target);
+                String formatted = localizedFormat.replace("{player}", player.getName())
+                        .replace("{message}", message)
+                        .replace("{result}", answer);
+                target.sendMessage(ColorUtil.format(target, formatted));
+            }
+        } else {
+            for (Player target : player.getWorld().getPlayers()) {
+                if (target.getLocation().distance(player.getLocation()) <= range) {
+                    // Получаем список результатов для каждого целевого игрока индивидуально
+                    List<String> targetResultsList = plugin.getConfigManager().getLocalizedMessageList("roleplay", "results", target);
+                    
+                    // Выбираем ответ на языке целевого игрока
+                    String answer;
+                    if (targetResultsList.size() > 2) {
+                        // Выбираем случайный ответ из списка результатов, начиная с индекса 2
+                        int randomIndex = random.nextInt(targetResultsList.size() - 2) + 2;
+                        answer = targetResultsList.get(randomIndex);
+                    } else {
+                        // Используем резервный список ответов
+                        answer = magicBallAnswers.get(random.nextInt(magicBallAnswers.size()));
+                    }
+                    
+                    String localizedFormat = plugin.getConfigManager().getLocalizedMessage("roleplay", "format." + commandKey, target);
+                    String formatted = localizedFormat.replace("{player}", player.getName())
+                            .replace("{message}", message)
+                            .replace("{result}", answer);
+                    target.sendMessage(ColorUtil.format(target, formatted));
+                }
+            }
+        }
     }
 
     private boolean requiresTextArgument(String commandName) {
@@ -227,21 +309,26 @@ public class RoleplayModule extends AbstractModule implements CommandExecutor {
         if (format == null || format.isEmpty()) {
             format = "{player}: {message}";
         }
-        String formatted = format.replace("{player}", player.getName()).replace("{message}", message);
+        
+        // Получаем правильный ключ формата из локализации
+        String formatKey = "format." + format;
+        
         if (isGlobal) {
             for (Player target : Bukkit.getOnlinePlayers()) {
+                String localizedFormat = plugin.getConfigManager().getLocalizedMessage("roleplay", formatKey, target);
+                String formatted = localizedFormat.replace("{player}", player.getName()).replace("{message}", message);
+                formatted = ColorUtil.format(target, formatted);
                 target.sendMessage(formatted);
             }
         } else {
             for (Player target : player.getWorld().getPlayers()) {
                 if (target.getLocation().distance(player.getLocation()) <= range) {
+                    String localizedFormat = plugin.getConfigManager().getLocalizedMessage("roleplay", formatKey, target);
+                    String formatted = localizedFormat.replace("{player}", player.getName()).replace("{message}", message);
+                    formatted = ColorUtil.format(target, formatted);
                     target.sendMessage(formatted);
                 }
             }
         }
-    }
-
-    private String getMessage(String key) {
-        return config.getString(key, "");
     }
 }

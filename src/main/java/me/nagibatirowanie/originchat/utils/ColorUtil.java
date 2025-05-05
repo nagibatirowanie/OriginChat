@@ -21,9 +21,9 @@ public class ColorUtil {
 
     // Pattern for HEX colors in &#RRGGBB or #RRGGBB format
     private static final Pattern HEX_PATTERN = Pattern.compile("(&#|#)([A-Fa-f0-9]{6})");
-    
+
     private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
-    
+
     private static final Map<String, String> COLOR_MAP = new HashMap<String, String>() {{
         put("&0", "<black>");
         put("&1", "<dark_blue>");
@@ -55,10 +55,9 @@ public class ColorUtil {
             .build();
 
     private static Boolean placeholderAPIEnabled = null;
-    
+
     /**
-     * Check if PlaceholderAPI is installed
-     * @return true if PlaceholderAPI is installed
+     * Проверяет, установлен ли PlaceholderAPI
      */
     public static boolean isPlaceholderAPIEnabled() {
         if (placeholderAPIEnabled == null) {
@@ -66,12 +65,9 @@ public class ColorUtil {
         }
         return placeholderAPIEnabled;
     }
-    
+
     /**
-     * Replace PlaceholderAPI placeholders in the text
-     * @param player player for which placeholders are replaced
-     * @param text text with placeholders
-     * @return text with replaced placeholders or original text, if replacement is impossible
+     * Заменяет PlaceholderAPI плейсхолдеры в тексте
      */
     public static String setPlaceholders(Player player, String text) {
         if (text == null || text.isEmpty()) return "";
@@ -94,26 +90,18 @@ public class ColorUtil {
         }
         return text;
     }
-    
-    /**
-     * Format text with support for all formatting types
-     * @param text text to be formatted
-     * @return formatted text
-     */
 
+    /**
+     * Форматирует строку: &-коды, hex, MiniMessage → MiniMessage → Component → legacy string
+     */
     public static String format(String text) {
         if (text == null || text.isEmpty()) return "";
-        
         Component component = toComponent(text);
-        
         return LEGACY_SERIALIZER.serialize(component);
     }
-    
+
     /**
-     * Format text with support for all formatting types and placeholders replacement
-     * @param player player for which placeholders are replaced
-     * @param text text to be formatted
-     * @return formatted text with replaced placeholders
+     * Форматирует строку с плейсхолдерами для игрока
      */
     public static String format(Player player, String text) {
         if (text == null || text.isEmpty()) return "";
@@ -122,127 +110,68 @@ public class ColorUtil {
     }
 
     /**
-     * Format text with support for standard Minecraft color codes (&a, &b, etc.)
-     * @param text text to format
-     * @return formatted text
-     */
-    public static String formatLegacyColors(String text) {
-        if (text == null || text.isEmpty()) return "";
-        return ChatColor.translateAlternateColorCodes('&', text);
-    }
-
-    /**
-     * Format text with HEX color support (#RRRGGBB or &#RRRGGBB)
-     * @param text text to be formatted
-     * @return formatted text
-     */
-    public static String formatHexColors(String text) {
-        if (text == null || text.isEmpty()) return "";
-        
-        Matcher matcher = HEX_PATTERN.matcher(text);
-        StringBuffer buffer = new StringBuffer();
-        
-        while (matcher.find()) {
-            String hex = matcher.group(2);
-            String replacement = net.md_5.bungee.api.ChatColor.of("#" + hex).toString();
-            matcher.appendReplacement(buffer, replacement);
-        }
-        
-        matcher.appendTail(buffer);
-        return buffer.toString();
-    }
-
-    /**
-     * Format text with MiniMessage tag support (<bold>, <color:#RRGGBB>, etc.)
-     * @param text text to format
-     * @return formatted text
-     */
-    public static String formatMiniMessage(String text) {
-        if (text == null || text.isEmpty()) return "";
-        
-        try {
-            Component component = MINI_MESSAGE.deserialize(text);
-            
-            return LEGACY_SERIALIZER.serialize(component);
-        } catch (Exception e) {
-            Bukkit.getLogger().warning("Ошибка при обработке MiniMessage: " + e.getMessage());
-            return text;
-        }
-    }
-
-    /**
-     * Create a component from text with support for all formatting types
-     * @param text text for formatting
-     * @return Adventure API component
-     */
-    public static Component toComponent(String text) {
-        if (text == null || text.isEmpty()) return Component.empty();
-        
-        if (text.contains("<") && text.contains(">")) {
-            try {
-                return MINI_MESSAGE.deserialize(convertToMiniMessage(text));
-            } catch (Exception e) {
-                Bukkit.getLogger().warning("Ошибка при создании компонента через MiniMessage: " + e.getMessage());
-            }
-        }
-        
-        String miniMessageText = text;
-        if (miniMessageText.contains("&") || miniMessageText.contains("#")) {
-            miniMessageText = convertToMiniMessage(miniMessageText);
-            return MINI_MESSAGE.deserialize(miniMessageText);
-        }
-        
-        return Component.text(text);
-    }
-    
-    /**
-     * Create a component from text with support for all types of formatting and placeholders
-     * @param player player for which placeholders are replaced
-     * @param text text for formatting
-     * @return Adventure API component
-     */
-    public static Component toComponent(Player player, String text) {
-        if (text == null || text.isEmpty()) return Component.empty();
-        
-        String processed = setPlaceholders(player, text);
-        
-        return toComponent(processed);
-    }
-
-    /**
-     * Remove all color codes from text
-     * @param text text to be processed
-     * @return text without color codes
+     * Удаляет все цветовые коды из текста
      */
     public static String stripColors(String text) {
         if (text == null || text.isEmpty()) return "";
         return ChatColor.stripColor(text);
     }
-    
 
     /**
-     * Convert standard color codes to MiniMessage format
-     * @param text text with color codes
-     * @return text with MiniMessage tags
+     * Преобразует строку с &-кодами и hex-цветами в MiniMessage-строку
      */
     public static String convertToMiniMessage(String text) {
         if (text == null || text.isEmpty()) return "";
-        
-        String result = text;
-        for (Map.Entry<String, String> entry : COLOR_MAP.entrySet()) {
-            result = result.replace(entry.getKey(), entry.getValue());
+
+        // Сначала заменяем все символы § на &
+        text = text.replace('§', '&');
+
+        // HEX цвета: &#RRGGBB или #RRGGBB -> <#RRGGBB>
+        String result = HEX_PATTERN.matcher(text).replaceAll(match -> "<color:#" + match.group(2) + ">");
+
+        // &-коды -> MiniMessage теги
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < result.length(); ) {
+            boolean replaced = false;
+            for (Map.Entry<String, String> entry : COLOR_MAP.entrySet()) {
+                String code = entry.getKey();
+                if (result.startsWith(code, i)) {
+                    sb.append(entry.getValue());
+                    i += code.length();
+                    replaced = true;
+                    break;
+                }
+            }
+            if (!replaced) {
+                sb.append(result.charAt(i));
+                i++;
+            }
         }
-        
-        Matcher matcher = HEX_PATTERN.matcher(result);
-        StringBuffer buffer = new StringBuffer();
-        
-        while (matcher.find()) {
-            String hex = matcher.group(2);
-            matcher.appendReplacement(buffer, "<color:#" + hex + ">");
-        }
-        
-        matcher.appendTail(buffer);
-        return buffer.toString();
+        return sb.toString();
     }
-    
+
+    /**
+     * Создаёт компонент из строки с поддержкой &-кодов, hex и MiniMessage
+     */
+    public static Component toComponent(String text) {
+        if (text == null || text.isEmpty()) return Component.empty();
+
+        // Всегда сначала конвертируем в MiniMessage
+        String miniMsg = convertToMiniMessage(text);
+        try {
+            return MINI_MESSAGE.deserialize(miniMsg);
+        } catch (Exception e) {
+            Bukkit.getLogger().warning("Ошибка при создании компонента через MiniMessage: " + e.getMessage());
+            return Component.text(stripColors(text));
+        }
+    }
+
+    /**
+     * Создаёт компонент из строки с поддержкой плейсхолдеров для игрока
+     */
+    public static Component toComponent(Player player, String text) {
+        if (text == null || text.isEmpty()) return Component.empty();
+        String processed = setPlaceholders(player, text);
+        return toComponent(processed);
+    }
 }

@@ -103,20 +103,24 @@ public class PrivateMessageModule extends AbstractModule implements CommandExecu
         try {
             enabled = config.getBoolean("enabled", true);
             
-            senderFormat = config.getString("format.sender", "&7Вы &8-> &7{receiver}: &f{message}");
-            receiverFormat = config.getString("format.receiver", "&7{sender} &8-> &7Вам: &f{message}");
+            // Загружаем форматы сообщений из конфигурации как резервные варианты
+            // Основные форматы будут загружаться из файлов локализации
+            senderFormat = config.getString("format.sender", "&7You &8-> &7{receiver}: &f{message}");
+            receiverFormat = config.getString("format.receiver", "&7{sender} &8-> &7You: &f{message}");
             
+            // Загружаем сообщения из конфигурации как резервные варианты
+            // Основные сообщения будут загружаться из файлов локализации при вызове
             ConfigurationSection messagesSection = config.getConfigurationSection("messages");
             if (messagesSection != null) {
-                msgNotAPlayer = messagesSection.getString("not-a-player", "&cЭта команда доступна только для игроков!");
-                msgPlayerNotSpecified = messagesSection.getString("player-not-specified", "&cУкажите имя игрока!");
-                msgMessageNotSpecified = messagesSection.getString("message-not-specified", "&cВведите сообщение!");
-                msgPlayerNotFound = messagesSection.getString("player-not-found", "&cИгрок {player} не найден или не в сети!");
-                msgCannotMessageYourself = messagesSection.getString("cannot-message-yourself", "&cВы не можете отправить сообщение самому себе!");
-                msgNoReplyTarget = messagesSection.getString("no-reply-target", "&cНекому ответить! Сначала отправьте кому-нибудь сообщение.");
+                msgNotAPlayer = messagesSection.getString("not-a-player", "&cThis command is only available to players!");
+                msgPlayerNotSpecified = messagesSection.getString("player-not-specified", "&cPlease specify a player name!");
+                msgMessageNotSpecified = messagesSection.getString("message-not-specified", "&cPlease enter a message!");
+                msgPlayerNotFound = messagesSection.getString("player-not-found", "&cPlayer {player} not found or not online!");
+                msgCannotMessageYourself = messagesSection.getString("cannot-message-yourself", "&cYou cannot message yourself!");
+                msgNoReplyTarget = messagesSection.getString("no-reply-target", "&cNo one to reply to! Send a message to someone first.");
             }
         } catch (Exception e) {
-            plugin.getPluginLogger().severe("❗ Error loading ServerMessages settings: " + e.getMessage());
+            plugin.getPluginLogger().severe("❗ Error loading PrivateMessages settings: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -124,7 +128,8 @@ public class PrivateMessageModule extends AbstractModule implements CommandExecu
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
-            sender.sendMessage(ColorUtil.format(msgNotAPlayer));
+            String localizedMessage = plugin.getConfigManager().getLocalizedMessage("private_messages", "messages.not-a-player", (Player)null);
+            sender.sendMessage(ColorUtil.format(localizedMessage));
             return true;
         }
 
@@ -132,24 +137,29 @@ public class PrivateMessageModule extends AbstractModule implements CommandExecu
 
         if (command.getName().equalsIgnoreCase("msg")) {
             if (args.length == 0) {
-                player.sendMessage(ColorUtil.format(msgPlayerNotSpecified));
+                String localizedMessage = plugin.getConfigManager().getLocalizedMessage("private_messages", "messages.player-not-specified", player);
+                player.sendMessage(ColorUtil.format(player, localizedMessage));
                 return true;
             }
 
             if (args.length == 1) {
-                player.sendMessage(ColorUtil.format(msgMessageNotSpecified));
+                String localizedMessage = plugin.getConfigManager().getLocalizedMessage("private_messages", "messages.message-not-specified", player);
+                player.sendMessage(ColorUtil.format(player, localizedMessage));
                 return true;
             }
 
             Player target = Bukkit.getPlayerExact(args[0]);
 
             if (target == null || !target.isOnline()) {
-                player.sendMessage(ColorUtil.format(msgPlayerNotFound.replace("{player}", args[0])));
+                String localizedMessage = plugin.getConfigManager().getLocalizedMessage("private_messages", "messages.player-not-found", player);
+                localizedMessage = localizedMessage.replace("{player}", args[0]);
+                player.sendMessage(ColorUtil.format(player, localizedMessage));
                 return true;
             }
 
             if (target.getUniqueId().equals(player.getUniqueId())) {
-                player.sendMessage(ColorUtil.format(msgCannotMessageYourself));
+                String localizedMessage = plugin.getConfigManager().getLocalizedMessage("private_messages", "messages.cannot-message-yourself", player);
+                player.sendMessage(ColorUtil.format(player, localizedMessage));
                 return true;
             }
 
@@ -160,13 +170,15 @@ public class PrivateMessageModule extends AbstractModule implements CommandExecu
 
         if (command.getName().equalsIgnoreCase("r")) {
             if (args.length == 0) {
-                player.sendMessage(ColorUtil.format(msgMessageNotSpecified));
+                String localizedMessage = plugin.getConfigManager().getLocalizedMessage("private_messages", "messages.message-not-specified", player);
+                player.sendMessage(ColorUtil.format(player, localizedMessage));
                 return true;
             }
 
             Player lastTarget = lastMessageMap.get(player);
             if (lastTarget == null || !lastTarget.isOnline()) {
-                player.sendMessage(ColorUtil.format(msgNoReplyTarget));
+                String localizedMessage = plugin.getConfigManager().getLocalizedMessage("private_messages", "messages.no-reply-target", player);
+                player.sendMessage(ColorUtil.format(player, localizedMessage));
                 return true;
             }
 
@@ -179,23 +191,33 @@ public class PrivateMessageModule extends AbstractModule implements CommandExecu
     }
 
     private void sendPrivateMessage(Player sender, Player receiver, String message) {
-        String formattedSenderMessage = formatMessage(senderFormat, sender, receiver, message);
-        String formattedReceiverMessage = formatMessage(receiverFormat, sender, receiver, message);
+        // Get localized format for sender
+        String senderLocalizedFormat = plugin.getConfigManager().getLocalizedMessage("private_messages", "format.sender", sender);
+        if (senderLocalizedFormat.isEmpty() || senderLocalizedFormat.startsWith("§cMessage not found")) {
+            senderLocalizedFormat = senderFormat;
+        }
+        
+        // Get localized format for receiver
+        String receiverLocalizedFormat = plugin.getConfigManager().getLocalizedMessage("private_messages", "format.receiver", receiver);
+        if (receiverLocalizedFormat.isEmpty() || receiverLocalizedFormat.startsWith("§cMessage not found")) {
+            receiverLocalizedFormat = receiverFormat;
+        }
+        
+        String formattedSenderMessage = formatMessage(senderLocalizedFormat, sender, receiver, message);
+        String formattedReceiverMessage = formatMessage(receiverLocalizedFormat, sender, receiver, message);
 
-        sender.sendMessage(formattedSenderMessage);
-        receiver.sendMessage(formattedReceiverMessage);
+        sender.sendMessage(ColorUtil.toComponent(sender, formattedSenderMessage));
+        receiver.sendMessage(ColorUtil.toComponent(receiver, formattedReceiverMessage));
 
         lastMessageMap.put(sender, receiver);
         lastMessageMap.put(receiver, sender);
     }
 
     private String formatMessage(String format, Player sender, Player receiver, String message) {
-        String result = format
+        return format
                 .replace("{sender}", sender.getName())
                 .replace("{receiver}", receiver.getName())
                 .replace("{message}", message);
-
-        return ColorUtil.format(sender, result);
     }
 
     @Override

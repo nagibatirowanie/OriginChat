@@ -48,15 +48,76 @@ modules:
   server_messages:
     name: "Серверные сообщения"
     description: "Управление сообщениями входа/выхода игроков"
+    join_messages:
+      - "&a+ &f{player} &7присоединился к серверу"
+      - "&aДобро пожаловать, &f{player}!"
+      - "&aИгрок &f{player} &aзашел на сервер"
+    leave_messages:
+      - "&c- &f{player} &7покинул сервер"
+      - "&cИгрок &f{player} &cпокинул сервер"
+      - "&f{player} &7отключился"
+    personal_welcome_messages:
+      - "&6Добро пожаловать на сервер, &f{player}&6!"
+      - "&6Приятной игры, &f{player}&6!"
+      - "&6Рады видеть вас снова, &f{player}&6!"
   private_messages:
     name: "Приватные сообщения"
     description: "Модуль для отправки личных сообщений между игроками"
+    format:
+      sender: "&7Вы &8-> &7{receiver}: &f{message}"
+      receiver: "&7{sender} &8-> &7Вам: &f{message}"
+    messages:
+      not-a-player: "&cЭта команда доступна только для игроков!"
+      player-not-specified: "&cПожалуйста, укажите имя игрока!"
+      message-not-specified: "&cПожалуйста, введите сообщение!"
+      player-not-found: "&cИгрок {player} не найден или не в сети!"
+      cannot-message-yourself: "&cВы не можете отправить сообщение самому себе!"
+      no-reply-target: "&cНекому ответить! Сначала отправьте кому-нибудь сообщение."
   locale_deaths:
     name: "Локализованные смерти"
     description: "Модуль для отображения локализованных сообщений о смерти"
   roleplay:
     name: "Ролевая игра"
     description: "Добавляет команды и функции для ролевой игры"
+    format:
+      # Локальные форматы ролевой игры
+      me: "&d* {player} {message}"
+      do: "&e[ДЕЙСТВИЕ] {player}: {message}"
+      try: "&6[ПРОБА] {player}: {message} ({result})"
+      todo: "&b[ЗАДАЧА] {player}: {message}"
+      ball: "&a[ШАР] {player}: {message} — {result}"
+      # Глобальные форматы ролевой игры
+      gme: "&d[ГЛОБАЛЬНО] * {player} {message}"
+      gdo: "&e[ГЛОБАЛЬНО] [ДЕЙСТВИЕ] {player}: {message}"
+      gtry: "&6[ГЛОБАЛЬНО] [ПРОБА] {player}: {message} ({result})"
+      gtodo: "&b[ГЛОБАЛЬНО] [ЗАДАЧА] {player}: {message}"
+      gball: "&a[ГЛОБАЛЬНО] [ШАР] {player}: {message} — {result}"
+      # Форматы команды roll
+      roll: "&9[КОСТИ] {player} бросает {min}-{max}: &b{result}"
+      groll: "&9[ГЛОБАЛЬНО] [КОСТИ] {player} бросает {min}-{max}: &b{result}"
+      # Результаты команды try
+      try_success: "&6[ПРОБА] {player}: {message} (&aуспех&6)"
+      try_failure: "&6[ПРОБА] {player}: {message} (&cнеудача&6)"
+      gtry_success: "&6[ГЛОБАЛЬНО] [ПРОБА] {player}: {message} (&aуспех&6)"
+      gtry_failure: "&6[ГЛОБАЛЬНО] [ПРОБА] {player}: {message} (&cнеудача&6)"
+    errors:
+      player-not-found: "&cИгрок {player} не найден или не в сети!"
+      cannot-target-yourself: "&cВы не можете использовать эту команду на себе!"
+      not-enough-arguments: "&cНедостаточно аргументов!"
+      not-a-player: "&cЭта команда доступна только для игроков!"
+      unknown-result: "&cНеизвестный результат!"
+    results:
+      - "успех"
+      - "неудача"
+      - "да"
+      - "нет"
+      - "может быть"
   tab:
     name: "Таб-лист"
     description: "Настраивает список игроков в табе"
+    header:
+      - "&bДобро пожаловать на сервер!"
+      - "&7Онлайн: {online}/{max_online}"
+    footer:
+      - "&eПриятной игры!"
+      - "&7discord.gg/yourserver"

@@ -265,6 +265,47 @@ public class LocaleManager {
     }
     
     /**
+     * Get message list from locale
+     * @param key message key
+     * @param locale locale name
+     * @return message list or empty list if not found
+     */
+    // public java.util.List<String> getMessageList(String key, String locale) {
+    //     // Extract base language from locale if it contains country code (e.g. en_US -> en)
+    //     String baseLocale = locale;
+    //     if (locale.contains("_")) {
+    //         baseLocale = locale.split("_")[0].toLowerCase();
+    //     }
+        
+    //     // Try to get locale config
+    //     FileConfiguration localeConfig = locales.getOrDefault(baseLocale, defaultLocale);
+        
+    //     if (localeConfig == null) {
+    //         return java.util.Collections.emptyList();
+    //     }
+        
+    //     java.util.List<String> messages = localeConfig.getStringList(key);
+        
+    //     // If message list is empty in specified locale, try to find in default locale
+    //     if (messages.isEmpty() && localeConfig != defaultLocale && defaultLocale != null) {
+    //         messages = defaultLocale.getStringList(key);
+    //     }
+        
+    //     return messages;
+    // }
+    
+    /**
+     * Get message list for player
+     * @param key message key
+     * @param player player
+     * @return message list
+     */
+    public java.util.List<String> getMessageList(String key, Player player) {
+        String locale = getPlayerLocale(player);
+        return getMessageList(key, locale);
+    }
+    
+    /**
      * Set default locale
      * @param defaultLanguage default locale
      */

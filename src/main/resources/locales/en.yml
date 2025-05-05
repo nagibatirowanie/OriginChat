@@ -49,15 +49,76 @@ modules:
   server_messages:
     name: "Server Messages"
     description: "Manage player join/leave messages"
+    join_messages:
+      - "&a+ &f{player} &7joined the server"
+      - "&aWelcome, &f{player}!"
+      - "&aPlayer &f{player} &ajoined the server"
+    leave_messages:
+      - "&c- &f{player} &7left the server"
+      - "&cPlayer &f{player} &cleft the server"
+      - "&f{player} &7disconnected"
+    personal_welcome_messages:
+      - "&6Welcome to the server, &f{player}&6!"
+      - "&6Enjoy your game, &f{player}&6!"
+      - "&6Glad to see you again, &f{player}&6!"
   private_messages:
     name: "Private Messages"
     description: "Module for sending private messages between players"
+    format:
+      sender: "&7You &8-> &7{receiver}: &f{message}"
+      receiver: "&7{sender} &8-> &7You: &f{message}"
+    messages:
+      not-a-player: "&cThis command is only available to players!"
+      player-not-specified: "&cPlease specify a player name!"
+      message-not-specified: "&cPlease enter a message!"
+      player-not-found: "&cPlayer {player} not found or not online!"
+      cannot-message-yourself: "&cYou cannot message yourself!"
+      no-reply-target: "&cNo one to reply to! Send a message to someone first."
   locale_deaths:
     name: "Locale Deaths"
     description: "Module for displaying localized death messages"
   roleplay:
     name: "Roleplay"
     description: "Adds roleplay commands and features"
+    format:
+      # Local roleplay formats
+      me: "&d* {player} {message}"
+      do: "&e[DO] {player}: {message}"
+      try: "&6[TRY] {player}: {message} ({result})"
+      todo: "&b[TODO] {player}: {message}"
+      ball: "&a[BALL] {player}: {message} — {result}"
+      # Global roleplay formats
+      gme: "&d[GLOBAL] * {player} {message}"
+      gdo: "&e[GLOBAL] [DO] {player}: {message}"
+      gtry: "&6[GLOBAL] [TRY] {player}: {message} ({result})"
+      gtodo: "&b[GLOBAL] [TODO] {player}: {message}"
+      gball: "&a[GLOBAL] [BALL] {player}: {message} — {result}"
+      # Roll command formats
+      roll: "&9[ROLL] {player} rolls {min}-{max}: &b{result}"
+      groll: "&9[GLOBAL] [ROLL] {player} rolls {min}-{max}: &b{result}"
+      # Try command results
+      try_success: "&6[TRY] {player}: {message} (&asuccess&6)"
+      try_failure: "&6[TRY] {player}: {message} (&cfailure&6)"
+      gtry_success: "&6[GLOBAL] [TRY] {player}: {message} (&asuccess&6)"
+      gtry_failure: "&6[GLOBAL] [TRY] {player}: {message} (&cfailure&6)"
+    errors:
+      player-not-found: "&cPlayer {player} not found or not online!"
+      cannot-target-yourself: "&cYou cannot use this command on yourself!"
+      not-enough-arguments: "&cNot enough arguments!"
+      not-a-player: "&cThis command is only available to players!"
+      unknown-result: "&cUnknown result!"
+    results:
+      - "success"
+      - "failure"
+      - "yes"
+      - "no"
+      - "maybe"
   tab:
     name: "Tab"
     description: "Customizes the player tab list"
+    header:
+      - "&bWelcome to the server!"
+      - "&7Online: {online}/{max_online}"
+    footer:
+      - "&eEnjoy your game!"
+      - "&7discord.gg/yourserver"

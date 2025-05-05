@@ -3,6 +3,7 @@ package me.nagibatirowanie.originchat.config;
 import me.nagibatirowanie.originchat.OriginChat;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 
 import java.io.File;
 import java.io.IOException;
@@ -10,6 +11,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -125,11 +127,116 @@ public class ConfigManager {
     }
     
     /**
+     * Get localized message from module config
+     * @param moduleName module name without .yml extension
+     * @param path path to message in config
+     * @param locale locale code (e.g. "en", "ru")
+     * @return localized message or message from default locale if not found
+     */
+    public String getLocalizedMessage(String moduleName, String path, String locale) {
+        // Try to get message from locale file first
+        String localeKey = "modules." + moduleName + "." + path;
+        String message = plugin.getLocaleManager().getMessage(localeKey, locale);
+        
+        // If message is not found in locale file (returns key with error prefix), try to get from module config
+        if (message.startsWith("§cMessage not found") || message.equals(localeKey)) {
+            FileConfiguration moduleConfig = getConfig("modules/" + moduleName);
+            if (moduleConfig != null && moduleConfig.contains(path)) {
+                return moduleConfig.getString(path);
+            }
+        }
+        
+        return message;
+    }
+    
+    /**
+     * Get localized message from module config
+     * @param moduleName module name without .yml extension
+     * @param path path to message in config
+     * @param player player to get locale from, can be null (will use default locale)
+     * @return localized message
+     */
+    public String getLocalizedMessage(String moduleName, String path, Player player) {
+        String locale;
+        if (player != null) {
+            locale = plugin.getLocaleManager().getPlayerLocale(player);
+        } else {
+            locale = plugin.getLocaleManager().getDefaultLanguage();
+        }
+        
+        return getLocalizedMessage(moduleName, path, locale);
+    }
+    
+    /**
+     * Get localized string list
+     * @param module module name
+     * @param key list key
+     * @param player player for locale detection
+     * @return localized string list or empty list if not found
+     */
+    public List<String> getLocalizedStringList(String module, String key, Player player) {
+        String locale = plugin.getLocaleManager().getPlayerLocale(player);
+        
+        // Try to get list from player's locale
+        List<String> list = getLocalizedMessageList(module, key, locale);
+        
+        // If not found, try to get from default locale
+        if (list == null || list.isEmpty()) {
+            list = getLocalizedMessageList(module, key, plugin.getLocaleManager().getDefaultLanguage());
+        }
+        
+        return list != null ? list : List.of();
+    }
+    
+    /**
      * Get main config
      * @return main config
      */
     public FileConfiguration getMainConfig() {
         return mainConfig;
+    }
+    
+    /**
+     * Get localized message list from module config
+     * @param moduleName module name without .yml extension
+     * @param path path to message list in config
+     * @param locale locale code (e.g. "en", "ru")
+     * @return localized message list or message list from default locale if not found
+     */
+    public List<String> getLocalizedMessageList(String moduleName, String path, String locale) {
+        // Try to get message list from locale file first
+        String localeKey = "modules." + moduleName + "." + path;
+        List<String> messages = plugin.getLocaleManager().getMessageList(localeKey, locale);
+        
+        // If message list is empty or contains error message, try to get from module config
+        if (messages.isEmpty() || 
+            (messages.size() == 1 && (messages.get(0).startsWith("§cMessage list not found") || 
+                                     messages.get(0).equals(localeKey)))) {
+            FileConfiguration moduleConfig = getConfig("modules/" + moduleName);
+            if (moduleConfig != null && moduleConfig.contains(path)) {
+                return moduleConfig.getStringList(path);
+            }
+        }
+        
+        return messages;
+    }
+    
+    /**
+     * Get localized message list from module config
+     * @param moduleName module name without .yml extension
+     * @param path path to message list in config
+     * @param player player to get locale from, can be null (will use default locale)
+     * @return localized message list
+     */
+    public List<String> getLocalizedMessageList(String moduleName, String path, Player player) {
+        String locale;
+        if (player != null) {
+            locale = plugin.getLocaleManager().getPlayerLocale(player);
+        } else {
+            locale = plugin.getLocaleManager().getDefaultLanguage();
+        }
+        
+        return getLocalizedMessageList(moduleName, path, locale);
     }
     
     /**

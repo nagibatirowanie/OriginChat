@@ -72,9 +72,14 @@ public class ServerMessagesModule extends AbstractModule implements Listener {
             joinMessageEnabled = config.getBoolean("join_message_enabled", true);
             leaveMessageEnabled = config.getBoolean("leave_message_enabled", true);
             personalWelcomeEnabled = config.getBoolean("personal_welcome_enabled", true);
+            
+            // Загружаем сообщения из конфигурации только как резервные варианты
+            // Основные сообщения будут загружаться из файлов локализации
             joinMessages = config.getStringList("join_messages");
             leaveMessages = config.getStringList("leave_messages");
             personalWelcomeMessages = config.getStringList("personal_welcome_messages");
+            
+            // Устанавливаем значения по умолчанию, если списки пусты
             if (joinMessages.isEmpty()) {
                 joinMessages.add("&a+ &f{player} &7joined the server");
                 config.set("join_messages", joinMessages);
@@ -97,13 +102,38 @@ public class ServerMessagesModule extends AbstractModule implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        if (personalWelcomeEnabled && !personalWelcomeMessages.isEmpty()) {
-            String welcomeMessage = getRandomMessage(personalWelcomeMessages, player);
-            player.sendMessage(ColorUtil.toComponent(player, welcomeMessage));
+        
+        // Send personal welcome message to the player in their language
+        if (personalWelcomeEnabled) {
+            List<String> localizedWelcomeMessages = plugin.getConfigManager().getLocalizedMessageList("server_messages", "personal_welcome_messages", player);
+            if (!localizedWelcomeMessages.isEmpty()) {
+                String welcomeMessage = getRandomMessage(localizedWelcomeMessages);
+                welcomeMessage = welcomeMessage.replace("{player}", player.getName());
+                player.sendMessage(ColorUtil.toComponent(player, welcomeMessage));
+            }
         }
-        if (joinMessageEnabled && !joinMessages.isEmpty()) {
-            String joinMessage = getRandomMessage(joinMessages, player);
-            event.joinMessage(ColorUtil.toComponent(player, joinMessage));
+        
+        // Set join message that will be shown to all players
+        if (joinMessageEnabled) {
+            // We need to create a component that will be shown differently to each player based on their locale
+            String baseJoinMessage = getRandomMessage(joinMessages);
+            baseJoinMessage = baseJoinMessage.replace("{player}", player.getName());
+            
+            // Set the join message to null first to prevent the default message
+            event.joinMessage(null);
+            
+            // Then broadcast a custom message to each player in their own language
+            for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+                List<String> localizedJoinMessages = plugin.getConfigManager().getLocalizedMessageList("server_messages", "join_messages", onlinePlayer);
+                if (!localizedJoinMessages.isEmpty()) {
+                    String localizedMessage = getRandomMessage(localizedJoinMessages);
+                    localizedMessage = localizedMessage.replace("{player}", player.getName());
+                    onlinePlayer.sendMessage(ColorUtil.toComponent(onlinePlayer, localizedMessage));
+                } else {
+                    // Fallback to config message if localization is not available
+                    onlinePlayer.sendMessage(ColorUtil.toComponent(onlinePlayer, baseJoinMessage));
+                }
+            }
         } else {
             event.joinMessage(null);
         }
@@ -112,22 +142,45 @@ public class ServerMessagesModule extends AbstractModule implements Listener {
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
-        if (leaveMessageEnabled && !leaveMessages.isEmpty()) {
-            String leaveMessage = getRandomMessage(leaveMessages, player);
-            event.quitMessage(ColorUtil.toComponent(player, leaveMessage));
+        
+        if (leaveMessageEnabled) {
+            // We need to create a component that will be shown differently to each player based on their locale
+            String baseLeaveMessage = getRandomMessage(leaveMessages);
+            baseLeaveMessage = baseLeaveMessage.replace("{player}", player.getName());
+            
+            // Set the quit message to null first to prevent the default message
+            event.quitMessage(null);
+            
+            // Then broadcast a custom message to each player in their own language
+            for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+                // Skip the player who is leaving
+                if (onlinePlayer.equals(player)) continue;
+                
+                List<String> localizedLeaveMessages = plugin.getConfigManager().getLocalizedMessageList("server_messages", "leave_messages", onlinePlayer);
+                if (!localizedLeaveMessages.isEmpty()) {
+                    String localizedMessage = getRandomMessage(localizedLeaveMessages);
+                    localizedMessage = localizedMessage.replace("{player}", player.getName());
+                    onlinePlayer.sendMessage(ColorUtil.toComponent(onlinePlayer, localizedMessage));
+                } else {
+                    // Fallback to config message if localization is not available
+                    onlinePlayer.sendMessage(ColorUtil.toComponent(onlinePlayer, baseLeaveMessage));
+                }
+            }
         } else {
             event.quitMessage(null);
         }
     }
 
-    // Get random message from list and replace placeholders
-    private String getRandomMessage(List<String> messages, Player player) {
-        String message = messages.get(new Random().nextInt(messages.size()));
-        return message.replace("{player}", player.getName());
+    // Get random message from list
+    private String getRandomMessage(List<String> messages) {
+        if (messages == null || messages.isEmpty()) {
+            return "";
+        }
+        return messages.get(new Random().nextInt(messages.size()));
     }
 
     // Get random message from list
-    private String getRandomMessage(List<String> messages) {
-        return messages.get(new Random().nextInt(messages.size()));
-    }
+    //private String getRandomMessage(List<String> messages) {
+        //return messages.get(new Random().nextInt(messages.size()));
+    //}
 }
