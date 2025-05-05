@@ -1,0 +1,62 @@
+# Русская локализация OriginChat
+version: 1
+
+commands:
+  no_permission: "&cУ вас нет прав для выполнения этой команды!"
+  unknown_command: "&cНеизвестная команда. Используйте /originchat help для справки."
+  plugin_reloaded: "&aПлагин OriginChat успешно перезагружен!"
+  
+  module:
+    usage: "&cИспользование: /originchat module <list|enable|disable|reload> [имя_модуля]"
+    specify_module_enable: "&cУкажите имя модуля для включения!"
+    specify_module_disable: "&cУкажите имя модуля для выключения!"
+    specify_module_reload: "&cУкажите имя модуля для перезагрузки!"
+    module_enabled: "&aМодуль '{module}' успешно включен!"
+    module_enable_failed: "&cНе удалось включить модуль '{module}'!"
+    module_disabled: "&aМодуль '{module}' успешно выключен!"
+    module_disable_failed: "&cНе удалось выключить модуль '{module}'!"
+    module_reloaded: "&aМодуль '{module}' успешно перезагружен!"
+    module_reload_failed: "&cНе удалось перезагрузить модуль '{module}'!"
+  
+  help:
+    lines:
+      - "&7===== &bOriginChat &7====="
+      - "&b/originchat help &7- Показать справку"
+      - "&b/originchat reload &7- Перезагрузить плагин"
+      - "&b/originchat module list &7- Список модулей"
+      - "&b/originchat module enable <имя> &7- Включить модуль"
+      - "&b/originchat module disable <имя> &7- Выключить модуль"
+      - "&b/originchat module reload <имя> &7- Перезагрузить модуль"
+      - "&7========================="
+  
+  module_list:
+    lines:
+      - "&7===== &bМодули OriginChat &7====="
+      - "&7=========================="
+    module_info: "&b{name} &7({id}) - {status}"
+    module_description: "  &7{description}"
+    status_enabled: "&aВключен"
+    status_disabled: "&cВыключен"
+
+modules:
+  locale_advancements:
+    name: "Локализованные достижения"
+    description: "Модуль для отображения локализованных сообщений о достижениях"
+  chat:
+    name: "Чат"
+    description: "Добавляет распределение и форматирование чата"
+  server_messages:
+    name: "Серверные сообщения"
+    description: "Управление сообщениями входа/выхода игроков"
+  private_messages:
+    name: "Приватные сообщения"
+    description: "Модуль для отправки личных сообщений между игроками"
+  locale_deaths:
+    name: "Локализованные смерти"
+    description: "Модуль для отображения локализованных сообщений о смерти"
+  roleplay:
+    name: "Ролевая игра"
+    description: "Добавляет команды и функции для ролевой игры"
+  tab:
+    name: "Таб-лист"
+    description: "Настраивает список игроков в табе"

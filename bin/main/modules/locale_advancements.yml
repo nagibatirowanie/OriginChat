@@ -1,27 +1,28 @@
-# Конфигурация модуля локализованных достижений
+# Localized advancements module configuration
+version: 1
 
 advancements:
-  # Включить модуль
+  # Enable module
   enabled: true
   
-  # Отключить стандартные сообщения о достижениях
+  # Disable vanilla advancement messages
   disable-vanilla-messages: true
   
-  # Формат сообщения по умолчанию
-  default_format: "&7{player} получил достижение &b{title}"
+  # Default message format
+  default_format: "&7{player} has made the advancement &b{title}"
   
-  # Форматы для разных локалей
+  # Formats for different locales
   formats:
     en_us: "&7{player} has made the advancement &b{title}"
     ru_ru: "&7{player} получил достижение &b{title}"
   
-  # Цвета для элементов сообщения
+  # Colors for message elements
   colors:
     player_name: "#2f67e0"
     title: "#1d52c4"
     goal: "#2f67e0"
   
-  # Исключенные достижения (не будут отображаться)
+  # Excluded advancements (will not be displayed)
   excluded:
     - "minecraft:story/root"
     - "minecraft:nether/root"

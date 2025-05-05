@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Менеджер конфигураций плагина
+ * Plug-in configuration manager
  */
 public class ConfigManager {
 
@@ -30,71 +30,60 @@ public class ConfigManager {
     }
     
     /**
-     * Загрузить все конфигурации
+     * Load all configs
      */
     public void loadConfigs() {
-        // Загрузка основного конфига
         loadMainConfig();
         
-        // Загрузка других конфигов при необходимости
     }
     
     /**
-     * Загрузить основной конфиг
+     * Load main config
      */
     private void loadMainConfig() {
-        // Сохранение конфига по умолчанию, если он не существует
         plugin.saveDefaultConfig();
         
-        // Перезагрузка конфига из файла
         plugin.reloadConfig();
         mainConfig = plugin.getConfig();
         
-        // Проверка и обновление конфига при необходимости
         File configFile = new File(plugin.getDataFolder(), "config.yml");
         configUpdater.checkAndUpdateConfig(configFile, mainConfig, "config.yml");
         
-        // Сохранение конфига в кэше
         configs.put("config", mainConfig);
     }
     
     /**
-     * Загрузить кастомный конфиг
-     * @param name имя конфига (без расширения)
-     * @return загруженная конфигурация или null в случае ошибки
+     * Load custom config
+     * @param name config name without.yml extension
+     * @return loaded configuration or null in case of an error
      */
     public FileConfiguration loadConfig(String name) {
         File configFile = new File(plugin.getDataFolder(), name + ".yml");
         
-        // Если файл не существует, создаем его из ресурсов
         if (!configFile.exists()) {
             configFile.getParentFile().mkdirs();
             plugin.saveResource(name + ".yml", false);
         }
         
-        // Загрузка конфигурации из файла
         FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
         
-        // Загрузка конфигурации по умолчанию из ресурсов для сравнения
         InputStream defaultConfigStream = plugin.getResource(name + ".yml");
         if (defaultConfigStream != null) {
             YamlConfiguration defaultConfig = YamlConfiguration.loadConfiguration(
                     new InputStreamReader(defaultConfigStream, StandardCharsets.UTF_8));
             
-            // Проверка и обновление конфига при необходимости
             configUpdater.checkAndUpdateConfig(configFile, config, name + ".yml");
         }
         
-        // Сохранение конфига в кэше
         configs.put(name, config);
         
         return config;
     }
     
     /**
-     * Сохранить конфиг
-     * @param name имя конфига (без расширения)
-     * @return успешность сохранения
+     * Save config
+     * @param name config name without.yml extension
+     * @return save success
      */
     public boolean saveConfig(String name) {
         if (!configs.containsKey(name)) {
@@ -106,16 +95,16 @@ public class ConfigManager {
             configs.get(name).save(configFile);
             return true;
         } catch (IOException e) {
-            plugin.getPluginLogger().severe("Ошибка при сохранении конфига '" + name + "': " + e.getMessage());
+            plugin.getPluginLogger().severe("Error when saving a config '" + name + "': " + e.getMessage());
             e.printStackTrace();
             return false;
         }
     }
     
     /**
-     * Перезагрузить конфиг
-     * @param name имя конфига (без расширения)
-     * @return перезагруженная конфигурация или null в случае ошибки
+     * Reload config
+     * @param name config name without.yml extension
+     * @return reloaded configuration or null in case of an error
      */
     public FileConfiguration reloadConfig(String name) {
         if (name.equals("config")) {
@@ -127,25 +116,25 @@ public class ConfigManager {
     }
     
     /**
-     * Получить конфиг по имени
-     * @param name имя конфига (без расширения)
-     * @return конфигурация или null, если не найдена
+     * Get config by name
+     * @param name config name without .yml extension
+     * @return config or null if not found
      */
     public FileConfiguration getConfig(String name) {
         return configs.getOrDefault(name, null);
     }
     
     /**
-     * Получить основной конфиг
-     * @return основной конфиг
+     * Get main config
+     * @return main config
      */
     public FileConfiguration getMainConfig() {
         return mainConfig;
     }
     
     /**
-     * Получить обновитель конфигов
-     * @return обновитель конфигов
+     * Get the config updater
+     * @return config updater
      */
     public ConfigUpdater getConfigUpdater() {
         return configUpdater;

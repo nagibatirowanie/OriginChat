@@ -1,28 +1,34 @@
 package me.nagibatirowanie.originchat.commands;
 
 import me.nagibatirowanie.originchat.OriginChat;
+import me.nagibatirowanie.originchat.config.ConfigManager;
+import me.nagibatirowanie.originchat.locale.LocaleManager;
 import me.nagibatirowanie.originchat.utils.ChatUtil;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
-import org.bukkit.entity.Player;
+import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 /**
- * Менеджер команд плагина
+ * Plugin command manager
  */
 public class CommandManager implements CommandExecutor, TabCompleter {
 
     private final OriginChat plugin;
+    private ConfigurationSection config;
+    private ConfigManager configManager;
+    private LocaleManager localeManager;
+
 
     public CommandManager(OriginChat plugin) {
         this.plugin = plugin;
+        this.localeManager = plugin.getLocaleManager();
         
-        // Регистрация команд
         plugin.getCommand("originchat").setExecutor(this);
         plugin.getCommand("originchat").setTabCompleter(this);
     }
@@ -37,7 +43,7 @@ public class CommandManager implements CommandExecutor, TabCompleter {
         switch (args[0].toLowerCase()) {
             case "reload":
                 if (!sender.hasPermission("originchat.admin")) {
-                    sender.sendMessage(ChatUtil.formatColors("&cУ вас нет прав для выполнения этой команды!"));
+                    localeManager.sendMessage(sender, "commands.no_permission");
                     return true;
                 }
                 
@@ -45,18 +51,19 @@ public class CommandManager implements CommandExecutor, TabCompleter {
                 plugin.getConfigManager().loadConfigs();
                 plugin.getModuleManager().unloadModules();
                 plugin.getModuleManager().loadModules();
+                localeManager.loadLocales(); // Перезагружаем локали
                 
-                sender.sendMessage(ChatUtil.formatColors("&aПлагин OriginChat успешно перезагружен!"));
+                localeManager.sendMessage(sender, "commands.plugin_reloaded");
                 break;
                 
             case "module":
                 if (!sender.hasPermission("originchat.admin")) {
-                    sender.sendMessage(ChatUtil.formatColors("&cУ вас нет прав для выполнения этой команды!"));
+                    localeManager.sendMessage(sender, "commands.no_permission");
                     return true;
                 }
                 
                 if (args.length < 2) {
-                    sender.sendMessage(ChatUtil.formatColors("&cИспользование: /originchat module <list|enable|disable> [имя_модуля]"));
+                    localeManager.sendMessage(sender, "commands.module.usage");
                     return true;
                 }
                 
@@ -68,7 +75,7 @@ public class CommandManager implements CommandExecutor, TabCompleter {
                 break;
                 
             default:
-                sender.sendMessage(ChatUtil.formatColors("&cНеизвестная команда. Используйте /originchat help для справки."));
+                localeManager.sendMessage(sender, "commands.unknown_command");
                 break;
         }
 
@@ -107,18 +114,8 @@ public class CommandManager implements CommandExecutor, TabCompleter {
      * @param sender отправитель
      */
     private void sendHelp(CommandSender sender) {
-        sender.sendMessage(ChatUtil.formatColors("&7===== &bOriginChat &7====="));
-        sender.sendMessage(ChatUtil.formatColors("&b/originchat help &7- Показать справку"));
-        
-        if (sender.hasPermission("originchat.admin")) {
-            sender.sendMessage(ChatUtil.formatColors("&b/originchat reload &7- Перезагрузить плагин"));
-            sender.sendMessage(ChatUtil.formatColors("&b/originchat module list &7- Список модулей"));
-            sender.sendMessage(ChatUtil.formatColors("&b/originchat module enable <имя> &7- Включить модуль"));
-            sender.sendMessage(ChatUtil.formatColors("&b/originchat module disable <имя> &7- Выключить модуль"));
-            sender.sendMessage(ChatUtil.formatColors("&b/originchat module reload <имя> &7- Перезагрузить модуль"));
-        }
-        
-        sender.sendMessage(ChatUtil.formatColors("&7========================="));
+        // Используем новый метод для отправки списка сообщений
+        localeManager.sendMessageList(sender, "commands.help.lines");
     }
 
     /**
@@ -130,63 +127,73 @@ public class CommandManager implements CommandExecutor, TabCompleter {
         switch (args[1].toLowerCase()) {
             case "list":
                 // Список всех модулей
-                sender.sendMessage(ChatUtil.formatColors("&7===== &bМодули OriginChat &7====="));
+                localeManager.sendMessageList(sender, "commands.module_list.lines");
                 
                 plugin.getModuleManager().getModules().forEach((id, module) -> {
                     boolean enabled = plugin.getModuleManager().isModuleEnabled(id);
-                    String status = enabled ? "&aВключен" : "&cВыключен";
-                    
-                    sender.sendMessage(ChatUtil.formatColors("&b" + module.getName() + " &7(" + id + ") - " + status));
-                    sender.sendMessage(ChatUtil.formatColors("  &7" + module.getDescription()));
+                    String statusKey = enabled ? "commands.module_list.status_enabled" : "commands.module_list.status_disabled";
+                    String locale = localeManager.getPlayerLocale(sender instanceof org.bukkit.entity.Player ? (org.bukkit.entity.Player) sender : null);
+                    String status = localeManager.getMessage(statusKey, locale);
+
+                    // Получаем локализованные имя и описание модуля с fallback
+                    String localizedName = localeManager.getMessage("modules." + id + ".name", locale);
+                    if (localizedName == null || localizedName.isEmpty() || localizedName.startsWith("modules.")) {
+                        localizedName = module.getName();
+                    }
+                    String localizedDescription = localeManager.getMessage("modules." + id + ".description", locale);
+                    if (localizedDescription == null || localizedDescription.isEmpty() || localizedDescription.startsWith("modules.")) {
+                        localizedDescription = module.getDescription();
+                    }
+
+                    localeManager.sendMessage(sender, "commands.module_list.module_info", "{name}", localizedName, "{id}", id, "{status}", status);
+                    localeManager.sendMessage(sender, "commands.module_list.module_description", "{description}", localizedDescription);
                 });
-                
-                sender.sendMessage(ChatUtil.formatColors("&7========================="));
                 break;
                 
             case "enable":
                 if (args.length < 3) {
-                    sender.sendMessage(ChatUtil.formatColors("&cУкажите имя модуля для включения!"));
+                    localeManager.sendMessage(sender, "commands.module.specify_module_enable");
                     return;
                 }
                 
                 String moduleToEnable = args[2].toLowerCase();
                 if (plugin.getModuleManager().enableModule(moduleToEnable)) {
-                    sender.sendMessage(ChatUtil.formatColors("&aМодуль '" + moduleToEnable + "' успешно включен!"));
+                    localeManager.sendMessage(sender, "commands.module.module_enabled", "{module}", moduleToEnable);
                 } else {
-                    sender.sendMessage(ChatUtil.formatColors("&cНе удалось включить модуль '" + moduleToEnable + "'!"));
+                    localeManager.sendMessage(sender, "commands.module.module_enable_failed", "{module}", moduleToEnable);
                 }
                 break;
                 
             case "disable":
                 if (args.length < 3) {
-                    sender.sendMessage(ChatUtil.formatColors("&cУкажите имя модуля для выключения!"));
+                    localeManager.sendMessage(sender, "commands.module.specify_module_disable");
                     return;
                 }
                 
                 String moduleToDisable = args[2].toLowerCase();
                 if (plugin.getModuleManager().disableModule(moduleToDisable)) {
-                    sender.sendMessage(ChatUtil.formatColors("&aМодуль '" + moduleToDisable + "' успешно выключен!"));
+                    localeManager.sendMessage(sender, "commands.module.module_disabled", "{module}", moduleToDisable);
                 } else {
-                    sender.sendMessage(ChatUtil.formatColors("&cНе удалось выключить модуль '" + moduleToDisable + "'!"));
+                    localeManager.sendMessage(sender, "commands.module.module_disable_failed", "{module}", moduleToDisable);
                 }
                 break;
                 
             case "reload":
                 if (args.length < 3) {
-                    sender.sendMessage(ChatUtil.formatColors("&cУкажите имя модуля для перезагрузки!"));
+                    localeManager.sendMessage(sender, "commands.module.specify_module_reload");
                     return;
                 }
                 
                 String moduleToReload = args[2].toLowerCase();
                 if (plugin.getModuleManager().reloadModule(moduleToReload)) {
-                    sender.sendMessage(ChatUtil.formatColors("&aМодуль '" + moduleToReload + "' успешно перезагружен!"));
+                    localeManager.sendMessage(sender, "commands.module.module_reloaded", "{module}", moduleToReload);
                 } else {
-                    sender.sendMessage(ChatUtil.formatColors("&cНе удалось перезагрузить модуль '" + moduleToReload + "'!"));
+                    localeManager.sendMessage(sender, "commands.module.module_reload_failed", "{module}", moduleToReload);
                 }
                 break;
                 
             default:
-                sender.sendMessage(ChatUtil.formatColors("&cИспользование: /originchat module <list|enable|disable|reload> [имя_модуля]"));
+                localeManager.sendMessage(sender, "commands.module.usage");
                 break;
         }
     }

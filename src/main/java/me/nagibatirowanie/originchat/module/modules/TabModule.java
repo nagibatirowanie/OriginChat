@@ -8,7 +8,6 @@ import net.luckperms.api.model.group.Group;
 import net.luckperms.api.model.user.User;
 import net.luckperms.api.query.QueryOptions;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -19,7 +18,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Модуль для настройки таба сервера с поддержкой сортировки игроков по весам LuckPerms
+ * Module for customizing the server tab with support for sorting players by weights LuckPerms
  */
 public class TabModule extends AbstractModule {
     private List<String> headerLines;
@@ -34,12 +33,11 @@ public class TabModule extends AbstractModule {
     private Map<String, String> groupTeamNames = new HashMap<>();
 
     public TabModule(OriginChat plugin) {
-        super(plugin, "tab", "Модуль таба", "Настройка таба сервера с поддержкой сортировки игроков", "1.0");
+        super(plugin, "tab", "Tab", "Customizes the player tab list", "1.0");
     }
 
     @Override
     public void onEnable() {
-        // Загрузка конфигурации
         loadModuleConfig("modules/tab");
         if (config == null) {
             config = plugin.getConfigManager().getMainConfig();
@@ -48,7 +46,6 @@ public class TabModule extends AbstractModule {
         loadConfig();
         
         if (!enabled) {
-            log("Модуль таба отключен в конфигурации. Пропускаем активацию.");
             return;
         }
         
@@ -57,19 +54,14 @@ public class TabModule extends AbstractModule {
         setupTeams();
         startUpdateTask();
         
-        log("Модуль таба успешно включен");
     }
 
-    /**
-     * Настройка скорборда для управления командами
-     */
+
     private void setupScoreboard() {
         scoreboard = Objects.requireNonNull(Bukkit.getScoreboardManager()).getNewScoreboard();
     }
 
-    /**
-     * Загрузить настройки из конфига
-     */
+
     private void loadConfig() {
         try {
             enabled = config.getBoolean("enabled", true);
@@ -86,13 +78,13 @@ public class TabModule extends AbstractModule {
             }
             log("Конфигурация успешно загружена");
         } catch (Exception e) {
-            plugin.getLogger().severe("Ошибка при загрузке конфигурации TabModule: " + e.getMessage());
+            plugin.getLogger().severe("❗ Error loading the TabModule configuration: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
     /**
-     * Настройка LuckPerms
+     * Customizing LuckPerms
      */
     private void setupLuckPerms() {
         if ("luckperms".equalsIgnoreCase(prioritySortingType)) {
@@ -117,16 +109,12 @@ public class TabModule extends AbstractModule {
         }
     }
 
-    /**
-     * Создание команд для групп
-     */
     private void setupTeams() {
-        // Очищаем предыдущие команды
+
         clearTeams();
         
-        // Создаем команды для групп в зависимости от режима сортировки
         if ("luckperms".equals(prioritySortingType) && luckPerms != null) {
-            // Получаем все группы из LuckPerms и сортируем их по весу
+
             Collection<Group> groups = luckPerms.getGroupManager().getLoadedGroups();
             List<Group> sortedGroups = groups.stream()
                     .sorted(Comparator.<Group>comparingInt(g -> g.getWeight().orElse(0)).reversed())
@@ -144,7 +132,7 @@ public class TabModule extends AbstractModule {
                 position++;
             }
         } else {
-            // Создаем команды для групп из конфигурации
+
             List<Map.Entry<String, Integer>> sortedGroups = new ArrayList<>(groupPriorities.entrySet());
             sortedGroups.sort(Map.Entry.<String, Integer>comparingByValue().reversed());
             
@@ -158,10 +146,8 @@ public class TabModule extends AbstractModule {
                 
                 Team team = scoreboard.registerNewTeam(teamName);
                 team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.ALWAYS);
-                // Отключаем отображение команды рядом с ником
                 team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
                 
-                // Сохраняем соответствие группы и команды
                 groupTeamNames.put(groupName.toLowerCase(), teamName);
                 
                 position++;
@@ -170,7 +156,7 @@ public class TabModule extends AbstractModule {
     }
 
     /**
-     * Запуск задачи обновления таба
+     * Starting the tab update task
      */
     private void startUpdateTask() {
         updateTask = new BukkitRunnable() {
@@ -179,26 +165,18 @@ public class TabModule extends AbstractModule {
                 updateAllPlayers();
             }
         };
-        updateTask.runTaskTimer(plugin, 0, 20); // Обновление каждую секунду
+        updateTask.runTaskTimer(plugin, 0, 20);
     }
 
-    /**
-     * Обновить таб для всех игроков
-     */
     private void updateAllPlayers() {
-        // Обновляем для каждого игрока
         for (Player player : Bukkit.getOnlinePlayers()) {
-            // Определяем группу игрока
             String groupName = getPlayerGroup(player);
             
-            // Получаем команду для этой группы
             String teamName = groupTeamNames.get(groupName.toLowerCase());
             if (teamName != null) {
                 Team team = scoreboard.getTeam(teamName);
                 if (team != null) {
-                    // Добавляем игрока в команду, если он еще не в ней
                     if (!team.hasEntry(player.getName())) {
-                        // Сначала удаляем игрока из всех других команд
                         for (Team t : scoreboard.getTeams()) {
                             if (t.hasEntry(player.getName())) {
                                 t.removeEntry(player.getName());
@@ -207,25 +185,18 @@ public class TabModule extends AbstractModule {
                         team.addEntry(player.getName());
                     }
                     
-                    // Настраиваем отображение игрока в табе
                     String displayName = getCustomName(player);
                     player.setPlayerListName(displayName);
                 }
             }
             
-            // Применяем скорборд к игроку для сортировки
             player.setScoreboard(scoreboard);
             
-            // Обновляем header и footer
             updatePlayerTab(player);
         }
     }
     
-    /**
-     * Получить группу игрока
-     * @param player игрок
-     * @return имя группы
-     */
+
     private String getPlayerGroup(Player player) {
         if ("luckperms".equals(prioritySortingType) && luckPerms != null) {
             try {
@@ -243,7 +214,7 @@ public class TabModule extends AbstractModule {
                         .map(Group::getName);
                 return highestWeightGroup.orElse(primaryGroup);
             } catch (Throwable e) {
-                log("LuckPerms не доступен или произошла ошибка для " + player.getName() + ": " + e.getMessage());
+                log("LuckPerms is not available or an error has occurred for " + player.getName() + ": " + e.getMessage());
                 prioritySortingType = "group";
                 luckPerms = null;
                 return groupPriorities.entrySet().stream()
@@ -261,9 +232,6 @@ public class TabModule extends AbstractModule {
         }
     }
     
-    /**
-     * Очистить все команды скорборда
-     */
     private void clearTeams() {
         for (Team team : scoreboard.getTeams()) {
             team.unregister();
@@ -271,30 +239,21 @@ public class TabModule extends AbstractModule {
         groupTeamNames.clear();
     }
 
-    /**
-     * Обновить таб для игрока
-     * @param player игрок
-     */
+
     private void updatePlayerTab(Player player) {
         String header = String.join("\n", headerLines);
         String footer = String.join("\n", footerLines);
         
-        // Сначала заменяем базовые плейсхолдеры
         header = applyPlaceholders(player, header);
         footer = applyPlaceholders(player, footer);
-        
-        // Затем применяем форматирование с использованием ColorUtil
+
         header = ColorUtil.format(player, header);
         footer = ColorUtil.format(player, footer);
         
         player.setPlayerListHeaderFooter(header, footer);
     }
 
-    /**
-     * Получить пользовательское имя игрока
-     * @param player игрок
-     * @return пользовательское имя
-     */
+
     private String getCustomName(Player player) {
         // Сначала заменяем базовые плейсхолдеры, затем применяем форматирование через ColorUtil
         String name = playerFormat;
@@ -305,16 +264,10 @@ public class TabModule extends AbstractModule {
         return name;
     }
 
-    /**
-     * Применить плейсхолдеры к тексту
-     * @param player игрок
-     * @param text текст
-     * @return текст с замененными плейсхолдерами
-     */
+
     private String applyPlaceholders(Player player, String text) {
         if (text == null) return "";
         
-        // Заменяем базовые плейсхолдеры
         text = text.replace("{player}", player.getName());
         text = text.replace("{displayname}", player.getDisplayName());
         text = text.replace("{world}", player.getWorld().getName());
@@ -323,7 +276,6 @@ public class TabModule extends AbstractModule {
         text = text.replace("{ping}", String.valueOf(player.getPing()));
         text = text.replace("{group}", getPlayerGroup(player));
         
-        // Используем PlaceholderAPI через ColorUtil, если он установлен
         text = ColorUtil.setPlaceholders(player, text);
         
         return text;
@@ -336,12 +288,8 @@ public class TabModule extends AbstractModule {
         }
         clearTeams();
         resetAllPlayerTabs();
-        log("Модуль таба выключен");
     }
 
-    /**
-     * Сбросить таб для всех игроков
-     */
     private void resetAllPlayerTabs() {
         for (Player player : Bukkit.getOnlinePlayers()) {
             player.setPlayerListHeaderFooter("", "");

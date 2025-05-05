@@ -14,15 +14,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Утилитный класс для форматирования текста с использованием Kyori Adventure API
- * Поддерживает стандартные цветовые коды Minecraft, HEX-цвета и MiniMessage
+ * Utility class for text formatting using Kyori Adventure API
+ * Supports standard Minecraft color codes, HEX-colors and MiniMessage
  */
 public class ColorUtil {
 
-    // Паттерн для HEX цветов в формате &#RRGGBB или #RRGGBB
+    // Pattern for HEX colors in &#RRGGBB or #RRGGBB format
     private static final Pattern HEX_PATTERN = Pattern.compile("(&#|#)([A-Fa-f0-9]{6})");
     
-    // MiniMessage парсер для обработки тегов
     private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
     
     private static final Map<String, String> COLOR_MAP = new HashMap<String, String>() {{
@@ -50,18 +49,16 @@ public class ColorUtil {
         put("&r", "<reset>");
     }};
 
-    // Legacy сериализатор для конвертации компонентов в строки с поддержкой цветов
     private static final LegacyComponentSerializer LEGACY_SERIALIZER = LegacyComponentSerializer.builder()
             .hexColors()
             .useUnusualXRepeatedCharacterHexFormat()
             .build();
 
-    // Проверка наличия PlaceholderAPI
     private static Boolean placeholderAPIEnabled = null;
     
     /**
-     * Проверить, установлен ли PlaceholderAPI
-     * @return true, если PlaceholderAPI установлен
+     * Check if PlaceholderAPI is installed
+     * @return true if PlaceholderAPI is installed
      */
     public static boolean isPlaceholderAPIEnabled() {
         if (placeholderAPIEnabled == null) {
@@ -71,10 +68,10 @@ public class ColorUtil {
     }
     
     /**
-     * Заменить плейсхолдеры PlaceholderAPI в тексте
-     * @param player игрок, для которого заменяются плейсхолдеры
-     * @param text текст с плейсхолдерами
-     * @return текст с замененными плейсхолдерами или исходный текст, если замена невозможна
+     * Replace PlaceholderAPI placeholders in the text
+     * @param player player for which placeholders are replaced
+     * @param text text with placeholders
+     * @return text with replaced placeholders or original text, if replacement is impossible
      */
     public static String setPlaceholders(Player player, String text) {
         if (text == null || text.isEmpty()) return "";
@@ -82,7 +79,7 @@ public class ColorUtil {
             try {
                 String prev;
                 String result = text;
-                int maxIterations = 10; // ограничение на количество итераций
+                int maxIterations = 10;
                 int count = 0;
                 do {
                     prev = result;
@@ -91,7 +88,7 @@ public class ColorUtil {
                 } while (!result.equals(prev) && count < maxIterations);
                 return result;
             } catch (Exception e) {
-                Bukkit.getLogger().warning("Ошибка при обработке плейсхолдеров: " + e.getMessage());
+                Bukkit.getLogger().warning("Error in placeholder processing: " + e.getMessage());
                 e.printStackTrace();
             }
         }
@@ -99,41 +96,35 @@ public class ColorUtil {
     }
     
     /**
-     * Форматировать текст с поддержкой всех типов форматирования
-     * @param text текст для форматирования
-     * @return отформатированный текст
+     * Format text with support for all formatting types
+     * @param text text to be formatted
+     * @return formatted text
      */
 
     public static String format(String text) {
         if (text == null || text.isEmpty()) return "";
         
-        // Создаем компонент с помощью toComponent и затем сериализуем его обратно в строку
-        // Это гарантирует согласованность между format и toComponent
         Component component = toComponent(text);
         
-        // Используем LEGACY_SERIALIZER для обратной сериализации, но без секционных символов
-        // Это предотвратит предупреждения о устаревших форматирующих кодах
         return LEGACY_SERIALIZER.serialize(component);
     }
     
     /**
-     * Форматировать текст с поддержкой всех типов форматирования и заменой плейсхолдеров
-     * @param player игрок, для которого заменяются плейсхолдеры
-     * @param text текст для форматирования
-     * @return отформатированный текст с замененными плейсхолдерами
+     * Format text with support for all formatting types and placeholders replacement
+     * @param player player for which placeholders are replaced
+     * @param text text to be formatted
+     * @return formatted text with replaced placeholders
      */
     public static String format(Player player, String text) {
         if (text == null || text.isEmpty()) return "";
-        // Сначала заменяем плейсхолдеры
         String processed = setPlaceholders(player, text);
-        // Затем используем основной метод format
         return format(processed);
     }
 
     /**
-     * Форматировать текст с поддержкой стандартных цветовых кодов Minecraft (&a, &b, и т.д.)
-     * @param text текст для форматирования
-     * @return отформатированный текст
+     * Format text with support for standard Minecraft color codes (&a, &b, etc.)
+     * @param text text to format
+     * @return formatted text
      */
     public static String formatLegacyColors(String text) {
         if (text == null || text.isEmpty()) return "";
@@ -141,9 +132,9 @@ public class ColorUtil {
     }
 
     /**
-     * Форматировать текст с поддержкой HEX цветов (#RRGGBB или &#RRGGBB)
-     * @param text текст для форматирования
-     * @return отформатированный текст
+     * Format text with HEX color support (#RRRGGBB or &#RRRGGBB)
+     * @param text text to be formatted
+     * @return formatted text
      */
     public static String formatHexColors(String text) {
         if (text == null || text.isEmpty()) return "";
@@ -162,77 +153,66 @@ public class ColorUtil {
     }
 
     /**
-     * Форматировать текст с поддержкой MiniMessage тегов (<bold>, <color:#RRGGBB>, и т.д.)
-     * @param text текст для форматирования
-     * @return отформатированный текст
+     * Format text with MiniMessage tag support (<bold>, <color:#RRGGBB>, etc.)
+     * @param text text to format
+     * @return formatted text
      */
     public static String formatMiniMessage(String text) {
         if (text == null || text.isEmpty()) return "";
         
         try {
-            // Парсим текст с помощью MiniMessage
             Component component = MINI_MESSAGE.deserialize(text);
             
-            // Используем LEGACY_SERIALIZER для обратной сериализации
-            // Это предотвратит предупреждения о устаревших форматирующих кодах
             return LEGACY_SERIALIZER.serialize(component);
         } catch (Exception e) {
             Bukkit.getLogger().warning("Ошибка при обработке MiniMessage: " + e.getMessage());
-            return text; // В случае ошибки возвращаем исходный текст
+            return text;
         }
     }
 
     /**
-     * Создать компонент из текста с поддержкой всех типов форматирования
-     * @param text текст для форматирования
-     * @return компонент Adventure API
+     * Create a component from text with support for all formatting types
+     * @param text text for formatting
+     * @return Adventure API component
      */
     public static Component toComponent(String text) {
         if (text == null || text.isEmpty()) return Component.empty();
         
-        // Проверяем, содержит ли текст MiniMessage теги
         if (text.contains("<") && text.contains(">")) {
             try {
-                // Если есть MiniMessage теги, используем MiniMessage напрямую
                 return MINI_MESSAGE.deserialize(convertToMiniMessage(text));
             } catch (Exception e) {
                 Bukkit.getLogger().warning("Ошибка при создании компонента через MiniMessage: " + e.getMessage());
-                // В случае ошибки продолжаем обработку стандартными методами
             }
         }
         
-        // Если нет MiniMessage тегов или произошла ошибка, используем стандартный подход
-        // Но сначала преобразуем все & коды в MiniMessage формат
         String miniMessageText = text;
         if (miniMessageText.contains("&") || miniMessageText.contains("#")) {
             miniMessageText = convertToMiniMessage(miniMessageText);
             return MINI_MESSAGE.deserialize(miniMessageText);
         }
         
-        // Если нет ни & кодов, ни # цветов, просто создаем текстовый компонент
         return Component.text(text);
     }
     
     /**
-     * Создать компонент из текста с поддержкой всех типов форматирования и плейсхолдеров
-     * @param player игрок, для которого заменяются плейсхолдеры
-     * @param text текст для форматирования
-     * @return компонент Adventure API
+     * Create a component from text with support for all types of formatting and placeholders
+     * @param player player for which placeholders are replaced
+     * @param text text for formatting
+     * @return Adventure API component
      */
     public static Component toComponent(Player player, String text) {
         if (text == null || text.isEmpty()) return Component.empty();
         
-        // Сначала заменяем плейсхолдеры
         String processed = setPlaceholders(player, text);
         
-        // Затем создаем компонент с помощью обновленного метода
         return toComponent(processed);
     }
 
     /**
-     * Удалить все цветовые коды из текста
-     * @param text текст для обработки
-     * @return текст без цветовых кодов
+     * Remove all color codes from text
+     * @param text text to be processed
+     * @return text without color codes
      */
     public static String stripColors(String text) {
         if (text == null || text.isEmpty()) return "";
@@ -241,29 +221,28 @@ public class ColorUtil {
     
 
     /**
- * Конвертировать стандартные цветовые коды в формат MiniMessage
- * @param text текст с цветовыми кодами
- * @return текст с тегами MiniMessage
- */
-public static String convertToMiniMessage(String text) {
-    if (text == null || text.isEmpty()) return "";
-    
-    String result = text;
-    for (Map.Entry<String, String> entry : COLOR_MAP.entrySet()) {
-        result = result.replace(entry.getKey(), entry.getValue());
+     * Convert standard color codes to MiniMessage format
+     * @param text text with color codes
+     * @return text with MiniMessage tags
+     */
+    public static String convertToMiniMessage(String text) {
+        if (text == null || text.isEmpty()) return "";
+        
+        String result = text;
+        for (Map.Entry<String, String> entry : COLOR_MAP.entrySet()) {
+            result = result.replace(entry.getKey(), entry.getValue());
+        }
+        
+        Matcher matcher = HEX_PATTERN.matcher(result);
+        StringBuffer buffer = new StringBuffer();
+        
+        while (matcher.find()) {
+            String hex = matcher.group(2);
+            matcher.appendReplacement(buffer, "<color:#" + hex + ">");
+        }
+        
+        matcher.appendTail(buffer);
+        return buffer.toString();
     }
-    
-    // Конвертация HEX цветов в формат MiniMessage
-    Matcher matcher = HEX_PATTERN.matcher(result);
-    StringBuffer buffer = new StringBuffer();
-    
-    while (matcher.find()) {
-        String hex = matcher.group(2);
-        matcher.appendReplacement(buffer, "<color:#" + hex + ">");
-    }
-    
-    matcher.appendTail(buffer);
-    return buffer.toString();
-}
     
 }

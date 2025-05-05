@@ -1,3 +1,25 @@
+/*
+ * This file is part of OriginChat, a Minecraft plugin.
+ *
+ * Copyright (c) 2025 nagibatirowanie
+ *
+ * OriginChat is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This plugin is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this plugin. If not, see <https://www.gnu.org/licenses/>.
+ *
+ * Created with ❤️ for the Minecraft community.
+ */
+
+
 package me.nagibatirowanie.originchat.module.modules;
 
 import me.nagibatirowanie.originchat.OriginChat;
@@ -19,7 +41,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import java.util.Locale;
 
 /**
- * Модуль для локализованных сообщений о смерти
+ * Module for localized death messages
  */
 public class LocaleDeathsModule extends AbstractModule implements Listener {
 
@@ -31,24 +53,21 @@ public class LocaleDeathsModule extends AbstractModule implements Listener {
     private boolean registered = false;
 
     public LocaleDeathsModule(OriginChat plugin) {
-        super(plugin, "locale_deaths", "Локализованные сообщения о смерти", 
-              "Модуль для отображения локализованных сообщений о смерти игроков", "1.0");
+        super(plugin, "locale_deaths", "Localized Death Messages",
+              "Module for displaying localized death messages for players", "1.0");
     }
 
     @Override
     public void onEnable() {
-        // Загрузка конфигурации
         loadModuleConfig("modules/locale_deaths");
         if (config == null) {
             config = plugin.getConfigManager().getMainConfig();
         }
         loadConfig();
-        
         if (!registered) {
             plugin.getServer().getPluginManager().registerEvents(this, plugin);
             registered = true;
         }
-        log("Модуль локализованных сообщений о смерти успешно загружен.");
     }
 
     @Override
@@ -57,25 +76,29 @@ public class LocaleDeathsModule extends AbstractModule implements Listener {
             HandlerList.unregisterAll(this);
             registered = false;
         }
-        log("Модуль локализованных сообщений о смерти выключен.");
     }
 
+    // Load settings from config
     private void loadConfig() {
-        ConfigurationSection deathMessagesConfig = config.getConfigurationSection("death_messages");
-        if (deathMessagesConfig == null) deathMessagesConfig = config.createSection("death_messages");
+        try {
+            ConfigurationSection deathMessagesConfig = config.getConfigurationSection("death_messages");
+            if (deathMessagesConfig == null) deathMessagesConfig = config.createSection("death_messages");
 
-        disableVanillaMessages = deathMessagesConfig.getBoolean("disable-vanilla-messages", true);
-        playSound = deathMessagesConfig.getBoolean("play_sound", true);
-        deathSound = deathMessagesConfig.getString("death_sound", "ENTITY_CAT_DEATH");
-        prefix = deathMessagesConfig.getString("prefix", "");
-        suffix = deathMessagesConfig.getString("suffix", "");
-        
-        debug("Конфигурация модуля локализованных сообщений о смерти загружена.");
+            disableVanillaMessages = deathMessagesConfig.getBoolean("disable-vanilla-messages", true);
+            playSound = deathMessagesConfig.getBoolean("play_sound", true);
+            deathSound = deathMessagesConfig.getString("death_sound", "ENTITY_CAT_DEATH");
+            prefix = deathMessagesConfig.getString("prefix", "");
+            suffix = deathMessagesConfig.getString("suffix", "");
+            debug("LocaleDeathsModule configuration loaded.");
+        } catch (Exception e) {
+            log("❗ Error when loading LocalDeaths configuration: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
-        debug("Событие PlayerDeathEvent вызвано.");
+        debug("PlayerDeathEvent triggered.");
 
         Player deceased = event.getEntity();
         Component originalMessage = event.deathMessage();
@@ -85,7 +108,7 @@ public class LocaleDeathsModule extends AbstractModule implements Listener {
         }
 
         if (originalMessage == null) {
-            debug("Оригинальное сообщение о смерти отсутствует.");
+            debug("Original death message is null.");
             return;
         }
 
@@ -101,27 +124,28 @@ public class LocaleDeathsModule extends AbstractModule implements Listener {
         }
     }
 
+    // Get localized message for player
     private Component getLocalizedMessage(Component originalMessage, Player player) {
         Locale locale = player.locale();
         return GlobalTranslator.render(originalMessage, locale);
     }
 
+    // Format message with prefix and suffix
     private Component formatMessage(Component message) {
-        // Преобразуем prefix и suffix в компоненты с помощью ColorUtil.toComponent
         Component prefixComponent = ColorUtil.toComponent(prefix);
         Component suffixComponent = ColorUtil.toComponent(suffix);
-
         return prefixComponent
                 .append(message)
                 .append(suffixComponent);
     }
 
+    // Play death sound for player
     private void playDeathSound(Player player, Player deceased) {
         try {
             Sound sound = Sound.valueOf(deathSound.toUpperCase());
             player.playSound(deceased.getLocation(), sound, 1.0F, 1.0F);
         } catch (IllegalArgumentException e) {
-            plugin.getPluginLogger().warning("Неверный звук смерти: " + deathSound);
+            plugin.getPluginLogger().warning("Invalid death sound: " + deathSound);
         }
     }
 }

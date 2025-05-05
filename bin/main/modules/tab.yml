@@ -1,13 +1,13 @@
-# Конфигурация модуля таба
+# Tab module configuration
 version: 1
 
 enabled: true
 
 header:
-  - "&bДобро пожаловать на сервер!"
-  - "&7Онлайн: {online}/{max_online}"
+  - "&bWelcome to the server!"
+  - "&7Online: {online}/{max_online}"
 footer:
-  - "&eПриятной игры!"
+  - "&eEnjoy your game!"
   - "&7discord.gg/yourserver"
 
 show_ping: false

@@ -1,21 +1,21 @@
-# Конфигурация модуля приватных сообщений
+# Private messages module configuration
 version: 1
 
-# Включен ли модуль
+# Is the module enabled
 enabled: true
 
-# Форматы сообщений
+# Message formats
 format:
-  # Формат для отправителя
-  sender: "&7Вы &8-> &7{receiver}: &f{message}"
-  # Формат для получателя
-  receiver: "&7{sender} &8-> &7Вам: &f{message}"
+  # Format for sender
+  sender: "&7You &8-> &7{receiver}: &f{message}"
+  # Format for receiver
+  receiver: "&7{sender} &8-> &7You: &f{message}"
 
-# Сообщения для игроков
+# Player messages
 messages:
-  not-a-player: "&cЭта команда доступна только для игроков!"
-  player-not-specified: "&cУкажите имя игрока!"
-  message-not-specified: "&cВведите сообщение!"
-  player-not-found: "&cИгрок {player} не найден или не в сети!"
-  cannot-message-yourself: "&cВы не можете отправить сообщение самому себе!"
-  no-reply-target: "&cНекому ответить! Сначала отправьте кому-нибудь сообщение."
+  not-a-player: "&cThis command is only available to players!"
+  player-not-specified: "&cPlease specify a player name!"
+  message-not-specified: "&cPlease enter a message!"
+  player-not-found: "&cPlayer {player} not found or not online!"
+  cannot-message-yourself: "&cYou cannot message yourself!"
+  no-reply-target: "&cNo one to reply to! Send a message to someone first."

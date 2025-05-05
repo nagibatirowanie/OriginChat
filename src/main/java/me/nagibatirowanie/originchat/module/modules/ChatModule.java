@@ -1,3 +1,24 @@
+/*
+ * This file is part of OriginChat, a Minecraft plugin.
+ *
+ * Copyright (c) 2025 nagibatirowanie
+ *
+ * OriginChat is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This plugin is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this plugin. If not, see <https://www.gnu.org/licenses/>.
+ *
+ * Created with ❤️ for the Minecraft community.
+ */
+
 package me.nagibatirowanie.originchat.module.modules;
 
 import me.nagibatirowanie.originchat.OriginChat;
@@ -17,7 +38,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Модуль для обработки чата с поддержкой нескольких чатов и кулдауном
+ * A module for chat processing with multiple chat support and kulldowns
  */
 public class ChatModule extends AbstractModule implements Listener {
 
@@ -27,47 +48,40 @@ public class ChatModule extends AbstractModule implements Listener {
     private int maxMessageLength;
     private boolean enabled;
 
-    // Кулдаун: карта <UUID, время последнего сообщения (мс)>
     private final Map<UUID, Long> lastMessageTime = new HashMap<>();
-    // Настройки кулдауна: <permission, seconds>
     private final Map<String, Integer> cooldowns = new HashMap<>();
     private int defaultCooldown = 3;
     private boolean cooldownEnabled = true;
 
-    // Сообщения для игроков
-    private String msgNoPermission = "❗У вас нет прав для отправки сообщений в этот чат.";
-    private String msgNobodyHeard = "❗Никто не услышал ваше сообщение.";
-    private String msgChatNotFound = "❗Чат не найден. Используйте префикс для выбора чата.";
-    private String msgCooldown = "⏳ Подождите {cooldown} секунд перед следующим сообщением!";
+    private String msgNoPermission;
+    private String msgNobodyHeard;
+    private String msgChatNotFound;
+    private String msgCooldown;
 
     public ChatModule(OriginChat plugin) {
-        super(plugin, "chat", "Модуль чата", "Обрабатывает сообщения в чате с поддержкой нескольких чатов", "1.0");
+        super(plugin, "chat", "Chat Module", "Adds chat distribution and formatting", "1.0");
     }
 
     @Override
     public void onEnable() {
-        // Загрузка конфигурации
         loadModuleConfig("modules/chat");
         if (config == null) {
             config = plugin.getConfigManager().getMainConfig();
         }
         loadConfig();
         if (!enabled) {
-            log("Модуль чата отключен в конфигурации. Пропускаем активацию.");
             return;
         }
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        log("Модуль чата успешно загружен.");
     }
 
     @Override
     public void onDisable() {
         HandlerList.unregisterAll(this);
-        log("Модуль чата выключен.");
     }
 
     /**
-     * Загрузить настройки из конфига
+     * Load settings from the config
      */
     private void loadConfig() {
         try {
@@ -76,7 +90,7 @@ public class ChatModule extends AbstractModule implements Listener {
             miniMessage = config.getBoolean("mini-message", true);
             maxMessageLength = config.getInt("max-message-length", 256);
 
-            // Загрузка сообщений для игроков
+            // Loading messages for players
             ConfigurationSection msgSection = config.getConfigurationSection("messages");
             if (msgSection != null) {
                 msgNoPermission = msgSection.getString("no-permission", msgNoPermission);
@@ -85,7 +99,7 @@ public class ChatModule extends AbstractModule implements Listener {
                 msgCooldown = msgSection.getString("cooldown", msgCooldown);
             }
 
-            // Загрузка кулдауна
+            // Load Kuldown
             ConfigurationSection cooldownSection = config.getConfigurationSection("cooldown");
             cooldowns.clear();
             if (cooldownSection != null) {
@@ -99,22 +113,18 @@ public class ChatModule extends AbstractModule implements Listener {
                     }
                 }
             } else {
-                // Старый формат
                 defaultCooldown = config.getInt("cooldown.default", 3);
                 cooldowns.put("originchat.moder", config.getInt("cooldown.originchat.moder", 2));
                 cooldowns.put("originchat.admin", config.getInt("cooldown.originchat.admin", 0));
             }
-            // Загрузка конфигураций чатов
             loadChatConfigs();
         } catch (Exception e) {
-            log("❗Ошибка при загрузке конфигурации чата: " + e.getMessage());
+            log("❗ Error when loading chat configuration: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
-    /**
-     * Загрузить конфигурации чатов
-     */
+
     private void loadChatConfigs() {
         chatConfigs.clear();
         ConfigurationSection chatsSection = config.getConfigurationSection("chats");
@@ -144,9 +154,7 @@ public class ChatModule extends AbstractModule implements Listener {
         }
     }
 
-    /**
-     * Получить кулдаун для игрока (в секундах)
-     */
+
     private int getPlayerCooldown(Player player) {
         if (player.hasPermission("originchat.admin")) {
             return 0;
@@ -160,7 +168,7 @@ public class ChatModule extends AbstractModule implements Listener {
     }
 
     /**
-     * Обработчик сообщений в чате
+     * Chat message handler
      */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlayerChat(AsyncPlayerChatEvent event) {
@@ -171,12 +179,10 @@ public class ChatModule extends AbstractModule implements Listener {
         Player player = event.getPlayer();
         String message = event.getMessage();
 
-        // Проверка длины сообщения
         if (message.length() > maxMessageLength) {
             message = message.substring(0, maxMessageLength);
         }
 
-        // Проверка кулдауна
         if (cooldownEnabled) {
             int cooldown = getPlayerCooldown(player);
             if (cooldown > 0) {
@@ -193,29 +199,23 @@ public class ChatModule extends AbstractModule implements Listener {
             }
         }
 
-        event.setCancelled(true); // Отменяем стандартное сообщение
+        event.setCancelled(true);
 
-        // Определяем, в какой чат отправляется сообщение
         for (Map.Entry<String, ChatConfig> entry : chatConfigs.entrySet()) {
             String chatName = entry.getKey();
             ChatConfig chatConfig = entry.getValue();
 
             if (message.startsWith(chatConfig.getPrefix())) {
-                // Удаляем префикс из сообщения, если он есть
                 if (!chatConfig.getPrefix().isEmpty()) {
                     message = message.substring(chatConfig.getPrefix().length());
                 }
 
-                // Проверяем права на отправку сообщений
                 if (!chatConfig.getPermissionWrite().isEmpty() && !player.hasPermission(chatConfig.getPermissionWrite())) {
                     player.sendMessage(formatMessage(msgNoPermission));
                     return;
                 }
-
-                // Форматируем сообщение
                 String formattedMessage = formatChatMessage(player, message, chatConfig, chatName);
 
-                // Отправляем сообщение в зависимости от радиуса
                 if (chatConfig.getRadius() > 0) {
                     boolean heard = false;
                     for (Player target : player.getWorld().getPlayers()) {
@@ -242,9 +242,7 @@ public class ChatModule extends AbstractModule implements Listener {
         player.sendMessage(formatMessage(msgChatNotFound));
     }
 
-    /**
-     * Форматировать сообщение чата
-     */
+
     private String formatChatMessage(Player player, String message, ChatConfig config, String chatName) {
         String format = config.getFormat();
         format = format.replace("{player}", player.getName());
@@ -254,16 +252,11 @@ public class ChatModule extends AbstractModule implements Listener {
         return formatMessage(format);
     }
 
-    /**
-     * Форматировать сообщение с применением цветов
-     */
+
     private String formatMessage(String message) {
         return ColorUtil.format(message);
     }
 
-    /**
-     * Класс для хранения конфигурации чата
-     */
     private static class ChatConfig {
         private final String prefix;
         private final int radius;

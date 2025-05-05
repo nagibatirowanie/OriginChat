@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'me.nagibatirowanie'
-version = '0.2.0-ALPHA'
+version = '0.2.0-alpha.1'
 
 repositories {
     mavenCentral()

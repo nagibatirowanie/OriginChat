@@ -1,5 +1,5 @@
 name: OriginChat
-version: '0.2.0-ALPHA'
+version: '0.2.0-alpha.1'
 main: me.nagibatirowanie.originchat.OriginChat
 api-version: '1.17'
 authors: [ nagibatirowanie ]

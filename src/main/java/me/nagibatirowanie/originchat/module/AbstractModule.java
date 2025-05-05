@@ -4,7 +4,7 @@ import me.nagibatirowanie.originchat.OriginChat;
 import org.bukkit.configuration.file.FileConfiguration;
 
 /**
- * Абстрактный класс для модулей плагина
+ * Abstract class for plug-in modules
  */
 public abstract class AbstractModule implements Module {
 
@@ -31,12 +31,12 @@ public abstract class AbstractModule implements Module {
 
     @Override
     public String getName() {
-        return name;
+        return getLocalizedName("en");
     }
 
     @Override
     public String getDescription() {
-        return description;
+        return getLocalizedDescription("en");
     }
 
     @Override
@@ -55,8 +55,8 @@ public abstract class AbstractModule implements Module {
     }
 
     /**
-     * Загрузить конфигурацию модуля
-     * @param configName имя конфигурационного файла (без расширения)
+     * Load module configuration
+     * @param configName configuration file name (without extension)
      */
     protected void loadModuleConfig(String configName) {
         this.configName = configName;
@@ -64,33 +64,51 @@ public abstract class AbstractModule implements Module {
     }
 
     /**
-     * Сохранить конфигурацию модуля
-     * @return успешность сохранения
+     * Save the module configuration
+     * @return conservation success
      */
     protected boolean saveModuleConfig(String configName) {
         return plugin.getConfigManager().saveConfig(configName);
     }
 
     /**
-     * Перезагрузить конфигурацию модуля
+     * Reload the module configuration
      */
     protected void reloadModuleConfig(String configName) {
         config = plugin.getConfigManager().reloadConfig(configName);
     }
 
     /**
-     * Отправить информационное сообщение в лог
-     * @param message сообщение
+     * Send an informational message to the log
+     * @param message message
      */
     protected void log(String message) {
         plugin.getPluginLogger().info("[" + name + "] " + message);
     }
 
     /**
-     * Отправить отладочное сообщение в лог
-     * @param message сообщение
+     * Send a debug message to the log
+     * @param message message
      */
     protected void debug(String message) {
         plugin.getPluginLogger().debug("[" + name + "] " + message);
+    }
+
+    protected String getLocalizedName(String locale) {
+        String key = "modules." + id + ".name";
+        String localized = plugin.getLocaleManager().getMessage(key, locale);
+        if (localized != null && !localized.startsWith("§cMessage not found")) {
+            return localized;
+        }
+        return name;
+    }
+
+    protected String getLocalizedDescription(String locale) {
+        String key = "modules." + id + ".description";
+        String localized = plugin.getLocaleManager().getMessage(key, locale);
+        if (localized != null && !localized.startsWith("§cMessage not found")) {
+            return localized;
+        }
+        return description;
     }
 }

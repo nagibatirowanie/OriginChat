@@ -6,7 +6,7 @@ import org.bukkit.ChatColor;
 import java.util.logging.Level;
 
 /**
- * Утилитный класс для логирования
+ * Utility class for logging
  */
 public class LoggerUtil {
 
@@ -17,39 +17,38 @@ public class LoggerUtil {
         this.plugin = plugin;
         this.debug = false;
         
-        // Загрузка настроек отладки из конфига
         if (plugin.getConfig().contains("settings.debug")) {
             this.debug = plugin.getConfig().getBoolean("settings.debug");
         }
     }
 
     /**
-     * Отправить информационное сообщение в консоль
-     * @param message сообщение
+     * Send an informational message to the console
+     * @param message message
      */
     public void info(String message) {
         plugin.getLogger().info(formatMessage(message));
     }
 
     /**
-     * Отправить предупреждение в консоль
-     * @param message сообщение
+     * Send a warning message to the console
+     * @param message message
      */
     public void warning(String message) {
         plugin.getLogger().warning(formatMessage(message));
     }
 
     /**
-     * Отправить сообщение об ошибке в консоль
-     * @param message сообщение
+     * Send an error message to the console
+     * @param message message
      */
     public void severe(String message) {
         plugin.getLogger().severe(formatMessage(message));
     }
 
     /**
-     * Отправить отладочное сообщение в консоль
-     * @param message сообщение
+     * Send debug message to console
+     * @param message message
      */
     public void debug(String message) {
         if (debug) {
@@ -58,14 +57,13 @@ public class LoggerUtil {
     }
 
     /**
-     * Форматировать сообщение для логирования
-     * @param message сообщение
-     * @return отформатированное сообщение
+     * Format message for logging
+     * @param message message
+     * @return formatted message
      */
     private String formatMessage(String message) {
         String prefix = "";
         
-        // Добавление префикса из конфига, если он есть
         if (plugin.getConfig().contains("settings.prefix")) {
             prefix = ChatUtil.formatColors(plugin.getConfig().getString("settings.prefix")) + " ";
         }
@@ -74,16 +72,16 @@ public class LoggerUtil {
     }
 
     /**
-     * Установить режим отладки
-     * @param debug включить/выключить отладку
+     * Set debug mode
+     * @param debug enable/disable debugging
      */
     public void setDebug(boolean debug) {
         this.debug = debug;
     }
 
     /**
-     * Проверить, включен ли режим отладки
-     * @return true, если режим отладки включен
+     * Check if debug mode is enabled
+     * @return true if debug mode is enabled
      */
     public boolean isDebug() {
         return debug;

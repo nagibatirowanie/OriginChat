@@ -3,52 +3,52 @@ package me.nagibatirowanie.originchat.module;
 import org.bukkit.configuration.file.FileConfiguration;
 
 /**
- * Интерфейс для модулей плагина
+ * Interface for plugin modules
  */
 public interface Module {
 
     /**
-     * Получить ID модуля
-     * @return ID модуля
+     * Get module ID
+     * @return module ID
      */
     String getId();
 
     /**
-     * Получить название модуля
-     * @return название модуля
+     * Get module name
+     * @return module name
      */
     String getName();
 
     /**
-     * Получить описание модуля
-     * @return описание модуля
+     * Get module description
+     * @return module description
      */
     String getDescription();
 
     /**
-     * Получить версию модуля
-     * @return версия модуля
+     * Get module version
+     * @return module version
      */
     String getVersion();
 
     /**
-     * Получить конфигурацию модуля
-     * @return конфигурация модуля или null, если отсутствует
+     * Get module configuration
+     * @return module configuration or null if missing
      */
     FileConfiguration getConfig();
 
     /**
-     * Вызывается при включении модуля
+     * Called when the module is switched on
      */
     void onEnable();
 
     /**
-     * Вызывается при выключении модуля
+     * Called when the module is switched off
      */
     void onDisable();
 
     /**
-     * Перезагрузить модуль
+     * Reload module 
      */
     default void reload() {
         onDisable();
@@ -56,8 +56,8 @@ public interface Module {
     }
     
     /**
-     * Получить имя конфигурационного файла модуля
-     * @return имя конфигурационного файла или null, если отсутствует
+     * Get the name of the module configuration file
+     * @return configuration file name or null if missing
      */
     default String getConfigName() {
         return null;

@@ -1,3 +1,25 @@
+/*
+ * This file is part of OriginChat, a Minecraft plugin.
+ *
+ * Copyright (c) 2025 nagibatirowanie
+ *
+ * OriginChat is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This plugin is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this plugin. If not, see <https://www.gnu.org/licenses/>.
+ *
+ * Created with ❤️ for the Minecraft community.
+ */
+
+
 package me.nagibatirowanie.originchat.module.modules;
 
 import me.nagibatirowanie.originchat.OriginChat;
@@ -14,7 +36,7 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * Модуль для управления сообщениями входа/выхода игроков
+ * Module for managing player join/leave messages
  */
 public class ServerMessagesModule extends AbstractModule implements Listener {
 
@@ -26,7 +48,7 @@ public class ServerMessagesModule extends AbstractModule implements Listener {
     private List<String> personalWelcomeMessages;
 
     public ServerMessagesModule(OriginChat plugin) {
-        super(plugin, "server_messages", "Серверные сообщения", "Управление сообщениями входа/выхода игроков", "1.0");
+        super(plugin, "server_messages", "Server Messages", "Manage player join/leave messages", "1.0");
     }
 
     @Override
@@ -34,19 +56,17 @@ public class ServerMessagesModule extends AbstractModule implements Listener {
         loadModuleConfig("modules/server_messages");
         loadConfig();
         Bukkit.getPluginManager().registerEvents(this, plugin);
-        log("Модуль серверных сообщений успешно загружен.");
+        log("Server messages module loaded.");
     }
 
     @Override
     public void onDisable() {
         PlayerJoinEvent.getHandlerList().unregister(this);
         PlayerQuitEvent.getHandlerList().unregister(this);
-        log("Модуль серверных сообщений выключен.");
+        log("Server messages module disabled.");
     }
 
-    /**
-     * Загрузить настройки из конфигурации
-     */
+    // Load settings from config
     protected void loadConfig() {
         try {
             joinMessageEnabled = config.getBoolean("join_message_enabled", true);
@@ -55,26 +75,21 @@ public class ServerMessagesModule extends AbstractModule implements Listener {
             joinMessages = config.getStringList("join_messages");
             leaveMessages = config.getStringList("leave_messages");
             personalWelcomeMessages = config.getStringList("personal_welcome_messages");
-            
-            // Проверка на пустые списки и добавление стандартных сообщений
             if (joinMessages.isEmpty()) {
-                joinMessages.add("&a+ &f{player} &7присоединился к серверу");
+                joinMessages.add("&a+ &f{player} &7joined the server");
                 config.set("join_messages", joinMessages);
             }
-            
             if (leaveMessages.isEmpty()) {
-                leaveMessages.add("&c- &f{player} &7покинул сервер");
+                leaveMessages.add("&c- &f{player} &7left the server");
                 config.set("leave_messages", leaveMessages);
             }
-            
             if (personalWelcomeMessages.isEmpty()) {
-                personalWelcomeMessages.add("&6Добро пожаловать на сервер, &f{player}&6!");
+                personalWelcomeMessages.add("&6Welcome to the server, &f{player}&6!");
                 config.set("personal_welcome_messages", personalWelcomeMessages);
             }
-            
             saveModuleConfig("modules/server_messages");
         } catch (Exception e) {
-            plugin.getPluginLogger().severe("Ошибка при загрузке конфигурации ServerMessagesModule: " + e.getMessage());
+            plugin.getPluginLogger().severe("❗ Error loading ServerMessagesModule config: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -82,12 +97,10 @@ public class ServerMessagesModule extends AbstractModule implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-
         if (personalWelcomeEnabled && !personalWelcomeMessages.isEmpty()) {
             String welcomeMessage = getRandomMessage(personalWelcomeMessages, player);
             player.sendMessage(ColorUtil.toComponent(player, welcomeMessage));
         }
-
         if (joinMessageEnabled && !joinMessages.isEmpty()) {
             String joinMessage = getRandomMessage(joinMessages, player);
             event.joinMessage(ColorUtil.toComponent(player, joinMessage));
@@ -99,7 +112,6 @@ public class ServerMessagesModule extends AbstractModule implements Listener {
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
-
         if (leaveMessageEnabled && !leaveMessages.isEmpty()) {
             String leaveMessage = getRandomMessage(leaveMessages, player);
             event.quitMessage(ColorUtil.toComponent(player, leaveMessage));
@@ -108,22 +120,13 @@ public class ServerMessagesModule extends AbstractModule implements Listener {
         }
     }
 
-    /**
-     * Получить случайное сообщение из списка и заменить плейсхолдеры
-     * @param messages список сообщений
-     * @param player игрок для замены плейсхолдеров
-     * @return случайное сообщение с замененными плейсхолдерами
-     */
+    // Get random message from list and replace placeholders
     private String getRandomMessage(List<String> messages, Player player) {
         String message = messages.get(new Random().nextInt(messages.size()));
         return message.replace("{player}", player.getName());
     }
-    
-    /**
-     * Получить случайное сообщение из списка
-     * @param messages список сообщений
-     * @return случайное сообщение
-     */
+
+    // Get random message from list
     private String getRandomMessage(List<String> messages) {
         return messages.get(new Random().nextInt(messages.size()));
     }

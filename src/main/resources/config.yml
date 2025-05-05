@@ -1,18 +1,25 @@
-# Основной конфиг плагина OriginChat
+# Main configuration file for the OriginChat plugin
 version: 1
 
-# Общие настройки плагина
+# General plugin settings
 settings:
-  # Включить/выключить отладочные сообщения
+  # Enable/disable debug messages
   debug: false
-  # Префикс плагина в сообщениях
+  # Plugin prefix in messages
   prefix: '&7[&bOriginChat&7]'
 
-# Настройки форматирования чата
+# Locale settings
+locale:
+  # Default language (ru, en)
+  default: 'ru'
+  # Enable automatic language detection from client
+  auto_detect: true
 
-# Настройки модулей
+# Chat formatting settings
+
+# Module settings
 modules:
-  # Включенные модули
+  # Enabled modules
   enabled:
     - 'chat'
     - 'tab'

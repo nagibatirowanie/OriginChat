@@ -1,3 +1,24 @@
+/*
+ * This file is part of OriginChat, a Minecraft plugin.
+ *
+ * Copyright (c) 2025 nagibatirowanie
+ *
+ * OriginChat is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This plugin is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this plugin. If not, see <https://www.gnu.org/licenses/>.
+ *
+ * Created with ❤️ for the Minecraft community.
+ */
+
 package me.nagibatirowanie.originchat.module.modules;
 
 import me.nagibatirowanie.originchat.OriginChat;
@@ -14,7 +35,7 @@ import org.bukkit.entity.Player;
 import java.util.*;
 
 /**
- * Модуль для отправки приватных сообщений между игроками
+ * Module for sending private messages between players
  */
 public class PrivateMessageModule extends AbstractModule implements CommandExecutor, TabCompleter {
 
@@ -25,7 +46,6 @@ public class PrivateMessageModule extends AbstractModule implements CommandExecu
     private boolean enabled;
     private boolean registered = false;
 
-    // Сообщения для игроков
     private String msgNotAPlayer;
     private String msgPlayerNotSpecified;
     private String msgMessageNotSpecified;
@@ -34,12 +54,11 @@ public class PrivateMessageModule extends AbstractModule implements CommandExecu
     private String msgNoReplyTarget;
 
     public PrivateMessageModule(OriginChat plugin) {
-        super(plugin, "private_messages", "Приватные сообщения", "Модуль для отправки личных сообщений между игроками", "1.0");
+        super(plugin, "private_messages", "Private Messages", "Module for sending private messages between players", "1.0");
     }
 
     @Override
     public void onEnable() {
-        // Загрузка конфигурации
         loadModuleConfig("modules/private_messages");
         if (config == null) {
             config = plugin.getConfigManager().getMainConfig();
@@ -48,7 +67,6 @@ public class PrivateMessageModule extends AbstractModule implements CommandExecu
         loadConfig();
         
         if (!enabled) {
-            log("Модуль приватных сообщений отключен в конфигурации.");
             return;
         }
 
@@ -57,7 +75,6 @@ public class PrivateMessageModule extends AbstractModule implements CommandExecu
             registered = true;
         }
 
-        log("Модуль приватных сообщений успешно загружен.");
     }
 
     @Override
@@ -66,7 +83,6 @@ public class PrivateMessageModule extends AbstractModule implements CommandExecu
             unregisterCommands();
             registered = false;
         }
-        log("Модуль приватных сообщений выключен.");
     }
 
     private void registerCommands() {
@@ -87,11 +103,9 @@ public class PrivateMessageModule extends AbstractModule implements CommandExecu
         try {
             enabled = config.getBoolean("enabled", true);
             
-            // Загрузка форматов сообщений
             senderFormat = config.getString("format.sender", "&7Вы &8-> &7{receiver}: &f{message}");
             receiverFormat = config.getString("format.receiver", "&7{sender} &8-> &7Вам: &f{message}");
             
-            // Загрузка сообщений для игроков
             ConfigurationSection messagesSection = config.getConfigurationSection("messages");
             if (messagesSection != null) {
                 msgNotAPlayer = messagesSection.getString("not-a-player", "&cЭта команда доступна только для игроков!");
@@ -102,7 +116,7 @@ public class PrivateMessageModule extends AbstractModule implements CommandExecu
                 msgNoReplyTarget = messagesSection.getString("no-reply-target", "&cНекому ответить! Сначала отправьте кому-нибудь сообщение.");
             }
         } catch (Exception e) {
-            plugin.getPluginLogger().severe("Ошибка при загрузке конфигурации модуля приватных сообщений: " + e.getMessage());
+            plugin.getPluginLogger().severe("❗ Error loading ServerMessages settings: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -117,7 +131,6 @@ public class PrivateMessageModule extends AbstractModule implements CommandExecu
         Player player = (Player) sender;
 
         if (command.getName().equalsIgnoreCase("msg")) {
-            // Проверка наличия аргументов
             if (args.length == 0) {
                 player.sendMessage(ColorUtil.format(msgPlayerNotSpecified));
                 return true;
@@ -130,13 +143,11 @@ public class PrivateMessageModule extends AbstractModule implements CommandExecu
 
             Player target = Bukkit.getPlayerExact(args[0]);
 
-            // Проверка существования игрока
             if (target == null || !target.isOnline()) {
                 player.sendMessage(ColorUtil.format(msgPlayerNotFound.replace("{player}", args[0])));
                 return true;
             }
 
-            // Проверка на отправку сообщения самому себе
             if (target.getUniqueId().equals(player.getUniqueId())) {
                 player.sendMessage(ColorUtil.format(msgCannotMessageYourself));
                 return true;
@@ -148,7 +159,6 @@ public class PrivateMessageModule extends AbstractModule implements CommandExecu
         }
 
         if (command.getName().equalsIgnoreCase("r")) {
-            // Проверка наличия сообщения
             if (args.length == 0) {
                 player.sendMessage(ColorUtil.format(msgMessageNotSpecified));
                 return true;
@@ -193,7 +203,6 @@ public class PrivateMessageModule extends AbstractModule implements CommandExecu
         if (command.getName().equalsIgnoreCase("msg") && args.length == 1) {
             List<String> onlinePlayers = new ArrayList<>();
             for (Player player : Bukkit.getOnlinePlayers()) {
-                // Не показывать себя в списке автодополнения
                 if (!player.equals(sender)) {
                     onlinePlayers.add(player.getName());
                 }

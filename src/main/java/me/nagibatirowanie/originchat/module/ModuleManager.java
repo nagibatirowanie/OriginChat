@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Менеджер модулей плагина
+ * Plugin module manager
  */
 public class ModuleManager {
 
@@ -30,10 +30,10 @@ public class ModuleManager {
     }
 
     /**
-     * Загрузить все модули
+     * Load all modules
      */
     public void loadModules() {
-        // Регистрация всех модулей
+        // register all modules
         registerModule(new ChatModule(plugin));
         registerModule(new TabModule(plugin));
         registerModule(new PrivateMessageModule(plugin));
@@ -42,10 +42,8 @@ public class ModuleManager {
         registerModule(new LocaleAdvancementsModule(plugin));
         registerModule(new LocaleDeathsModule(plugin));
 
-        // Получение списка включенных модулей из конфига
         List<String> enabledFromConfig = plugin.getConfigManager().getMainConfig().getStringList("modules.enabled");
         
-        // Включение модулей
         for (String moduleId : enabledFromConfig) {
             enableModule(moduleId);
         }
@@ -53,11 +51,8 @@ public class ModuleManager {
         plugin.getPluginLogger().info("Загружено модулей: " + enabledModules.size());
     }
 
-    /**
-     * Выгрузить все модули
-     */
+
     public void unloadModules() {
-        // Выключение всех активных модулей
         for (String moduleId : new ArrayList<>(enabledModules)) {
             disableModule(moduleId);
         }
@@ -67,17 +62,17 @@ public class ModuleManager {
     }
 
     /**
-     * Зарегистрировать модуль
-     * @param module модуль для регистрации
+     * Register module
+     * @param module module to be registered
      */
     public void registerModule(Module module) {
         modules.put(module.getId(), module);
     }
 
     /**
-     * Включить модуль по ID
-     * @param moduleId ID модуля
-     * @return успешность включения
+     * Enavle module by ID
+     * @param moduleId module ID
+     * @return successful enabling
      */
     public boolean enableModule(String moduleId) {
         if (!modules.containsKey(moduleId)) {
@@ -86,120 +81,117 @@ public class ModuleManager {
         }
         
         if (enabledModules.contains(moduleId)) {
-            return true; // Модуль уже включен
+            return true; 
         }
         
         Module module = modules.get(moduleId);
         try {
             module.onEnable();
             enabledModules.add(moduleId);
-            plugin.getPluginLogger().info("Модуль '" + moduleId + "' успешно включен!");
+            plugin.getPluginLogger().info("Module '" + moduleId + "' successfully turned on!");
             return true;
         } catch (Exception e) {
-            plugin.getPluginLogger().severe("Ошибка при включении модуля '" + moduleId + "': " + e.getMessage());
+            plugin.getPluginLogger().severe("Error when switching on the module '" + moduleId + "': " + e.getMessage());
             e.printStackTrace();
             return false;
         }
     }
 
     /**
-     * Выключить модуль по ID
-     * @param moduleId ID модуля
-     * @return успешность выключения
+     * Disable module by ID
+     * @param moduleId module ID
+     * @return shutdown success
      */
     public boolean disableModule(String moduleId) {
         if (!modules.containsKey(moduleId)) {
-            plugin.getPluginLogger().warning("Модуль '" + moduleId + "' не найден!");
+            plugin.getPluginLogger().warning("Module '" + moduleId + "' not found!");
             return false;
         }
         
         if (!enabledModules.contains(moduleId)) {
-            return true; // Модуль уже выключен
+            return true;
         }
         
         Module module = modules.get(moduleId);
         try {
             module.onDisable();
             enabledModules.remove(moduleId);
-            plugin.getPluginLogger().info("Модуль '" + moduleId + "' успешно выключен!");
+            plugin.getPluginLogger().info("Module '" + moduleId + "' succeful disabled!");
             return true;
         } catch (Exception e) {
-            plugin.getPluginLogger().severe("Ошибка при выключении модуля '" + moduleId + "': " + e.getMessage());
+            plugin.getPluginLogger().severe("Error when disable the module '" + moduleId + "': " + e.getMessage());
             e.printStackTrace();
             return false;
         }
     }
 
     /**
-     * Получить модуль по ID
-     * @param moduleId ID модуля
-     * @return модуль или null, если не найден
+     * Get module by ID
+     * @param moduleId module ID
+     * @return module or null if not found
      */
     public Module getModule(String moduleId) {
         return modules.get(moduleId);
     }
 
     /**
-     * Проверить, включен ли модуль
-     * @param moduleId ID модуля
-     * @return true, если модуль включен
+     * Check if the module is enabled
+     * @param moduleId module ID
+     * @return true, if the module is enabled
      */
     public boolean isModuleEnabled(String moduleId) {
         return enabledModules.contains(moduleId);
     }
 
     /**
-     * Получить список всех зарегистрированных модулей
-     * @return список модулей
+     * Get a list of all registered modules
+     * @return modules list
      */
     public Map<String, Module> getModules() {
         return modules;
     }
 
     /**
-     * Получить список включенных модулей
-     * @return список ID включенных модулей
+     * Get a list of enabled modules
+     * @return list of enabled module IDs
      */
     public List<String> getEnabledModules() {
         return enabledModules;
     }
     
     /**
-     * Перезагрузить модуль по ID
-     * @param moduleId ID модуля
-     * @return успешность перезагрузки
+     * Reload module by ID
+     * @param moduleId module ID
+     * @return reload success
      */
     public boolean reloadModule(String moduleId) {
         if (!modules.containsKey(moduleId)) {
-            plugin.getPluginLogger().warning("Модуль '" + moduleId + "' не найден!");
+            plugin.getPluginLogger().warning("Module '" + moduleId + "' not found!");
             return false;
         }
         
         boolean wasEnabled = enabledModules.contains(moduleId);
         
-        // Если модуль был включен, выключаем его
         if (wasEnabled) {
             if (!disableModule(moduleId)) {
-                plugin.getPluginLogger().warning("Не удалось выключить модуль '" + moduleId + "' для перезагрузки!");
+                plugin.getPluginLogger().warning("Failed to shut down the module '" + moduleId + "' to reload!");
                 return false;
             }
         }
         
-        // Перезагружаем конфигурацию модуля, если она существует
         Module module = modules.get(moduleId);
         if (module.getConfigName() != null && !module.getConfigName().isEmpty()) {
             plugin.getConfigManager().reloadConfig(module.getConfigName());
         }
         
-        // Если модуль был включен, включаем его снова
         if (wasEnabled) {
             if (!enableModule(moduleId)) {
-                plugin.getPluginLogger().severe("Не удалось включить модуль '" + moduleId + "' после перезагрузки!");
+                plugin.getPluginLogger().severe("Failed to enable the module '" + moduleId + "' after the reload!");
                 return false;
             }
         }
         
-        plugin.getPluginLogger().info("Модуль '" + moduleId + "' успешно перезагружен!");
+        plugin.getPluginLogger().info("Module '" + moduleId + "' successfully rebooted!");
         return true;
     }
 }

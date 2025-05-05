@@ -1,3 +1,24 @@
+/*
+ * This file is part of OriginChat, a Minecraft plugin.
+ *
+ * Copyright (c) 2025 nagibatirowanie
+ *
+ * OriginChat is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This plugin is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this plugin. If not, see <https://www.gnu.org/licenses/>.
+ *
+ * Created with ❤️ for the Minecraft community.
+ */
+
 package me.nagibatirowanie.originchat.module.modules;
 
 import me.nagibatirowanie.originchat.OriginChat;
@@ -21,7 +42,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Модуль для локализованных сообщений о достижениях
+ * Module for localized achievement messages
  */
 public class LocaleAdvancementsModule extends AbstractModule implements Listener {
 
@@ -35,13 +56,12 @@ public class LocaleAdvancementsModule extends AbstractModule implements Listener
     private boolean registered = false;
 
     public LocaleAdvancementsModule(OriginChat plugin) {
-        super(plugin, "locale_advancements", "Локализованные достижения", 
-              "Модуль для отображения локализованных сообщений о достижениях", "1.0");
+        super(plugin, "locale_advancements", "Locale Advancements", 
+              "Module for displaying localized achievement messages", "1.0");
     }
 
     @Override
     public void onEnable() {
-        // Загрузка конфигурации
         loadModuleConfig("modules/locale_advancements");
         if (config == null) {
             config = plugin.getConfigManager().getMainConfig();
@@ -52,7 +72,6 @@ public class LocaleAdvancementsModule extends AbstractModule implements Listener
             plugin.getServer().getPluginManager().registerEvents(this, plugin);
             registered = true;
         }
-        log("Модуль локализованных достижений успешно загружен.");
     }
 
     @Override
@@ -61,51 +80,55 @@ public class LocaleAdvancementsModule extends AbstractModule implements Listener
             HandlerList.unregisterAll(this);
             registered = false;
         }
-        log("Модуль локализованных достижений выключен.");
     }
 
     private void loadConfig() {
-        ConfigurationSection advancementsConfig = config.getConfigurationSection("advancements");
-        if (advancementsConfig == null) advancementsConfig = config.createSection("advancements");
+        try {
+            ConfigurationSection advancementsConfig = config.getConfigurationSection("advancements");
+            if (advancementsConfig == null) advancementsConfig = config.createSection("advancements");
 
-        disableVanillaMessages = advancementsConfig.getBoolean("disable-vanilla-messages", true);
-        defaultFormat = advancementsConfig.getString("default_format", "");
+            disableVanillaMessages = advancementsConfig.getBoolean("disable-vanilla-messages", true);
+            defaultFormat = advancementsConfig.getString("default_format", "");
 
-        ConfigurationSection formats = advancementsConfig.getConfigurationSection("formats");
-        if (formats != null) {
-            for (String locale : formats.getKeys(false)) {
-                localeFormats.put(locale.toLowerCase(Locale.ROOT), formats.getString(locale, defaultFormat));
+            ConfigurationSection formats = advancementsConfig.getConfigurationSection("formats");
+            if (formats != null) {
+                for (String locale : formats.getKeys(false)) {
+                    localeFormats.put(locale.toLowerCase(Locale.ROOT), formats.getString(locale, defaultFormat));
+                }
             }
-        }
 
-        ConfigurationSection colors = advancementsConfig.getConfigurationSection("colors");
-        if (colors != null) {
-            playerNameColor = colors.getString("player_name", "#2f67e0");
-            titleColor = colors.getString("title", "#1d52c4");
-            goalColor = colors.getString("goal", "#2f67e0");
-        }
-
-        excludedAdvancements.clear();
-        List<String> excluded = advancementsConfig.getStringList("excluded");
-        for (String entry : excluded) {
-            String[] parts = entry.split(":", 2);
-            String namespace = "minecraft";
-            String key = entry;
-            if (parts.length == 2) {
-                namespace = parts[0];
-                key = parts[1];
+            ConfigurationSection colors = advancementsConfig.getConfigurationSection("colors");
+            if (colors != null) {
+                playerNameColor = colors.getString("player_name", "#2f67e0");
+                titleColor = colors.getString("title", "#1d52c4");
+                goalColor = colors.getString("goal", "#2f67e0");
             }
-            key = key.replace('.', '/');
-            NamespacedKey nsKey = new NamespacedKey(namespace, key);
-            excludedAdvancements.add(nsKey.toString());
-        }
+
+            excludedAdvancements.clear();
+            List<String> excluded = advancementsConfig.getStringList("excluded");
+            for (String entry : excluded) {
+                String[] parts = entry.split(":", 2);
+                String namespace = "minecraft";
+                String key = entry;
+                if (parts.length == 2) {
+                    namespace = parts[0];
+                    key = parts[1];
+                }
+                key = key.replace('.', '/');
+                NamespacedKey nsKey = new NamespacedKey(namespace, key);
+                excludedAdvancements.add(nsKey.toString());
+            }
         
-        debug("Конфигурация модуля локализованных достижений загружена.");
+        debug("The configuration of the localized achievements module has been uploaded.");
+    } catch (Exception e) {
+        log("❗ Error when loading LocalAdvancments configuration: " + e.getMessage());
+        e.printStackTrace();
+    }
     }
 
     @EventHandler
     public void onPlayerAdvancementDone(PlayerAdvancementDoneEvent event) {
-        debug("Событие PlayerAdvancementDoneEvent вызвано.");
+        debug("The PlayerAdvancementDoneEvent event has been triggered.");
 
         if (disableVanillaMessages) {
             event.message(null);
@@ -114,12 +137,12 @@ public class LocaleAdvancementsModule extends AbstractModule implements Listener
         Advancement advancement = event.getAdvancement();
         String advancementKey = advancement.getKey().toString();
         if (excludedAdvancements.contains(advancementKey)) {
-            debug("Достижение " + advancementKey + " исключено.");
+            debug("Advancement " + advancementKey + " excluded.");
             return;
         }
 
         if (advancement.getDisplay() == null || !advancement.getDisplay().doesAnnounceToChat()) {
-            debug("Достижение " + advancementKey + " не объявляется в чате.");
+            debug("Advancement " + advancementKey + " is not announced in the chat.");
             return;
         }
 
@@ -128,14 +151,14 @@ public class LocaleAdvancementsModule extends AbstractModule implements Listener
         String locale = player.getLocale().toLowerCase(Locale.ROOT);
         String format = localeFormats.getOrDefault(locale, defaultFormat);
         if (format.isEmpty()) {
-            debug("Формат для локали " + locale + " пуст.");
+            debug("Format for locale " + locale + " empty.");
             return;
         }
 
         Component titleComponent = advancement.getDisplay().displayName();
         Component message = buildAdvancementMessage(format, player, titleComponent);
         player.sendMessage(message);
-        debug("Кастомное сообщение о достижении отправлено игроку " + player.getName());
+        debug("Custom achievement message sent to the player " + player.getName());
     }
 
     private Component buildAdvancementMessage(String format, Player player, Component titleComponent) {

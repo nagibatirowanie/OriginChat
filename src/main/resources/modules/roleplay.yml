@@ -1,6 +1,7 @@
-# Конфигурация модуля ролевых команд
+version: 1
+# Roleplay commands module configuration
 
-# Дистанция действия команд (в блоках)
+# Command action distances (in blocks)
 command_ranges:
   me: 100
   do: 100
@@ -8,7 +9,7 @@ command_ranges:
   todo: 100
   roll: 100
   ball: 100
-  # Глобальные команды не имеют ограничения дистанции
+  # Global commands have no distance limit
   gme: 0
   gdo: 0
   gtry: 0
@@ -16,60 +17,60 @@ command_ranges:
   groll: 0
   gball: 0
 
-# Форматы сообщений для команд
+# Message formats for commands
 formats:
-  # Команда /me - действие от первого лица
+  # /me command - first person action
   me: "&d* {player} {message}"
   gme: "&5[G] &d* {player} {message}"
   
-  # Команда /do - описание окружения
+  # /do command - environment description
   do: "&b* {message} &3(({player}))"
   gdo: "&5[G] &b* {message} &3(({player}))"
   
-  # Команда /try - попытка действия с случайным результатом
-  try_success: "&d* {player} {message} &a[Успешно]"
-  try_failure: "&d* {player} {message} &c[Неудачно]"
-  gtry_success: "&5[G] &d* {player} {message} &a[Успешно]"
-  gtry_failure: "&5[G] &d* {player} {message} &c[Неудачно]"
+  # /try command - attempt action with random result
+  try_success: "&d* {player} {message} &a[Success]"
+  try_failure: "&d* {player} {message} &c[Failure]"
+  gtry_success: "&5[G] &d* {player} {message} &a[Success]"
+  gtry_failure: "&5[G] &d* {player} {message} &c[Failure]"
   
-  # Команда /todo - действие с описанием
+  # /todo command - action with description
   todo: "&d* {player} {message} &b*"
   gtodo: "&5[G] &d* {player} {message} &b*"
   
-  # Команда /roll - бросок кубика
-  roll: "&6* {player} бросает кубик &e({min}-{max})&6 и выбрасывает &e{result}"
-  groll: "&5[G] &6* {player} бросает кубик &e({min}-{max})&6 и выбрасывает &e{result}"
+  # /roll command - dice roll
+  roll: "&6* {player} rolls a dice &e({min}-{max})&6 and gets &e{result}"
+  groll: "&5[G] &6* {player} rolls a dice &e({min}-{max})&6 and gets &e{result}"
   
-  # Команда /ball - магический шар
-  ball: "&6* {player} спрашивает у магического шара: &e\"{question}\"&6. Ответ: &e{answer}"
-  gball: "&5[G] &6* {player} спрашивает у магического шара: &e\"{question}\"&6. Ответ: &e{answer}"
+  # /ball command - magic ball
+  ball: "&6* {player} asks the magic ball: &e\"{question}\"&6. Answer: &e{answer}"
+  gball: "&5[G] &6* {player} asks the magic ball: &e\"{question}\"&6. Answer: &e{answer}"
 
-# Ответы магического шара
+# Magic ball answers
 magic_ball_answers:
-  - "Да"
-  - "Нет"
-  - "Возможно"
-  - "Весьма вероятно"
-  - "Маловероятно"
-  - "Определённо да"
-  - "Определённо нет"
-  - "Спроси позже"
-  - "Не могу сказать сейчас"
-  - "Звёзды говорят да"
-  - "Звёзды говорят нет"
-  - "Будущее туманно"
+  - "Yes"
+  - "No"
+  - "Maybe"
+  - "Very likely"
+  - "Unlikely"
+  - "Definitely yes"
+  - "Definitely no"
+  - "Ask later"
+  - "Cannot say now"
+  - "The stars say yes"
+  - "The stars say no"
+  - "The future is hazy"
 
-# Сообщения об ошибках
+# Error messages
 errors:
-  only_players: "&cЭта команда доступна только для игроков!"
-  no_format_found: "&cФормат сообщения не найден в конфигурации!"
-  empty_magic_ball: "&cСписок ответов магического шара пуст!"
-  invalid_roll_usage: "&cИспользование: /roll <мин> <макс>"
+  only_players: "&cThis command is only available to players!"
+  no_format_found: "&cMessage format not found in configuration!"
+  empty_magic_ball: "&cMagic ball answers list is empty!"
+  invalid_roll_usage: "&cUsage: /roll <min> <max>"
   
-  # Сообщения об отсутствии аргументов
+  # Missing argument messages
   missing_argument:
-    me: "&cУкажите действие! Использование: /me <действие>"
-    do: "&cУкажите описание! Использование: /do <описание>"
-    try: "&cУкажите действие! Использование: /try <действие>"
-    todo: "&cУкажите действие и описание! Использование: /todo <действие>"
-    ball: "&cУкажите вопрос! Использование: /ball <вопрос>"
+    me: "&cSpecify an action! Usage: /me <action>"
+    do: "&cSpecify a description! Usage: /do <description>"
+    try: "&cSpecify an action! Usage: /try <action>"
+    todo: "&cSpecify an action and description! Usage: /todo <action>"
+    ball: "&cSpecify a question! Usage: /ball <question>"

@@ -1,0 +1,63 @@
+# English localization for OriginChat
+version: 1
+
+commands:
+  no_permission: "&cYou don't have permission to execute this command!"
+  unknown_command: "&cUnknown command. Use /originchat help for assistance."
+  plugin_reloaded: "&aOriginChat plugin successfully reloaded!"
+  
+  module:
+    usage: "&cUsage: /originchat module <list|enable|disable|reload> [module_name]"
+    specify_module_enable: "&cPlease specify a module name to enable!"
+    specify_module_disable: "&cPlease specify a module name to disable!"
+    specify_module_reload: "&cPlease specify a module name to reload!"
+    module_enabled: "&aModule '{module}' successfully enabled!"
+    module_enable_failed: "&cFailed to enable module '{module}'!"
+    module_disabled: "&aModule '{module}' successfully disabled!"
+    module_disable_failed: "&cFailed to disable module '{module}'!"
+    module_reloaded: "&aModule '{module}' successfully reloaded!"
+    module_reload_failed: "&cFailed to reload module '{module}'!"
+  
+  help:
+    lines:
+      - "&7===== &bOriginChat &7====="
+      - "&b/originchat help &7- Show help"
+      - "&b/originchat reload &7- Reload the plugin"
+      - "&b/originchat module list &7- List all modules"
+      - "&b/originchat module enable <name> &7- Enable a module"
+      - "&b/originchat module disable <name> &7- Disable a module"
+      - "&b/originchat module reload <name> &7- Reload a module"
+      - "&7=========================="
+
+  
+  module_list:
+    lines:
+      - "&7===== &bOriginChat Modules &7====="
+      - "&7=========================="
+    module_info: "&b{name} &7({id}) - {status}"
+    module_description: "  &7{description}"
+    status_enabled: "&aEnabled"
+    status_disabled: "&cDisabled"
+
+modules:
+  locale_advancements:
+    name: "Locale Advancements"
+    description: "Module for displaying localized achievement messages"
+  chat:
+    name: "Chat Module"
+    description: "Adds chat distribution and formatting"
+  server_messages:
+    name: "Server Messages"
+    description: "Manage player join/leave messages"
+  private_messages:
+    name: "Private Messages"
+    description: "Module for sending private messages between players"
+  locale_deaths:
+    name: "Locale Deaths"
+    description: "Module for displaying localized death messages"
+  roleplay:
+    name: "Roleplay"
+    description: "Adds roleplay commands and features"
+  tab:
+    name: "Tab"
+    description: "Customizes the player tab list"
