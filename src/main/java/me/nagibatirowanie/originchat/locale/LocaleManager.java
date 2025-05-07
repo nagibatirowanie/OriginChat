@@ -343,7 +343,6 @@ public class LocaleManager {
         // Проверяем и обновляем локализационный файл
         boolean updated = localeUpdater.checkAndUpdateLocale(localeFile, localeConfig, "locales/" + locale + ".yml");
         if (updated) {
-            plugin.getPluginLogger().info("Локализация '" + locale + "' была обновлена.");
             // Обновляем кэш
             locales.put(locale, localeConfig);
             

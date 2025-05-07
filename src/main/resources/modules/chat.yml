@@ -52,9 +52,3 @@ cooldown:
   default: 3
   originchat.moder: 2
   originchat.admin: 0
-
-messages:
-  no-permission: "&c❗ You do not have permission to send messages to this chat room."
-  nobody-heard: "&c❗ No one heard your message."
-  chat-not-found: "&c❗ No chat room found. Use the prefix to select a chat room."
-  cooldown: "&c⏳ Подождите {cooldown} секунд перед следующим сообщением!"

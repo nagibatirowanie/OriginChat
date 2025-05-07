@@ -3,19 +3,4 @@ version: 1
 
 # Is the module enabled
 enabled: true
-
-# Message formats
-format:
-  # Format for sender
-  sender: "&7You &8-> &7{receiver}: &f{message}"
-  # Format for receiver
-  receiver: "&7{sender} &8-> &7You: &f{message}"
-
-# Player messages
-messages:
-  not-a-player: "&cThis command is only available to players!"
-  player-not-specified: "&cPlease specify a player name!"
-  message-not-specified: "&cPlease enter a message!"
-  player-not-found: "&cPlayer {player} not found or not online!"
-  cannot-message-yourself: "&cYou cannot message yourself!"
-  no-reply-target: "&cNo one to reply to! Send a message to someone first."
+ 

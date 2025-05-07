@@ -1,0 +1,152 @@
+#  ／l、
+# (ﾟ､ ｡ ７  Welcome to the configuration file for OriginChat!
+#  l、 ~ヽ   Here, you can customize the behavior of the chat system,
+#  じしf_,)ノ  including channels, private messages, tabs, and more.
+#
+#  Each section below contains a description of its settings.
+#  Please read the comments carefully before making changes. 😊
+
+config-version: 2 # DON'T TOUCH!
+
+language: ru_ru
+
+chats:
+  local:
+    radius: 100 # The radius in blocks for local chat. Players outside this range won't see the messages.
+    format: '#14c6fc[L] &f%luckperms_prefix% &f{player}: {message}' # The format for messages in the local chat.
+    permission: '' # Permission required to use the local chat. Leave empty for no restriction.
+    prefix: '' # A prefix for local chat messages. Leave empty if not needed.
+  global:
+    radius: -1 # Radius -1 means no restriction. This chat is global.
+    format: '#21ffd6[G] &f%luckperms_prefix% &f{player}: {message}' # Format for messages in the global chat.
+    permission-write: originchat.global.write # Permission to send messages in global chat.
+    permission-view: originchat.global.view # Permission to view messages in global chat.
+    prefix: '!' # Prefix for global chat messages.
+  admin:
+    radius: -1 # Admin chat is also global by default.
+    format: '#ff2142[A] &f%luckperms_prefix% &f{player}: {message}' # Format for admin chat messages.
+    permission-write: originchat.admin.write # Permission to send messages in admin chat.
+    permission-view: originchat.admin.view # Permission to view messages in admin chat.
+    prefix: '@' # Prefix for admin chat messages.
+
+private-message:
+  sender-format: '#348febYou &8-> &7{receiver}: &f{message}' # Format for the sender of a private message.
+  receiver-format: '#348feb{sender} &8-> &7You: &f{message}' # Format for the receiver of a private message.
+
+tab:
+  header:
+  - '#348febWelcome, %player_name%!'
+  - '#348febPlayers online: %server_online%/%server_max_players%'
+  footer:
+  - '#348febEnjoy your time on the server!'
+  - '#348febYour ping: %player_ping% ms'
+  show_ping: true # If true, ping will be shown next to player names in the tab list.
+  player_format: '%luckperms_prefix% &f{player} %luckperms_suffix%' # The format for player names in the tab list.
+  priority_sorting_type: luckperms # Sorting method for the tab list. Use "luckperms" or "group".
+  group_priorities: # Only used when priority_sorting_type is "group".
+    admin: 10 # Higher numbers mean higher priority in the tab list.
+    moderator: 5
+    default: 1
+
+server_messages:
+  join_message_enabled: true # Enables custom join messages.
+  leave_message_enabled: true # Enables custom leave messages.
+  personal_welcome_enabled: true # Enables personalized welcome messages for new players.
+  join_messages:
+  - '#00bfffWelcome, {player}! We''re glad to see you!'
+  - '#00bfff{player} joined the server!'
+  - '#00bfffHi, {player}! Welcome to the server!'
+  leave_messages:
+  - '#00bfff{player} has left the server. Goodbye!'
+  - '#00bfff{player} has gone offline. We''ll miss you!'
+  - '#00bfff{player} is no longer with us!'
+  personal_welcome_messages:
+  - '#00bfffWelcome, {player}, to the server!'
+  - '#00bfffWe''re so happy you''re here, {player}!'
+  - '#00bfffHello, {player}! Have fun on the server!'
+
+roleplay:
+  command_ranges:
+    me: 100 # Maximum range in blocks for the /me command.
+    do: 100 # Maximum range in blocks for the /do command.
+    try: 100 # Maximum range in blocks for the /try command.
+    todo: 100 # Maximum range in blocks for the /todo command.
+    roll: 100 # Maximum range in blocks for the /roll command.
+    ball: 100 # Maximum range in blocks for the /ball command.
+  
+  # Magic ball answers
+  magic_ball_answers:
+  - Yes.
+  - No.
+  - Maybe.
+  - Ask later.
+  - Definitely.
+  - I don't think so.
+  - It's uncertain.
+
+moderator:
+  warns:
+    '3':
+      action: ban
+      duration: 3d
+      reason: 3 warns
+    '5':
+      action: mute
+      duration: 7d
+      reason: 5 Warns
+    reset-warn-after-punishment: true
+    tab-complete:
+      kick-reasons:
+      - Спам
+      - Оскорбления
+      - Неспортивное поведение
+      - Нарушение правил
+      mute-reasons:
+      - Спам
+      - Оскорбления
+      - Неспортивное поведение
+      - Нарушение правил
+      ban-reasons:
+      - Спам
+      - Оскорбления
+      - Неспортивное поведение
+      - Нарушение правил
+      warn-reasons:
+      - Спам
+      - Оскорбления
+      - Неспортивное поведение
+      - Нарушение правил
+
+advancements:
+  # Disable vanilla advancement messages (true = no default messages).
+  disable-vanilla-messages: true
+  
+  # Enable custom advancement messages (true = plugin sends messages).
+  enabled: true
+  
+  # Default message format for advancements.
+  default_format: '#1d52c4★ #2f67e0{player} #2f67e0achieved {title}'
+  
+  formats:
+    en_us: '#1d52c4★ #2f67e0{player} #2f67e0achieved {title}' # English format.
+    ru_ru: '#1d52c4★ #2f67e0{player} #2f67e0получил достижение {title}' # Russian format.
+    de_de: '#1d52c4★ #2f67e0{player} #2f67e0hat {title}' # German format.
+    fr_fr: '#1d52c4★ #2f67e0{player} #2f67e0a obtenu {title}' # French format.
+  
+  # List of advancements to exclude from custom messages.
+  excluded:
+  - advancements.adventure.root
+  - advancements.end.root
+  
+  colors:
+    player_name: '#2f67e0' # Player name color.
+    title: '#1d52c4' # Advancement title color.
+    goal: '#2f67e0' # Goal color.
+
+death_messages:
+  enabled: true # If true, custom death messages will be enabled.
+  disable-vanilla-messages: true
+  prefix: '#3d1ad9☠ ' # The prefix for death messages.
+  suffix: '' # The suffix for death messages. Leave empty if not needed.
+  play_sound: true # If true, a sound will be played when a death message is displayed.
+  death_sound: ENTITY_CAT_DEATH # The sound to play for death messages. Use Minecraft sound names.

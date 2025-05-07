@@ -3,12 +3,6 @@ version: 1
 
 enabled: true
 
-header:
-  - "&bWelcome to the server!"
-  - "&7Online: {online}/{max_online}"
-footer:
-  - "&eEnjoy your game!"
-  - "&7discord.gg/yourserver"
 
 show_ping: false
 player_format: "%luckperms_prefix%&f{player}"

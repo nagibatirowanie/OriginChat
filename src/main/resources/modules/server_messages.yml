@@ -10,23 +10,3 @@ leave_message_enabled: true
 # Enable/disable personal welcome messages
 personal_welcome_enabled: true
 
-# List of player join messages (randomly selected)
-# Available placeholders: {player} - player name
-join_messages:
-  - "&a+ &f{player} &7joined the server"
-  - "&aWelcome, &f{player}!"
-  - "&aPlayer &f{player} &ajoined the server"
-
-# List of player leave messages (randomly selected)
-# Available placeholders: {player} - player name
-leave_messages:
-  - "&c- &f{player} &7left the server"
-  - "&cPlayer &f{player} &cleft the server"
-  - "&f{player} &7disconnected"
-
-# List of personal welcome messages (randomly selected)
-# Available placeholders: {player} - player name
-personal_welcome_messages:
-  - "&6Welcome to the server, &f{player}&6!"
-  - "&6Enjoy your game, &f{player}&6!"
-  - "&6Glad to see you again, &f{player}&6!"

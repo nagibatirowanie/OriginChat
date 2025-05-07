@@ -48,7 +48,6 @@ public class ModuleManager {
             enableModule(moduleId);
         }
         
-        plugin.getPluginLogger().info("Загружено модулей: " + enabledModules.size());
     }
 
 
@@ -76,7 +75,7 @@ public class ModuleManager {
      */
     public boolean enableModule(String moduleId) {
         if (!modules.containsKey(moduleId)) {
-            plugin.getPluginLogger().warning("Модуль '" + moduleId + "' не найден!");
+            plugin.getPluginLogger().warning("Module '" + moduleId + "' not found!");
             return false;
         }
         
@@ -88,7 +87,6 @@ public class ModuleManager {
         try {
             module.onEnable();
             enabledModules.add(moduleId);
-            plugin.getPluginLogger().info("Module '" + moduleId + "' successfully turned on!");
             return true;
         } catch (Exception e) {
             plugin.getPluginLogger().severe("Error when switching on the module '" + moduleId + "': " + e.getMessage());
@@ -116,7 +114,6 @@ public class ModuleManager {
         try {
             module.onDisable();
             enabledModules.remove(moduleId);
-            plugin.getPluginLogger().info("Module '" + moduleId + "' succeful disabled!");
             return true;
         } catch (Exception e) {
             plugin.getPluginLogger().severe("Error when disable the module '" + moduleId + "': " + e.getMessage());

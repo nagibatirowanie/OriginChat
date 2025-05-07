@@ -33,12 +33,11 @@ public class LocaleUpdater {
     public boolean checkAndUpdateLocale(File localeFile, FileConfiguration localeConfig, String resourceName) {
         // Если в файле нет поля version, добавляем его со значением 1
         if (!localeConfig.contains("version")) {
-            plugin.getPluginLogger().warning("Локализационный файл '" + resourceName + "' не содержит поле 'version'! Устанавливаем версию 1.");
             localeConfig.set("version", 1);
             try {
                 localeConfig.save(localeFile);
             } catch (IOException e) {
-                plugin.getPluginLogger().severe("Ошибка при сохранении версии локализационного файла: " + e.getMessage());
+                plugin.getPluginLogger().severe("Error when saving the version of the localization file: " + e.getMessage());
                 return false;
             }
             return true;
@@ -48,7 +47,7 @@ public class LocaleUpdater {
 
         InputStream defaultLocaleStream = plugin.getResource(resourceName);
         if (defaultLocaleStream == null) {
-            plugin.getPluginLogger().warning("Ресурс '" + resourceName + "' не найден в jar!");
+            //plugin.getPluginLogger().warning("Ресурс '" + resourceName + "' не найден в jar!");
             return false;
         }
 
@@ -57,14 +56,14 @@ public class LocaleUpdater {
 
         // Если в ресурсе нет поля version, добавляем его со значением 1
         if (!defaultLocale.contains("version")) {
-            plugin.getPluginLogger().warning("Ресурс '" + resourceName + "' не содержит поле 'version'! Предполагаем версию 1.");
+            //plugin.getPluginLogger().warning("Ресурс '" + resourceName + "' не содержит поле 'version'! Предполагаем версию 1.");
             return false;
         }
 
         int defaultVersion = defaultLocale.getInt("version");
 
         if (currentVersion < defaultVersion) {
-            plugin.getPluginLogger().info("Обновление локализации '" + resourceName + "' с версии " + currentVersion + " до " + defaultVersion);
+            //plugin.getPluginLogger().info("Обновление локализации '" + resourceName + "' с версии " + currentVersion + " до " + defaultVersion);
             return updateLocale(localeFile, localeConfig, defaultLocale);
         }
 
@@ -87,7 +86,7 @@ public class LocaleUpdater {
             localeConfig.save(localeFile);
             return true;
         } catch (IOException e) {
-            plugin.getPluginLogger().severe("Ошибка при обновлении локализации: " + e.getMessage());
+            plugin.getPluginLogger().severe("Error when updating localization: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
