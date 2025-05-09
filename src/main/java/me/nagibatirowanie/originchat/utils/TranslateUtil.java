@@ -19,12 +19,42 @@ import static org.apache.commons.lang3.StringEscapeUtils.unescapeHtml4;
 public class TranslateUtil {
     
     private static final Pattern TRANSLATION_PATTERN = Pattern.compile("class=\"result-container\">([^<]*)<\\/div>", Pattern.MULTILINE);
+    
+    /**
+     * Нормализует код языка для использования с Google Translate
+     * 
+     * @param langCode Код языка (например, "en", "ru", "uk", "uk_UA")
+     * @return Нормализованный код языка для Google Translate
+     */
+    private static String normalizeLanguageCode(String langCode) {
+        if (langCode == null || langCode.isEmpty()) {
+            return "en"; // Возвращаем английский по умолчанию
+        }
+        
+        // Заменяем подчеркивание на дефис для совместимости с Google Translate
+        if (langCode.contains("_")) {
+            String[] parts = langCode.split("_");
+            // Для большинства языков достаточно только кода языка
+            // Но для некоторых (китайский, японский и т.д.) важен и региональный код
+            if (parts[0].equals("zh") || parts[0].equals("ja") || 
+                parts[0].equals("ko") || parts[0].equals("pt") ||
+                parts[0].equals("uk") || parts[0].equals("ru") ||
+                parts[0].equals("be") || parts[0].equals("kk") ||
+                parts[0].equals("uz") || parts[0].equals("ky")) {
+                return parts[0].toLowerCase() + "-" + parts[1].toUpperCase();
+            } else {
+                return parts[0].toLowerCase();
+            }
+        }
+        
+        return langCode.toLowerCase();
+    }
 
     /**
      * Переводит текст на указанный язык
      *
      * @param text    Исходный текст для перевода
-     * @param toLang  Целевой язык (код языка, например "en", "ru", "uk")
+     * @param toLang  Целевой язык (код языка, например "en", "ru", "uk", "uk-UA")
      * @return        Переведенный текст
      * @throws IOException в случае ошибки сети или перевода
      */
@@ -32,19 +62,25 @@ public class TranslateUtil {
         if (text == null || text.trim().isEmpty()) {
             return "";
         }
-
+        String normalizedLang = normalizeLanguageCode(toLang);
         StringBuilder response = new StringBuilder();
         String encodedText = URLEncoder.encode(text.trim(), StandardCharsets.UTF_8);
         URL url = new URL(String.format("https://translate.google.com/m?hl=en&sl=auto&tl=%s&ie=UTF-8&prev=_m&q=%s", 
-                toLang, encodedText));
-
+                normalizedLang, encodedText));
         try (BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream(), StandardCharsets.UTF_8))) {
             String line;
             while ((line = br.readLine()) != null) {
                 response.append(line).append("\n");
             }
+        } catch (IOException e) {
+            String errorMsg = String.format("Ошибка при обращении к сервису перевода. Язык: %s, Текст: '%s', URL: %s, Сообщение: %s", normalizedLang, text, url, e.getMessage());
+            System.err.println("[TranslateUtil] " + errorMsg);
+            throw new IOException(errorMsg, e);
+        } catch (Exception e) {
+            String errorMsg = String.format("Неизвестная ошибка при переводе. Язык: %s, Текст: '%s', URL: %s, Сообщение: %s", normalizedLang, text, url, e.getMessage());
+            System.err.println("[TranslateUtil] " + errorMsg);
+            throw new IOException(errorMsg, e);
         }
-
         Matcher matcher = TRANSLATION_PATTERN.matcher(response);
         if (matcher.find()) {
             String match = matcher.group(1);
@@ -52,23 +88,33 @@ public class TranslateUtil {
                 return unescapeHtml4(match);
             }
         }
-        
-        throw new IOException("Не удалось выполнить перевод");
+        String errorMsg = String.format("Не удалось выполнить перевод. Язык: %s, Текст: '%s', URL: %s, Ответ: %s", normalizedLang, text, url, response.toString());
+        System.err.println("[TranslateUtil] " + errorMsg);
+        throw new IOException(errorMsg);
     }
 
     /**
      * Асинхронно переводит текст на указанный язык
      *
      * @param text    Исходный текст для перевода
-     * @param toLang  Целевой язык (код языка, например "en", "ru", "uk")
+     * @param toLang  Целевой язык (код языка, например "en", "ru", "uk", "uk-UA", "uk_UA")
      * @return        CompletableFuture с результатом перевода
      */
     public static CompletableFuture<String> translateAsync(String text, String toLang) {
+        System.out.println("[TranslateUtil] Запрос на перевод текста на язык: " + toLang);
         return CompletableFuture.supplyAsync(() -> {
             try {
-                return translate(text, toLang);
+                String result = translate(text, toLang);
+                System.out.println("[TranslateUtil] Успешный перевод на язык: " + toLang);
+                return result;
             } catch (IOException e) {
-                throw new RuntimeException("Ошибка перевода: " + e.getMessage(), e);
+                String errorMsg = String.format("Ошибка перевода на язык %s. Текст: '%s'. Причина: %s", toLang, text, e.getMessage());
+                System.err.println("[TranslateUtil] " + errorMsg);
+                throw new RuntimeException(errorMsg, e);
+            } catch (Exception e) {
+                String errorMsg = String.format("Неизвестная ошибка перевода на язык %s. Текст: '%s'. Причина: %s", toLang, text, e.getMessage());
+                System.err.println("[TranslateUtil] " + errorMsg);
+                throw new RuntimeException(errorMsg, e);
             }
         });
     }

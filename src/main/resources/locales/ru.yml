@@ -5,6 +5,8 @@ commands:
   no_permission: "&cУ вас нет прав для выполнения этой команды!"
   unknown_command: "&cНеизвестная команда. Используйте /originchat help для справки."
   plugin_reloaded: "&aПлагин OriginChat успешно перезагружен!"
+  translate-enabled: "&aАвтоматический перевод сообщений включен."
+  translate-disabled: "&cАвтоматический перевод сообщений выключен."
   
   module:
     usage: "&cИспользование: /originchat module <list|enable|disable|reload> [имя_модуля]"
@@ -45,6 +47,13 @@ modules:
   chat:
     name: "Чат"
     description: "Добавляет распределение и форматирование чата"
+    messages:
+      no-permission: "&cYou don't have permission to chat!"
+      nobody-heard: "&cNobody heard you!"
+      chat-not-found: "&cChat not found!"
+      cooldown: "&cYou are on cooldown! Wait {cooldown} seconds."
+      translate-enabled: "&aAutomatic message translation enabled."
+      translate-disabled: "&cAutomatic message translation disabled."
   server_messages:
     name: "Серверные сообщения"
     description: "Управление сообщениями входа/выхода игроков"
@@ -121,21 +130,4 @@ modules:
     footer:
       - "&eПриятной игры!"
       - "&7discord.gg/yourserver"
-  auto_translate:
-    name: "Автоматический перевод"
-    description: "Автоматически переводит сообщения в чате"
-    messages:
-      # Сообщение при включении перевода
-      translation_enabled: "&aАвтоматический перевод сообщений включен."
-      
-      # Сообщение при выключении перевода
-      translation_disabled: "&cАвтоматический перевод сообщений выключен."
-      
-      # Подсказка по использованию команды
-      toggle_usage: "&eИспользование: /translatetoggle [on|off]"
-      
-      # Сообщение об ошибке при переводе
-      translation_error: "&cОшибка при переводе сообщения."
-      
-      # Сообщение о недостатке прав
-      no_permission: "&cУ вас нет прав для использования этой команды."
+  

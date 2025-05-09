@@ -31,11 +31,42 @@ public class CommandManager implements CommandExecutor, TabCompleter {
         
         plugin.getCommand("originchat").setExecutor(this);
         plugin.getCommand("originchat").setTabCompleter(this);
-
-            }
+        
+        plugin.getCommand("translatetoggle").setExecutor(this);
+        plugin.getCommand("translatetoggle").setTabCompleter(this);
+    }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        // Обработка команды translatetoggle
+        if (command.getName().equalsIgnoreCase("translatetoggle")) {
+            plugin.getLogger().info("[CommandManager] Выполнение команды translatetoggle");
+            
+            if (!(sender instanceof org.bukkit.entity.Player)) {
+                plugin.getLogger().info("[CommandManager] Команда выполнена не игроком, отклоняем");
+                localeManager.sendMessage(sender, "commands.player_only_command");
+                return true;
+            }
+            
+            org.bukkit.entity.Player player = (org.bukkit.entity.Player) sender;
+            plugin.getLogger().info("[CommandManager] Игрок " + player.getName() + " выполняет команду translatetoggle");
+            
+            plugin.getLogger().info("[CommandManager] Вызываем toggleTranslate для игрока " + player.getName());
+            boolean newState = plugin.getTranslateManager().toggleTranslate(player);
+            plugin.getLogger().info("[CommandManager] Новое состояние автоперевода для игрока " + player.getName() + ": " + newState);
+            
+            if (newState) {
+                plugin.getLogger().info("[CommandManager] Отправляем сообщение о включении автоперевода игроку " + player.getName());
+                localeManager.sendMessage(sender, "commands.translate_enabled");
+            } else {
+                plugin.getLogger().info("[CommandManager] Отправляем сообщение о выключении автоперевода игроку " + player.getName());
+                localeManager.sendMessage(sender, "commands.translate_disabled");
+            }
+            
+            return true;
+        }
+        
+        // Обработка команды originchat
         if (args.length == 0) {
             sendHelp(sender);
             return true;
@@ -87,6 +118,12 @@ public class CommandManager implements CommandExecutor, TabCompleter {
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         List<String> completions = new ArrayList<>();
         
+        // Для команды translatetoggle не нужны автодополнения
+        if (command.getName().equalsIgnoreCase("translatetoggle")) {
+            return completions;
+        }
+        
+        // Автодополнения для команды originchat
         if (args.length == 1) {
             // Первый аргумент - подкоманды
             if (sender.hasPermission("originchat.admin")) {

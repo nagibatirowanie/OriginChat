@@ -66,11 +66,23 @@ public class LocaleManager {
             // This is a fallback method since we can't list directory contents in JAR
             try {
                 // Check if there are other locale files in resources
-                String[] commonLocales = {"de", "fr", "es", "it", "pt", "zh", "ja", "ko"};
+                // Расширенный список поддерживаемых языков
+                String[] commonLocales = {
+                    // Европейские языки
+                    "de", "fr", "es", "it", "pt", "nl", "pl", "sv", "no", "fi", "da", "cs", "sk", "hu", "ro", "bg", "el", "tr",
+                    // Азиатские языки
+                    "zh", "ja", "ko", "th", "vi", "id", "ms",
+                    // Другие языки
+                    "ar", "he", "hi", "uk", "fa", "af", "sq", "hy", "az", "eu", "be", "bn", "bs", "ca", "hr", "et", "tl", "gl", "ka",
+                    "is", "kk", "km", "lo", "lv", "lt", "mk", "mn", "ne", "sr", "si", "sl", "sw", "ta", "te", "ur", "uz", "cy"
+                };
+                
+                plugin.getPluginLogger().info("[LocaleManager] Проверка доступных локализаций...");
                 for (String locale : commonLocales) {
                     try {
                         if (plugin.getResource("locales/" + locale + ".yml") != null) {
                             saveDefaultLocale(locale);
+                            plugin.getPluginLogger().info("[LocaleManager] Загружена локализация: " + locale);
                         }
                     } catch (Exception ignored) {
                         // Ignore if locale doesn't exist
@@ -238,23 +250,68 @@ public class LocaleManager {
             // Using locale() instead of deprecated getLocale()
             String clientLocale = player.locale().toString();
             if (clientLocale != null && !clientLocale.isEmpty()) {
-                // Extract base language from locale (e.g. en_US -> en)
+                // Используем полную локаль для поддержки всех языков
+                // Преобразуем формат локали для совместимости с Google Translate
+                // Например: en_US -> en, zh_CN -> zh-CN
                 if (clientLocale.contains("_")) {
-                    playerLocale = clientLocale.split("_")[0].toLowerCase();
+                    String[] parts = clientLocale.split("_");
+                    // Для китайского, японского и других языков с региональными вариантами
+                    // используем формат с дефисом (zh-CN, ja-JP и т.д.)
+                    if (parts[0].equals("zh") || parts[0].equals("ja") || 
+                        parts[0].equals("ko") || parts[0].equals("pt")) {
+                        playerLocale = parts[0].toLowerCase() + "-" + parts[1].toUpperCase();
+                    } else {
+                        // Для остальных языков используем только код языка
+                        playerLocale = parts[0].toLowerCase();
+                    }
                 } else {
                     playerLocale = clientLocale.toLowerCase();
                 }
+                
+                // Логируем определенную локаль для отладки
+                //plugin.getPluginLogger().info("[LocaleManager] Определена локаль игрока " + 
+                    //player.getName() + ": " + clientLocale + " -> " + playerLocale);
             }
-        } catch (Exception ignored) {
-            // If failed to get locale from client, use default locale
+        } catch (Exception e) {
+            // Логируем ошибку для отладки
+            //plugin.getPluginLogger().warning("[LocaleManager] Ошибка при определении локали игрока " + 
+                //player.getName() + ": " + e.getMessage());
         }
         
         // If locale is not defined or not supported, use default locale
         if (playerLocale == null || !locales.containsKey(playerLocale)) {
             playerLocale = defaultLanguage;
+            //plugin.getPluginLogger().info("[LocaleManager] Используем локаль по умолчанию для игрока " + 
+                //player.getName() + ": " + playerLocale);
         }
         
         return playerLocale;
+    }
+
+    public String getPlayerLocaleRaw(Player player) {
+        if (player == null) {
+            return null;
+        }
+        try {
+            String clientLocale = player.locale().toString();
+            if (clientLocale != null && !clientLocale.isEmpty()) {
+                if (clientLocale.contains("_")) {
+                    String[] parts = clientLocale.split("_");
+                    if (parts[0].equals("zh") || parts[0].equals("ja") ||
+                        parts[0].equals("ko") || parts[0].equals("pt")) {
+                        return parts[0].toLowerCase() + "-" + parts[1].toUpperCase();
+                    } else {
+                        return parts[0].toLowerCase();
+                    }
+                } else {
+                    return clientLocale.toLowerCase();
+                }
+            }
+        } catch (Exception e) {
+            //plugin.getPluginLogger().warning("[LocaleManager] Ошибка при определении локали игрока " +
+                //player.getName() + ": " + e.getMessage());
+        }
+        return null;
     }
     
     /**

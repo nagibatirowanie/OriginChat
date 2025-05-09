@@ -5,6 +5,8 @@ commands:
   no_permission: "&cYou don't have permission to execute this command!"
   unknown_command: "&cUnknown command. Use /originchat help for assistance."
   plugin_reloaded: "&aOriginChat plugin successfully reloaded!"
+  translate-enabled: "&aAutomatic message translation enabled."
+  translate-disabled: "&cAutomatic message translation disabled."
   
   module:
     usage: "&cUsage: /originchat module <list|enable|disable|reload> [module_name]"
@@ -46,6 +48,13 @@ modules:
   chat:
     name: "Chat Module"
     description: "Adds chat distribution and formatting"
+    messages:
+      no-permission: "&cYou don't have permission to chat!"
+      nobody-heard: "&cNobody heard you!"
+      chat-not-found: "&cChat not found!"
+      cooldown: "&cYou are on cooldown! Wait {cooldown} seconds."
+      translate-enabled: "&aAutomatic message translation enabled."
+      translate-disabled: "&cAutomatic message translation disabled."
   server_messages:
     name: "Server Messages"
     description: "Manage player join/leave messages"

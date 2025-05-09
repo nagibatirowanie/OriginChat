@@ -23,8 +23,13 @@ package me.nagibatirowanie.originchat.module.modules;
 
 import me.nagibatirowanie.originchat.OriginChat;
 import me.nagibatirowanie.originchat.module.AbstractModule;
+import me.nagibatirowanie.originchat.translate.TranslateManager;
 import me.nagibatirowanie.originchat.utils.ColorUtil;
+import me.nagibatirowanie.originchat.utils.TranslateUtil;
 import org.bukkit.Bukkit;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -33,14 +38,15 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
- * A module for chat processing with multiple chat support and kulldowns
+ * A module for chat processing with multiple chat support, cooldowns and translation
  */
-public class ChatModule extends AbstractModule implements Listener {
+public class ChatModule extends AbstractModule implements Listener, CommandExecutor {
 
     private final Map<String, ChatConfig> chatConfigs = new HashMap<>();
     private boolean hexColors;
@@ -52,11 +58,15 @@ public class ChatModule extends AbstractModule implements Listener {
     private final Map<String, Integer> cooldowns = new HashMap<>();
     private int defaultCooldown = 3;
     private boolean cooldownEnabled = true;
+    
+    private boolean translationEnabled = true;
 
     private String msgNoPermission;
     private String msgNobodyHeard;
     private String msgChatNotFound;
     private String msgCooldown;
+    private String msgTranslateEnabled;
+    private String msgTranslateDisabled;
 
     public ChatModule(OriginChat plugin) {
         super(plugin, "chat", "Chat Module", "Adds chat distribution and formatting", "1.0");
@@ -68,11 +78,15 @@ public class ChatModule extends AbstractModule implements Listener {
         if (config == null) {
             config = plugin.getConfigManager().getMainConfig();
         }
+        
         loadConfig();
         if (!enabled) {
             return;
         }
+        
+        // Регистрируем обработчики событий и команд
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        plugin.getCommand("translatetoggle").setExecutor(this);
     }
 
     @Override
@@ -89,14 +103,18 @@ public class ChatModule extends AbstractModule implements Listener {
             hexColors = config.getBoolean("hex-colors", true);
             miniMessage = config.getBoolean("mini-message", true);
             maxMessageLength = config.getInt("max-message-length", 256);
+            translationEnabled = config.getBoolean("translation.enabled", true);
 
             // Loading messages for players
+            
             ConfigurationSection msgSection = config.getConfigurationSection("messages");
             if (msgSection != null) {
                 msgNoPermission = msgSection.getString("no-permission", msgNoPermission);
                 msgNobodyHeard = msgSection.getString("nobody-heard", msgNobodyHeard);
                 msgChatNotFound = msgSection.getString("chat-not-found", msgChatNotFound);
                 msgCooldown = msgSection.getString("cooldown", msgCooldown);
+                msgTranslateDisabled = msgSection.getString("translate-disabled", msgTranslateDisabled);
+                msgTranslateEnabled = msgSection.getString("translate-enabled", msgTranslateEnabled);
             }
 
             // Load Kuldown
@@ -170,6 +188,52 @@ public class ChatModule extends AbstractModule implements Listener {
     /**
      * Chat message handler
      */
+    /**
+     * Обработчик команды translatetoggle
+     */
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        plugin.getPluginLogger().info("[ChatModule] Выполнение команды: " + command.getName());
+        
+        if (!(sender instanceof Player)) {
+            plugin.getPluginLogger().info("[ChatModule] Команда выполнена не игроком, отклоняем");
+            sender.sendMessage("§cЭта команда доступна только для игроков");
+            return true;
+        }
+        
+        Player player = (Player) sender;
+        plugin.getPluginLogger().info("[ChatModule] Игрок " + player.getName() + " выполняет команду translatetoggle");
+        
+        if (!translationEnabled) {
+            plugin.getPluginLogger().info("[ChatModule] Функция автоперевода отключена на сервере");
+            player.sendMessage(formatMessage("§cФункция автоперевода отключена на сервере."));
+            return true;
+        }
+        
+        plugin.getPluginLogger().info("[ChatModule] Вызываем toggleTranslate для игрока " + player.getName());
+        boolean newState = plugin.getTranslateManager().toggleTranslate(player);
+        plugin.getPluginLogger().info("[ChatModule] Новое состояние автоперевода для игрока " + player.getName() + ": " + newState);
+        
+        if (newState) {
+            plugin.getPluginLogger().info("[ChatModule] Отправляем сообщение о включении автоперевода игроку " + player.getName());
+            player.sendMessage(formatMessage(msgTranslateEnabled));
+        } else {
+            plugin.getPluginLogger().info("[ChatModule] Отправляем сообщение о выключении автоперевода игроку " + player.getName());
+            player.sendMessage(formatMessage(msgTranslateDisabled));
+        }
+        
+        return true;
+    }
+    
+    /**
+     * Проверяет, включен ли автоперевод для игрока
+     * @param player игрок
+     * @return true если автоперевод включен
+     */
+    public boolean isTranslateEnabled(Player player) {
+        return plugin.getTranslateManager().isTranslateEnabled(player);
+    }
+
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlayerChat(AsyncPlayerChatEvent event) {
         if (!enabled) {
@@ -190,7 +254,7 @@ public class ChatModule extends AbstractModule implements Listener {
                 long last = lastMessageTime.getOrDefault(player.getUniqueId(), 0L);
                 long diff = (now - last) / 1000;
                 if (diff < cooldown) {
-                    String msg = msgCooldown.replace("{cooldown}", String.valueOf(cooldown - diff));
+                    String msg = plugin.getConfigManager().getLocalizedMessage("chat", "messages.cooldown", player.getLocale().toString()).replace("{cooldown}", String.valueOf(cooldown - diff));
                     player.sendMessage(formatMessage(msg));
                     event.setCancelled(true);
                     return;
@@ -211,35 +275,148 @@ public class ChatModule extends AbstractModule implements Listener {
                 }
 
                 if (!chatConfig.getPermissionWrite().isEmpty() && !player.hasPermission(chatConfig.getPermissionWrite())) {
-                    player.sendMessage(formatMessage(msgNoPermission));
+                    player.sendMessage(formatMessage(plugin.getConfigManager().getLocalizedMessage("chat", "messages.no-permission", player.getLocale().toString())));
                     return;
                 }
-                String formattedMessage = formatChatMessage(player, message, chatConfig, chatName);
-
+                
+                // Сохраняем финальное сообщение для использования в лямбдах
+                final String finalMessage = message;
+                String formattedMessage = formatChatMessage(player, finalMessage, chatConfig, chatName);
+                
+                // Если перевод отключен на сервере, отправляем сообщение всем как обычно
+                if (!translationEnabled) {
+                    sendMessageToPlayers(player, formattedMessage, chatConfig);
+                    return;
+                }
+                
+                // Отправляем сообщение игрокам с отключенным переводом
+                List<Player> playersWithTranslation = new ArrayList<>();
+                
                 if (chatConfig.getRadius() > 0) {
+                    // Для локального чата
                     boolean heard = false;
                     for (Player target : player.getWorld().getPlayers()) {
-                        if (target.equals(player)) continue;
+                        if (target.equals(player)) {
+                            target.sendMessage(formattedMessage);
+                            continue;
+                        }
 
                         if (target.getLocation().distance(player.getLocation()) <= chatConfig.getRadius() &&
                                 (chatConfig.getPermissionView().isEmpty() || target.hasPermission(chatConfig.getPermissionView()))) {
-                            target.sendMessage(formattedMessage);
                             heard = true;
+                            boolean targetTranslateEnabled = plugin.getTranslateManager().isTranslateEnabled(target);
+                            plugin.getPluginLogger().info("[ChatModule] Игрок " + target.getName() + ", автоперевод: " + targetTranslateEnabled);
+                            if (!targetTranslateEnabled) {
+                                plugin.getPluginLogger().info("[ChatModule] Отправляем оригинальное сообщение игроку " + target.getName());
+                                target.sendMessage(formattedMessage);
+                            } else {
+                                plugin.getPluginLogger().info("[ChatModule] Добавляем игрока " + target.getName() + " в список для перевода");
+                                playersWithTranslation.add(target);
+                            }
                         }
                     }
                     if (!heard) {
-                        player.sendMessage(formatMessage(msgNobodyHeard));
+                        player.sendMessage(formatMessage(plugin.getConfigManager().getLocalizedMessage("chat", "messages.nobody-heard", player.getLocale().toString())));
                     }
-                    player.sendMessage(formattedMessage);
                 } else {
-                    Bukkit.getOnlinePlayers().stream()
-                            .filter(p -> chatConfig.getPermissionView().isEmpty() || p.hasPermission(chatConfig.getPermissionView()))
-                            .forEach(p -> p.sendMessage(formattedMessage));
+                    // Для глобального чата
+                    for (Player target : Bukkit.getOnlinePlayers()) {
+                        if (target.equals(player)) {
+                            target.sendMessage(formattedMessage);
+                            continue;
+                        }
+                        
+                        if (chatConfig.getPermissionView().isEmpty() || target.hasPermission(chatConfig.getPermissionView())) {
+                            boolean targetTranslateEnabled = plugin.getTranslateManager().isTranslateEnabled(target);
+                            plugin.getPluginLogger().info("[ChatModule] Игрок " + target.getName() + ", автоперевод: " + targetTranslateEnabled);
+                            if (!targetTranslateEnabled) {
+                                plugin.getPluginLogger().info("[ChatModule] Отправляем оригинальное сообщение игроку " + target.getName());
+                                target.sendMessage(formattedMessage);
+                            } else {
+                                plugin.getPluginLogger().info("[ChatModule] Добавляем игрока " + target.getName() + " в список для перевода");
+                                playersWithTranslation.add(target);
+                            }
+                        }
+                    }
                 }
+                
+                // Если нет игроков с включенным переводом, завершаем обработку
+                if (playersWithTranslation.isEmpty()) {
+                    return;
+                }
+                
+                // Собираем уникальные локали игроков
+                Set<String> uniqueLocales = playersWithTranslation.stream()
+                        .map(p -> plugin.getLocaleManager().getPlayerLocaleRaw(p))
+                        .collect(Collectors.toSet());
+                // Карта для хранения переведенных сообщений
+                Map<String, String> translatedMessages = new ConcurrentHashMap<>();
+                List<CompletableFuture<Void>> translationFutures = new ArrayList<>();
+                String senderLocale = plugin.getLocaleManager().getPlayerLocaleRaw(player);
+                // Запускаем асинхронный перевод для каждой локали
+                for (String locale : uniqueLocales) {
+                    // Пропускаем перевод только если локаль полностью совпадает с локалью отправителя
+                    if (locale.equals(senderLocale)) {
+                        translatedMessages.put(locale, finalMessage);
+                        continue;
+                    }
+                    CompletableFuture<Void> future = TranslateUtil.translateAsync(finalMessage, locale)
+                            .thenAccept(translatedMessage -> {
+                                // Сохраняем переведенное сообщение
+                                translatedMessages.put(locale, translatedMessage);
+                            })
+                            .exceptionally(ex -> {
+                                plugin.getPluginLogger().warning("Ошибка при переводе сообщения на " + locale + ": " + ex.getMessage());
+                                // В случае ошибки используем оригинальное сообщение
+                                translatedMessages.put(locale, finalMessage);
+                                return null;
+                            });
+                    translationFutures.add(future);
+                }
+                
+                // Ожидаем завершения всех переводов
+                CompletableFuture.allOf(translationFutures.toArray(new CompletableFuture[0]))
+                        .thenRun(() -> {
+                            // Отправляем переведенные сообщения игрокам
+                            for (Player target : playersWithTranslation) {
+                                String locale = plugin.getLocaleManager().getPlayerLocaleRaw(target);
+                                String translatedMessage = translatedMessages.getOrDefault(locale, finalMessage);
+                                String translatedFormattedMessage = formatChatMessage(player, translatedMessage, chatConfig, chatName);
+                                target.sendMessage(translatedFormattedMessage);
+                            }
+                        });
+                
                 return;
             }
         }
         player.sendMessage(formatMessage(msgChatNotFound));
+    }
+    
+    /**
+     * Отправляет сообщение игрокам в соответствии с настройками чата
+     */
+    
+    private void sendMessageToPlayers(Player sender, String formattedMessage, ChatConfig chatConfig) {
+        if (chatConfig.getRadius() > 0) {
+            boolean heard = false;
+            for (Player target : sender.getWorld().getPlayers()) {
+                if (target.equals(sender)) continue;
+
+                if (target.getLocation().distance(sender.getLocation()) <= chatConfig.getRadius() &&
+                        (chatConfig.getPermissionView().isEmpty() || target.hasPermission(chatConfig.getPermissionView()))) {
+                    target.sendMessage(formattedMessage);
+                    heard = true;
+                }
+            }
+            if (!heard) {
+                sender.sendMessage(formatMessage(msgNobodyHeard));
+            }
+            sender.sendMessage(formattedMessage);
+        } else {
+            Bukkit.getOnlinePlayers().stream()
+                    .filter(p -> chatConfig.getPermissionView().isEmpty() || p.hasPermission(chatConfig.getPermissionView()))
+                    .forEach(p -> p.sendMessage(formattedMessage));
+        }
     }
 
 

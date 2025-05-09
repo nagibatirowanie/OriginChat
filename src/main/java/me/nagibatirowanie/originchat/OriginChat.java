@@ -3,6 +3,7 @@ package me.nagibatirowanie.originchat;
 import me.nagibatirowanie.originchat.config.ConfigManager;
 import me.nagibatirowanie.originchat.locale.LocaleManager;
 import me.nagibatirowanie.originchat.module.ModuleManager;
+import me.nagibatirowanie.originchat.translate.TranslateManager;
 import me.nagibatirowanie.originchat.utils.LoggerUtil;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -12,6 +13,7 @@ public final class OriginChat extends JavaPlugin {
     private ConfigManager configManager;
     private ModuleManager moduleManager;
     private LocaleManager localeManager;
+    private TranslateManager translateManager;
     private LoggerUtil logger;
 
     @Override
@@ -23,6 +25,7 @@ public final class OriginChat extends JavaPlugin {
         configManager.loadConfigs();
         
         localeManager = new LocaleManager(this);
+        translateManager = new TranslateManager(this);
         
         moduleManager = new ModuleManager(this);
         moduleManager.loadModules();
@@ -74,6 +77,14 @@ public final class OriginChat extends JavaPlugin {
      */
     public LocaleManager getLocaleManager() {
         return localeManager;
+    }
+    
+    /**
+     * Get translate manager
+     * @return translate manager
+     */
+    public TranslateManager getTranslateManager() {
+        return translateManager;
     }
     
     /**
