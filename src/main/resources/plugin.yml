@@ -75,6 +75,11 @@ commands:
     description: Глобальный магический шар
     usage: /gball <вопрос>
     permission: originchat.roleplay.gball
+  translatetoggle:
+    description: Включить/выключить автоматический перевод сообщений
+    aliases: [ttoggle]
+    usage: /translatetoggle [on|off]
+    permission: originchat.translate
 
 # Права плагина
 permissions:
@@ -129,4 +134,7 @@ permissions:
     default: true
   originchat.roleplay.gball:
     description: Доступ к команде /gball
+    default: true
+  originchat.translate:
+    description: Доступ к управлению автоматическим переводом сообщений
     default: true

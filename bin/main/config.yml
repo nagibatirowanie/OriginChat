@@ -1,5 +1,5 @@
 # Main configuration file for the OriginChat plugin
-version: 1
+config-version: 3
 
 # General plugin settings
 settings:
@@ -28,3 +28,4 @@ modules:
     - 'server_messages'
     - 'locale_advancements'
     - 'locale_deaths'
+    - 'auto_translate'

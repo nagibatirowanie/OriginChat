@@ -65,7 +65,7 @@ public class LoggerUtil {
         String prefix = "";
         
         if (plugin.getConfig().contains("settings.prefix")) {
-            prefix = ChatUtil.formatColors(plugin.getConfig().getString("settings.prefix")) + " ";
+            prefix = ColorUtil.format(plugin.getConfig().getString("settings.prefix")) + " ";
         }
         
         return prefix + message;

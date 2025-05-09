@@ -245,16 +245,29 @@ public class ChatModule extends AbstractModule implements Listener {
 
     private String formatChatMessage(Player player, String message, ChatConfig config, String chatName) {
         String format = config.getFormat();
+        
+        // Заменяем основные плейсхолдеры
         format = format.replace("{player}", player.getName());
         format = format.replace("{message}", message);
         format = format.replace("{chat}", chatName);
         format = format.replace("{world}", player.getWorld().getName());
-        return formatMessage(format);
+        
+        // Используем метод format с передачей игрока для обработки PlaceholderAPI
+        return ColorUtil.format(player, format);
     }
-
-
+    
+    /**
+     * Форматируем сообщение с учетом плейсхолдеров
+     */
     private String formatMessage(String message) {
         return ColorUtil.format(message);
+    }
+    
+    /**
+     * Форматируем сообщение игроку с учетом плейсхолдеров
+     */
+    private String formatMessage(Player player, String message) {
+        return ColorUtil.format(player, message);
     }
 
     private static class ChatConfig {

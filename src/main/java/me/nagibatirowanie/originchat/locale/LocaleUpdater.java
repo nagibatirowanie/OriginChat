@@ -10,10 +10,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.Set;
 
 /**
- * Класс для автоматического обновления локализационных файлов
+ * Class for automatic updating of localization files
  */
 public class LocaleUpdater {
 
@@ -24,67 +23,84 @@ public class LocaleUpdater {
     }
 
     /**
-     * Проверить и обновить локализационный файл при необходимости
-     * @param localeFile файл локализации
-     * @param localeConfig загруженная конфигурация
-     * @param resourceName имя ресурса в jar
-     * @return true если локализация была обновлена
+     * Check and update the localization file if necessary
+     * @param localeFile localization file
+     * @param localeConfig loaded configuration
+     * @param resourceName resource name in jar
+     * @return true if the localization was updated
      */
     public boolean checkAndUpdateLocale(File localeFile, FileConfiguration localeConfig, String resourceName) {
-        // Если в файле нет поля version, добавляем его со значением 1
-        if (!localeConfig.contains("version")) {
-            localeConfig.set("version", 1);
+        if (!localeConfig.contains("config-version")) {
+            localeConfig.set("config-version", 3);
             try {
                 localeConfig.save(localeFile);
             } catch (IOException e) {
                 plugin.getPluginLogger().severe("Error when saving the version of the localization file: " + e.getMessage());
+                e.printStackTrace();
                 return false;
             }
             return true;
         }
 
-        int currentVersion = localeConfig.getInt("version");
+        int currentVersion = localeConfig.getInt("config-version");
 
         InputStream defaultLocaleStream = plugin.getResource(resourceName);
         if (defaultLocaleStream == null) {
-            //plugin.getPluginLogger().warning("Ресурс '" + resourceName + "' не найден в jar!");
+            plugin.getPluginLogger().warning("Resource '" + resourceName + "' not found in jar!");
             return false;
         }
 
         YamlConfiguration defaultLocale = YamlConfiguration.loadConfiguration(
                 new InputStreamReader(defaultLocaleStream, StandardCharsets.UTF_8));
 
-        // Если в ресурсе нет поля version, добавляем его со значением 1
-        if (!defaultLocale.contains("version")) {
-            //plugin.getPluginLogger().warning("Ресурс '" + resourceName + "' не содержит поле 'version'! Предполагаем версию 1.");
+        if (!defaultLocale.contains("config-version")) {
+            plugin.getPluginLogger().warning("Resource '" + resourceName + "' does not contain 'config-version' field! Assuming version 3.");
             return false;
         }
 
-        int defaultVersion = defaultLocale.getInt("version");
+        int defaultVersion = defaultLocale.getInt("config-version");
 
+        boolean updated = false;
         if (currentVersion < defaultVersion) {
-            //plugin.getPluginLogger().info("Обновление локализации '" + resourceName + "' с версии " + currentVersion + " до " + defaultVersion);
-            return updateLocale(localeFile, localeConfig, defaultLocale);
+            plugin.getPluginLogger().info("Updating localization '" + resourceName + "' from version " + currentVersion + " to " + defaultVersion);
+            updated = updateLocale(localeFile, localeConfig, defaultLocale);
+        } else {
+            try {
+                boolean hasChanges = mergeLocales(localeConfig, defaultLocale);
+                if (hasChanges) {
+                    localeConfig.save(localeFile);
+                    updated = true;
+                }
+            } catch (IOException e) {
+                plugin.getPluginLogger().severe("Error updating localization: " + e.getMessage());
+                e.printStackTrace();
+            }
         }
 
-        return false;
+        return updated;
     }
 
     /**
-     * Обновить локализационный файл
-     * @param localeFile файл локализации
-     * @param localeConfig текущая конфигурация
-     * @param defaultLocale конфигурация по умолчанию
-     * @return true если локализация была обновлена
+     * Update the localization file
+     * @param localeFile localization file
+     * @param localeConfig current configuration
+     * @param defaultLocale default configuration
+     * @return true if the localization was updated
      */
     private boolean updateLocale(File localeFile, FileConfiguration localeConfig, FileConfiguration defaultLocale) {
         try {
-            mergeLocales(localeConfig, defaultLocale);
+            boolean hasChanges = mergeLocales(localeConfig, defaultLocale);
+            int oldVersion = localeConfig.getInt("config-version");
+            int newVersion = defaultLocale.getInt("config-version");
+            localeConfig.set("config-version", newVersion);
 
-            localeConfig.set("version", defaultLocale.getInt("version"));
+            hasChanges = hasChanges || (oldVersion != newVersion);
 
-            localeConfig.save(localeFile);
-            return true;
+            if (hasChanges) {
+                localeConfig.save(localeFile);
+                return true;
+            }
+            return false;
         } catch (IOException e) {
             plugin.getPluginLogger().severe("Error when updating localization: " + e.getMessage());
             e.printStackTrace();
@@ -93,29 +109,35 @@ public class LocaleUpdater {
     }
 
     /**
-     * Объединить локализации, добавляя новые секции и значения
-     * @param localeConfig текущая конфигурация
-     * @param defaultLocale конфигурация по умолчанию
+     * Merge localizations by adding new sections and values
+     * @param localeConfig current configuration
+     * @param defaultLocale default configuration
+     * @return true if any changes were made
      */
-    private void mergeLocales(FileConfiguration localeConfig, FileConfiguration defaultLocale) {
-        Set<String> keys = defaultLocale.getKeys(true);
+    private boolean mergeLocales(FileConfiguration localeConfig, FileConfiguration defaultLocale) {
+        boolean hasChanges = false;
 
-        for (String key : keys) {
-            // Пропускаем поле version, оно будет установлено отдельно
-            if (key.equals("version")) {
+        for (String key : defaultLocale.getKeys(true)) {
+            if (key.equals("config-version")) {
                 continue;
             }
-            
+
             if (!localeConfig.contains(key)) {
                 if (defaultLocale.isConfigurationSection(key)) {
                     ConfigurationSection section = defaultLocale.getConfigurationSection(key);
                     if (section != null) {
                         localeConfig.createSection(key, section.getValues(false));
+                        plugin.getPluginLogger().info("Added missing localization section: '" + key + "'");
                     }
                 } else {
-                    localeConfig.set(key, defaultLocale.get(key));
+                    Object value = defaultLocale.get(key);
+                    localeConfig.set(key, value);
+                    plugin.getPluginLogger().info("Added missing localization key: '" + key + "' with value: '" + value + "'");
                 }
+                hasChanges = true;
             }
         }
+
+        return hasChanges;
     }
 }

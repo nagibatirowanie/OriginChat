@@ -1,4 +1,4 @@
-version: 1
+config-version: 3
 # Roleplay commands module configuration
 
 # Command action distances (in blocks)

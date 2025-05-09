@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.Set;
 
 /**
  * Class for automatic updating of configurations
@@ -31,35 +30,47 @@ public class ConfigUpdater {
      * @return true if the configuration has been updated
      */
     public boolean checkAndUpdateConfig(File configFile, FileConfiguration config, String resourceName) {
-        if (!config.contains("version")) {
-            plugin.getPluginLogger().warning("Конфиг '" + resourceName + "' не содержит поле 'version'!");
+        if (!config.contains("config-version")) {
+            plugin.getPluginLogger().warning("Config '" + resourceName + "' does not contain 'config-version' field!");
             return false;
         }
 
-        int currentVersion = config.getInt("version");
+        int currentVersion = config.getInt("config-version");
 
         InputStream defaultConfigStream = plugin.getResource(resourceName);
         if (defaultConfigStream == null) {
-            plugin.getPluginLogger().warning("Ресурс '" + resourceName + "' не найден в jar!");
+            plugin.getPluginLogger().warning("Resource '" + resourceName + "' not found in jar!");
             return false;
         }
 
         YamlConfiguration defaultConfig = YamlConfiguration.loadConfiguration(
                 new InputStreamReader(defaultConfigStream, StandardCharsets.UTF_8));
 
-        if (!defaultConfig.contains("version")) {
-            plugin.getPluginLogger().warning("Ресурс '" + resourceName + "' не содержит поле 'version'!");
+        if (!defaultConfig.contains("config-version")) {
+            plugin.getPluginLogger().warning("Resource '" + resourceName + "' does not contain 'config-version' field!");
             return false;
         }
 
-        int defaultVersion = defaultConfig.getInt("version");
+        int defaultVersion = defaultConfig.getInt("config-version");
 
+        boolean updated = false;
         if (currentVersion < defaultVersion) {
-            plugin.getPluginLogger().info("Обновление конфига '" + resourceName + "' с версии " + currentVersion + " до " + defaultVersion);
-            return updateConfig(configFile, config, defaultConfig);
+            plugin.getPluginLogger().info("Updating config '" + resourceName + "' from version " + currentVersion + " to " + defaultVersion);
+            updated = updateConfig(configFile, config, defaultConfig);
+        } else {
+            try {
+                boolean hasChanges = mergeConfigs(config, defaultConfig);
+                if (hasChanges) {
+                    config.save(configFile);
+                    updated = true;
+                }
+            } catch (IOException e) {
+                plugin.getPluginLogger().severe("Error updating config: " + e.getMessage());
+                e.printStackTrace();
+            }
         }
 
-        return false;
+        return updated;
     }
 
     /**
@@ -71,14 +82,20 @@ public class ConfigUpdater {
      */
     private boolean updateConfig(File configFile, FileConfiguration config, FileConfiguration defaultConfig) {
         try {
-            mergeConfigs(config, defaultConfig);
+            boolean hasChanges = mergeConfigs(config, defaultConfig);
+            int oldVersion = config.getInt("config-version");
+            int newVersion = defaultConfig.getInt("config-version");
+            config.set("config-version", newVersion);
 
-            config.set("version", defaultConfig.getInt("version"));
+            hasChanges = hasChanges || (oldVersion != newVersion);
 
-            config.save(configFile);
-            return true;
+            if (hasChanges) {
+                config.save(configFile);
+                return true;
+            }
+            return false;
         } catch (IOException e) {
-            plugin.getPluginLogger().severe("Ошибка при обновлении конфига: " + e.getMessage());
+            plugin.getPluginLogger().severe("Error updating config: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
@@ -88,21 +105,80 @@ public class ConfigUpdater {
      * Merge configurations by adding new sections and values
      * @param config current configuration
      * @param defaultConfig default configuration
+     * @return true if any changes were made
      */
-    private void mergeConfigs(FileConfiguration config, FileConfiguration defaultConfig) {
-        Set<String> keys = defaultConfig.getKeys(true);
+    private boolean mergeConfigs(FileConfiguration config, FileConfiguration defaultConfig) {
+        boolean hasChanges = false;
 
-        for (String key : keys) {
-            if (!config.contains(key)) {
-                if (defaultConfig.isConfigurationSection(key)) {
-                    ConfigurationSection section = defaultConfig.getConfigurationSection(key);
+        for (String rootKey : defaultConfig.getKeys(false)) {
+            if (rootKey.equals("config-version")) {
+                continue;
+            }
+
+            if (!config.getKeys(false).contains(rootKey)) {
+                if (defaultConfig.isConfigurationSection(rootKey)) {
+                    ConfigurationSection section = defaultConfig.getConfigurationSection(rootKey);
                     if (section != null) {
-                        config.createSection(key, section.getValues(false));
+                        config.createSection(rootKey, section.getValues(true));
+                        plugin.getPluginLogger().info("Added missing root section: '" + rootKey + "'");
+                        hasChanges = true;
                     }
                 } else {
-                    config.set(key, defaultConfig.get(key));
+                    Object value = defaultConfig.get(rootKey);
+                    config.set(rootKey, value);
+                    plugin.getPluginLogger().info("Added missing root key: '" + rootKey + "' with value: '" + value + "'");
+                    hasChanges = true;
+                }
+            } else if (defaultConfig.isConfigurationSection(rootKey)) {
+                ConfigurationSection defaultSection = defaultConfig.getConfigurationSection(rootKey);
+                ConfigurationSection currentSection = config.getConfigurationSection(rootKey);
+
+                if (defaultSection != null && currentSection != null) {
+                    hasChanges |= mergeConfigSections(currentSection, defaultSection, rootKey);
                 }
             }
         }
+
+        return hasChanges;
+    }
+
+    /**
+     * Recursively merge configuration sections
+     * @param currentSection current section
+     * @param defaultSection default section
+     * @param parentPath parent section path
+     * @return true if any changes were made
+     */
+    private boolean mergeConfigSections(ConfigurationSection currentSection, ConfigurationSection defaultSection, String parentPath) {
+        boolean hasChanges = false;
+
+        for (String key : defaultSection.getKeys(false)) {
+            String fullPath = parentPath + "." + key;
+
+            if (!currentSection.getKeys(false).contains(key)) {
+                if (defaultSection.isConfigurationSection(key)) {
+                    ConfigurationSection nestedSection = defaultSection.getConfigurationSection(key);
+                    if (nestedSection != null) {
+                        currentSection.createSection(key, nestedSection.getValues(true));
+                        plugin.getPluginLogger().info("Added missing nested section: '" + fullPath + "'");
+                        hasChanges = true;
+                    }
+                } else {
+                    Object value = defaultSection.get(key);
+                    currentSection.set(key, value);
+                    plugin.getPluginLogger().info("Added missing nested key: '" + fullPath + "' with value: '" + value + "'");
+                    hasChanges = true;
+                }
+            } else if (defaultSection.isConfigurationSection(key)) {
+                ConfigurationSection defaultNestedSection = defaultSection.getConfigurationSection(key);
+                ConfigurationSection currentNestedSection = currentSection.getConfigurationSection(key);
+
+                if (defaultNestedSection != null && currentNestedSection != null) {
+                    hasChanges |= mergeConfigSections(currentNestedSection, defaultNestedSection, fullPath);
+                }
+            }
+        }
+
+        return hasChanges;
     }
 }

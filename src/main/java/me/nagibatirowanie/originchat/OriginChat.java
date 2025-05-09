@@ -29,6 +29,8 @@ public final class OriginChat extends JavaPlugin {
         
         new me.nagibatirowanie.originchat.commands.CommandManager(this);
         
+
+        
         logger.info("OriginChat successfully enabled :3");
     }
 

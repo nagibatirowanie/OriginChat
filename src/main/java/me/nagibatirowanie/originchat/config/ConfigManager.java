@@ -42,17 +42,24 @@ public class ConfigManager {
     /**
      * Load main config
      */
-    private void loadMainConfig() {
+    private void loadMainConfig() {        
         plugin.saveDefaultConfig();
-        
+                
         plugin.reloadConfig();
+                
         mainConfig = plugin.getConfig();
-        
+               
         File configFile = new File(plugin.getDataFolder(), "config.yml");
-        configUpdater.checkAndUpdateConfig(configFile, mainConfig, "config.yml");
+                
+        boolean updated = configUpdater.checkAndUpdateConfig(configFile, mainConfig, "config.yml");
+                
+        if (updated) {
+                        plugin.reloadConfig();
+            mainConfig = plugin.getConfig();
+        }
         
         configs.put("config", mainConfig);
-    }
+            }
     
     /**
      * Load custom config

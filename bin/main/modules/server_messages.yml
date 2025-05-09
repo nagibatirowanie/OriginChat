@@ -1,4 +1,4 @@
-version: 1
+config-version: 3
 # Server messages module configuration
 
 # Enable/disable player join messages

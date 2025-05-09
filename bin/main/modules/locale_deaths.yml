@@ -1,5 +1,5 @@
 # Localized death messages module configuration
-version: 1
+config-version: 3
 
 death_messages:
   # Enable module

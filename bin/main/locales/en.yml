@@ -1,5 +1,5 @@
 # English localization for OriginChat
-version: 1
+config-version: 3
 
 commands:
   no_permission: "&cYou don't have permission to execute this command!"
@@ -122,3 +122,21 @@ modules:
     footer:
       - "&eEnjoy your game!"
       - "&7discord.gg/yourserver"
+  auto_translate:
+    name: "Auto Translate"
+    description: "Automatically translates chat messages"
+    messages:
+      # Message when translation is enabled
+      translation_enabled: "&aAutomatic message translation enabled."
+      
+      # Message when translation is disabled
+      translation_disabled: "&cAutomatic message translation disabled."
+      
+      # Command usage hint
+      toggle_usage: "&eUsage: /translatetoggle [on|off]"
+      
+      # Translation error message
+      translation_error: "&cError translating message."
+      
+      # No permission message
+      no_permission: "&cYou don't have permission to use this command."

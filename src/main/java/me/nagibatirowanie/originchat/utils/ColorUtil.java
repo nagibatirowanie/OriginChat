@@ -96,17 +96,33 @@ public class ColorUtil {
      */
     public static String format(String text) {
         if (text == null || text.isEmpty()) return "";
-        Component component = toComponent(text);
+        
+        // Обработка плейсхолдеров, если они есть
+        String processed = text;
+        if (isPlaceholderAPIEnabled() && text.contains("%")) {
+            // Плейсхолдеры обнаружены, но игрок не указан
+            // Можно использовать любого онлайн-игрока для серверных плейсхолдеров
+            if (!Bukkit.getOnlinePlayers().isEmpty()) {
+                Player anyPlayer = Bukkit.getOnlinePlayers().iterator().next();
+                processed = setPlaceholders(anyPlayer, text);
+            }
+        }
+        
+        Component component = toComponent(processed);
         return LEGACY_SERIALIZER.serialize(component);
     }
 
     /**
-     * Форматирует строку с плейсхолдерами для игрока
+     * Форматирует строку с плейсхолдерами для конкретного игрока
      */
     public static String format(Player player, String text) {
         if (text == null || text.isEmpty()) return "";
+        if (player == null) return format(text);
+        
+        // Обработка плейсхолдеров с привязкой к игроку
         String processed = setPlaceholders(player, text);
-        return format(processed);
+        Component component = toComponent(processed);
+        return LEGACY_SERIALIZER.serialize(component);
     }
 
     /**

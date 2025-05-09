@@ -3,7 +3,7 @@ package me.nagibatirowanie.originchat.commands;
 import me.nagibatirowanie.originchat.OriginChat;
 import me.nagibatirowanie.originchat.config.ConfigManager;
 import me.nagibatirowanie.originchat.locale.LocaleManager;
-import me.nagibatirowanie.originchat.utils.ChatUtil;
+
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -31,7 +31,8 @@ public class CommandManager implements CommandExecutor, TabCompleter {
         
         plugin.getCommand("originchat").setExecutor(this);
         plugin.getCommand("originchat").setTabCompleter(this);
-    }
+
+            }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {

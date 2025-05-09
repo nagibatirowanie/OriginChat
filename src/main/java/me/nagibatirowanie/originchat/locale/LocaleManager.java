@@ -1,7 +1,8 @@
 package me.nagibatirowanie.originchat.locale;
 
 import me.nagibatirowanie.originchat.OriginChat;
-import me.nagibatirowanie.originchat.utils.ChatUtil;
+import me.nagibatirowanie.originchat.utils.ColorUtil;
+
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -181,7 +182,7 @@ public class LocaleManager {
             }
         }
         
-        return ChatUtil.formatColors(message);
+        return ColorUtil.format(message);
     }
     
     /**
@@ -391,7 +392,7 @@ public class LocaleManager {
         
         // Format colors for each message
         return messages.stream()
-                .map(ChatUtil::formatColors)
+                .map(ColorUtil::format)
                 .collect(java.util.stream.Collectors.toList());
     }
     
