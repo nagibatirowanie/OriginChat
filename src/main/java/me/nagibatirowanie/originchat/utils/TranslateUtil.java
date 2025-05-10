@@ -101,15 +101,12 @@ public class TranslateUtil {
      * @return        CompletableFuture с результатом перевода
      */
     public static CompletableFuture<String> translateAsync(String text, String toLang) {
-        System.out.println("[TranslateUtil] Запрос на перевод текста на язык: " + toLang);
         return CompletableFuture.supplyAsync(() -> {
             try {
                 String result = translate(text, toLang);
-                System.out.println("[TranslateUtil] Успешный перевод на язык: " + toLang);
                 return result;
             } catch (IOException e) {
                 String errorMsg = String.format("Ошибка перевода на язык %s. Текст: '%s'. Причина: %s", toLang, text, e.getMessage());
-                System.err.println("[TranslateUtil] " + errorMsg);
                 throw new RuntimeException(errorMsg, e);
             } catch (Exception e) {
                 String errorMsg = String.format("Неизвестная ошибка перевода на язык %s. Текст: '%s'. Причина: %s", toLang, text, e.getMessage());

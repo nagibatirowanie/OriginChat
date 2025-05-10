@@ -1,12 +1,9 @@
 package me.nagibatirowanie.originchat.translate;
 
 import me.nagibatirowanie.originchat.OriginChat;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
+import me.nagibatirowanie.originchat.database.DatabaseHelper;
 import org.bukkit.entity.Player;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -18,71 +15,119 @@ public class TranslateManager {
 
     private final OriginChat plugin;
     private final Map<UUID, Boolean> playerTranslateSettings;
-    private final File configFile;
-    private FileConfiguration config;
+    private final DatabaseHelper dbHelper;
+    private static final String TRANSLATE_TABLE = "translate_settings";
 
     public TranslateManager(OriginChat plugin) {
         this.plugin = plugin;
         this.playerTranslateSettings = new HashMap<>();
-        this.configFile = new File(plugin.getDataFolder(), "translate_settings.yml");
-        loadConfig();
+        this.dbHelper = new DatabaseHelper(plugin);
+        initDatabase();
+        loadFromDatabase();
     }
 
     /**
-     * Загружает настройки автоперевода из файла
+     * Инициализирует таблицу в базе данных для хранения настроек автоперевода
      */
-    public void loadConfig() {
-        if (!configFile.exists()) {
+    private void initDatabase() {
+        // Проверяем, что DatabaseManager существует и соединение активно
+        if (plugin.getDatabaseManager() == null) {
+            plugin.getPluginLogger().warning("[TranslateManager] DatabaseManager не инициализирован, настройки автоперевода будут храниться только в памяти");
+            return;
+        }
+        
+        // Проверяем состояние соединения с базой данных
+        try {
+            // Пробуем получить соединение для проверки его работоспособности
+            if (plugin.getDatabaseManager().getConnection() == null) {
+                plugin.getPluginLogger().warning("[TranslateManager] Не удалось получить соединение с базой данных, настройки автоперевода будут храниться только в памяти");
+                return;
+            }
+        } catch (Exception e) {
+            plugin.getPluginLogger().warning("[TranslateManager] Ошибка при проверке соединения с базой данных: " + e.getMessage());
+            return;
+        }
+        
+        // Если соединение активно, но isEnabled() возвращает false, выводим предупреждение
+        if (!plugin.getDatabaseManager().isEnabled()) {
+            plugin.getPluginLogger().warning("[TranslateManager] DatabaseManager.isEnabled() вернул false, но соединение активно. Продолжаем инициализацию.");
+        }
+
+        // Создаем таблицу для настроек автоперевода, если она не существует
+        if (!dbHelper.tableExists(TRANSLATE_TABLE)) {
             try {
-                configFile.getParentFile().mkdirs();
-                configFile.createNewFile();
-                plugin.getPluginLogger().info("Создан новый файл настроек автоперевода");
-            } catch (IOException e) {
-                plugin.getPluginLogger().severe("Не удалось создать файл настроек автоперевода: " + e.getMessage());
+                plugin.getPluginLogger().info("[TranslateManager] Попытка создания таблицы " + TRANSLATE_TABLE + " с полем player_uuid VARCHAR(36)");
+                boolean created = dbHelper.createTable(TRANSLATE_TABLE, "player_uuid", "VARCHAR(36)", false);
+                if (created) {
+                    plugin.getPluginLogger().info("[TranslateManager] Таблица создана успешно, добавляем колонку enabled");
+                    boolean columnAdded = dbHelper.addColumn(TRANSLATE_TABLE, "enabled", "INTEGER", "0");
+                    if (columnAdded) {
+                        plugin.getPluginLogger().info("[TranslateManager] Таблица для настроек автоперевода успешно создана и инициализирована");
+                    } else {
+                        plugin.getPluginLogger().severe("[TranslateManager] Ошибка при добавлении колонки enabled в таблицу " + TRANSLATE_TABLE);
+                    }
+                } else {
+                    plugin.getPluginLogger().severe("[TranslateManager] Не удалось создать таблицу " + TRANSLATE_TABLE + ". Проверьте права доступа и состояние базы данных.");
+                }
+            } catch (Exception e) {
+                plugin.getPluginLogger().severe("[TranslateManager] Критическая ошибка при создании таблицы " + TRANSLATE_TABLE + ": " + e.getMessage());
                 e.printStackTrace();
             }
         }
-
-        config = YamlConfiguration.loadConfiguration(configFile);
-        playerTranslateSettings.clear();
-
-        if (config.contains("players")) {
-            for (String uuidStr : config.getConfigurationSection("players").getKeys(false)) {
-                try {
-                    UUID uuid = UUID.fromString(uuidStr);
-                    boolean enabled = config.getBoolean("players." + uuidStr);
-                    playerTranslateSettings.put(uuid, enabled);
-                } catch (IllegalArgumentException e) {
-                    plugin.getPluginLogger().warning("Некорректный UUID в файле настроек автоперевода: " + uuidStr);
-                }
-            }
-        }
-
-        plugin.getPluginLogger().info("Загружены настройки автоперевода для " + playerTranslateSettings.size() + " игроков");
     }
 
     /**
-     * Сохраняет настройки автоперевода в файл
+     * Загружает настройки автоперевода из базы данных
      */
-    public void saveConfig() {
-        if (config == null) {
+    public void loadFromDatabase() {
+        if (!plugin.getDatabaseManager().isEnabled()) {
             return;
         }
 
-        try {
-            if (!config.contains("players")) {
-                config.createSection("players");
+        playerTranslateSettings.clear();
+        
+        // Получаем все записи из таблицы настроек автоперевода
+        java.util.List<String> columns = java.util.Arrays.asList("player_uuid", "enabled");
+        java.util.List<Map<String, Object>> results = dbHelper.getData(TRANSLATE_TABLE, null, null, columns);
+        
+        for (Map<String, Object> row : results) {
+            try {
+                String uuidStr = (String) row.get("player_uuid");
+                Object enabledObj = row.get("enabled");
+                boolean enabled = false;
+                
+                if (enabledObj instanceof Integer) {
+                    enabled = ((Integer) enabledObj) == 1;
+                } else if (enabledObj instanceof Boolean) {
+                    enabled = (Boolean) enabledObj;
+                }
+                
+                if (uuidStr != null) {
+                    UUID uuid = UUID.fromString(uuidStr);
+                    playerTranslateSettings.put(uuid, enabled);
+                }
+            } catch (Exception e) {
+                plugin.getPluginLogger().warning("Ошибка при загрузке настроек автоперевода из базы данных: " + e.getMessage());
             }
-
-            for (Map.Entry<UUID, Boolean> entry : playerTranslateSettings.entrySet()) {
-                config.set("players." + entry.getKey().toString(), entry.getValue());
-            }
-
-            config.save(configFile);
-        } catch (IOException e) {
-            plugin.getPluginLogger().severe("Не удалось сохранить файл настроек автоперевода: " + e.getMessage());
-            e.printStackTrace();
         }
+
+        plugin.getPluginLogger().info("Загружены настройки автоперевода для " + playerTranslateSettings.size() + " игроков из базы данных");
+    }
+
+    /**
+     * Сохраняет настройку автоперевода для игрока в базу данных
+     * @param playerUuid UUID игрока
+     * @param enabled состояние настройки
+     */
+    private void saveToDatabase(UUID playerUuid, boolean enabled) {
+        if (!plugin.getDatabaseManager().isEnabled()) {
+            return;
+        }
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("enabled", enabled ? 1 : 0);
+        
+        dbHelper.saveData(TRANSLATE_TABLE, "player_uuid", playerUuid.toString(), data);
     }
 
     /**
@@ -114,7 +159,7 @@ public class TranslateManager {
         
         plugin.getPluginLogger().info("[TranslateManager] Устанавливаем автоперевод для игрока " + player.getName() + ": " + enabled);
         playerTranslateSettings.put(player.getUniqueId(), enabled);
-        saveConfig();
+        saveToDatabase(player.getUniqueId(), enabled);
         return enabled;
     }
 

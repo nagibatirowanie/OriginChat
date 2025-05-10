@@ -2,6 +2,9 @@ package me.nagibatirowanie.originchat.module;
 
 import me.nagibatirowanie.originchat.OriginChat;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
+
+import java.util.List;
 
 /**
  * Abstract class for plug-in modules
@@ -110,5 +113,25 @@ public abstract class AbstractModule implements Module {
             return localized;
         }
         return description;
+    }
+
+    /**
+     * Получить локализованное сообщение для игрока
+     * @param player игрок
+     * @param key ключ сообщения
+     * @return локализованное сообщение
+     */
+    protected String getMessage(Player player, String key) {
+        return plugin.getConfigManager().getLocalizedMessage(id, key, player);
+    }
+
+    /**
+     * Получить список локализованных сообщений для игрока
+     * @param player игрок
+     * @param key ключ списка сообщений
+     * @return список локализованных сообщений
+     */
+    protected List<String> getMessageList(Player player, String key) {
+        return plugin.getConfigManager().getLocalizedMessageList(id, key, player);
     }
 }

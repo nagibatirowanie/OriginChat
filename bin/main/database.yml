@@ -1,0 +1,99 @@
+# Конфигурация базы данных для OriginChat
+# Версия конфигурации
+config-version: 3
+
+# Тип базы данных (sqlite, mysql, postgresql)
+# sqlite - локальная файловая база данных (рекомендуется для небольших серверов)
+# mysql - MySQL/MariaDB (рекомендуется для средних и крупных серверов)
+# postgresql - PostgreSQL (рекомендуется для крупных серверов с высокой нагрузкой)
+type: sqlite
+
+# Настройки для SQLite
+sqlite:
+  # Имя файла базы данных (будет создан в папке плагина)
+  database: originchat
+  # Дополнительные параметры подключения
+  options:
+    # Максимальное время ожидания (в секундах)
+    timeout: 30
+    # Автоматическое создание таблиц
+    auto-create: true
+
+# Настройки для MySQL/MariaDB
+mysql:
+  # Хост сервера базы данных
+  host: localhost
+  # Порт сервера базы данных
+  port: 3306
+  # Имя базы данных
+  database: originchat
+  # Имя пользователя
+  username: root
+  # Пароль пользователя
+  password: password
+  # Использовать SSL для подключения
+  use-ssl: false
+  # Дополнительные параметры подключения
+  options:
+    # Максимальное количество соединений в пуле
+    max-pool-size: 10
+    # Время жизни соединения (в миллисекундах)
+    connection-timeout: 30000
+    # Интервал проверки соединений (в миллисекундах)
+    idle-timeout: 600000
+    # Максимальное время жизни соединения (в миллисекундах)
+    max-lifetime: 1800000
+    # Дополнительные параметры URL подключения
+    properties:
+      useUnicode: true
+      characterEncoding: utf8
+      useSSL: false
+      serverTimezone: UTC
+
+# Настройки для PostgreSQL
+postgresql:
+  # Хост сервера базы данных
+  host: localhost
+  # Порт сервера базы данных
+  port: 5432
+  # Имя базы данных
+  database: originchat
+  # Имя пользователя
+  username: postgres
+  # Пароль пользователя
+  password: password
+  # Использовать SSL для подключения
+  use-ssl: false
+  # Дополнительные параметры подключения
+  options:
+    # Максимальное количество соединений в пуле
+    max-pool-size: 10
+    # Время жизни соединения (в миллисекундах)
+    connection-timeout: 30000
+    # Интервал проверки соединений (в миллисекундах)
+    idle-timeout: 600000
+    # Максимальное время жизни соединения (в миллисекундах)
+    max-lifetime: 1800000
+    # Схема базы данных
+    schema: public
+    # Дополнительные параметры URL подключения
+    properties:
+      ssl: false
+      sslmode: disable
+      ApplicationName: OriginChat
+
+# Настройки миграции базы данных
+migration:
+  # Автоматически выполнять миграции при запуске
+  auto-migrate: true
+  # Создавать резервную копию перед миграцией
+  backup-before-migrate: true
+
+# Настройки кэширования
+cache:
+  # Включить кэширование запросов
+  enabled: true
+  # Время жизни кэша (в секундах)
+  ttl: 300
+  # Максимальный размер кэша
+  max-size: 1000

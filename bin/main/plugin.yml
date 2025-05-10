@@ -80,6 +80,10 @@ commands:
     aliases: [ttoggle]
     usage: /translatetoggle [on|off]
     permission: originchat.translate
+  dbinfo:
+    description: Информация о базе данных
+    usage: /dbinfo [player <имя>|stats]
+    permission: originchat.admin
 
 # Права плагина
 permissions:

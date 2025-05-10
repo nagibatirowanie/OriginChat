@@ -245,44 +245,30 @@ public class LocaleManager {
         // Get locale from player configuration or use client locale
         String playerLocale = null;
         
-        // Try to get locale from player client (works in Paper)
         try {
-            // Using locale() instead of deprecated getLocale()
             String clientLocale = player.locale().toString();
             if (clientLocale != null && !clientLocale.isEmpty()) {
-                // Используем полную локаль для поддержки всех языков
-                // Преобразуем формат локали для совместимости с Google Translate
-                // Например: en_US -> en, zh_CN -> zh-CN
                 if (clientLocale.contains("_")) {
                     String[] parts = clientLocale.split("_");
-                    // Для китайского, японского и других языков с региональными вариантами
-                    // используем формат с дефисом (zh-CN, ja-JP и т.д.)
                     if (parts[0].equals("zh") || parts[0].equals("ja") || 
                         parts[0].equals("ko") || parts[0].equals("pt")) {
                         playerLocale = parts[0].toLowerCase() + "-" + parts[1].toUpperCase();
                     } else {
-                        // Для остальных языков используем только код языка
                         playerLocale = parts[0].toLowerCase();
                     }
                 } else {
                     playerLocale = clientLocale.toLowerCase();
                 }
                 
-                // Логируем определенную локаль для отладки
-                //plugin.getPluginLogger().info("[LocaleManager] Определена локаль игрока " + 
-                    //player.getName() + ": " + clientLocale + " -> " + playerLocale);
+
             }
         } catch (Exception e) {
-            // Логируем ошибку для отладки
-            //plugin.getPluginLogger().warning("[LocaleManager] Ошибка при определении локали игрока " + 
-                //player.getName() + ": " + e.getMessage());
+            plugin.getPluginLogger().warning("[LocaleManager] Error when determining player's locale! " + 
+                player.getName() + ": " + e.getMessage());
         }
         
-        // If locale is not defined or not supported, use default locale
         if (playerLocale == null || !locales.containsKey(playerLocale)) {
             playerLocale = defaultLanguage;
-            //plugin.getPluginLogger().info("[LocaleManager] Используем локаль по умолчанию для игрока " + 
-                //player.getName() + ": " + playerLocale);
         }
         
         return playerLocale;
@@ -308,8 +294,8 @@ public class LocaleManager {
                 }
             }
         } catch (Exception e) {
-            //plugin.getPluginLogger().warning("[LocaleManager] Ошибка при определении локали игрока " +
-                //player.getName() + ": " + e.getMessage());
+            plugin.getPluginLogger().warning("[LocaleManager] Error when determining player's locale! " + 
+                player.getName() + ": " + e.getMessage());
         }
         return null;
     }
@@ -386,7 +372,6 @@ public class LocaleManager {
      * @return обновленная конфигурация или null в случае ошибки
      */
     public FileConfiguration updateLocale(String locale) {
-        // Если локализация не загружена, пытаемся загрузить её
         if (!locales.containsKey(locale)) {
             return null;
         }
