@@ -1,0 +1,185 @@
+config-version: 3
+
+commands:
+  no_permission: '&cУ вас немає прав для виконання цієї команди!'
+  unknown_command: '&cНевідома команда. Використовуйте /originchat help для довідки.'
+  plugin_reloaded: '&aПлагін OriginChat успішно перезавантажено!'
+  translate-enabled: '&aАвтоматичний переклад повідомлень увімкнено.'
+  translate-disabled: '&cАвтоматичний переклад повідомлень вимкнено.'
+  
+  module:
+    usage: '&cВикористання: /originchat module <list|enable|disable|reload> [ім''я_модуля]'
+    specify_module_enable: '&cВкажіть ім''я модуля для включення!'
+    specify_module_disable: '&cВкажіть ім''я модуля для вимкнення!'
+    specify_module_reload: '&cВкажіть ім''я модуля для перезавантаження!'
+    module_enabled: '&aМодуль ''{module}'' успішно ввімкнено!'
+    module_enable_failed: '&cНе вдалося ввімкнути модуль ''{module}''!'
+    module_disabled: '&aМодуль ''{module}'' успішно вимкнено!'
+    module_disable_failed: '&cНе вдалося вимкнути модуль ''{module}''!'
+    module_reloaded: '&aМодуль ''{module}'' успішно перезавантажено!'
+    module_reload_failed: '&cНе вдалося перезавантажити модуль ''{module}''!'
+  
+  help:
+    lines:
+      - '&7===== &bOriginChat &7====='
+      - '&b/originchat help &7- Показати довідку'
+      - '&b/originchat reload &7- Перезавантажити плагін'
+      - '&b/originchat module list &7- Список модулів'
+      - '&b/originchat module enable <ім''я> &7- Увімкнути модуль'
+      - '&b/originchat module disable <ім''я> &7- Вимкнути модуль'
+      - '&b/originchat module reload <ім''я> &7- Перезавантажити модуль'
+      - '&7========================='
+  
+  module_list:
+    lines:
+      - '&7===== &bМодулі OriginChat &7====='
+      - '&7=========================='
+    module_info: '&b{name} &7({id}) - {status}'
+    module_description: '  &7{description}'
+    status_enabled: '&aУвімкнено'
+    status_disabled: '&cВимкнено'
+
+  animation:
+    title: '=== Команди управління анімаціями ==='
+    reload: 'Перезавантажити анімації'
+    list: 'Показати список анімацій'
+    info: 'Показати інформацію про анімацію'
+    preview: 'Показати всі кадри анімації з форматуванням'
+    no_permission_reload: 'У вас немає прав для перезавантаження анімацій'
+    no_permission_list: 'У вас немає прав для перегляду списку анімацій'
+    no_permission_info: 'У вас немає прав для перегляду інформації про анімацію'
+    no_permission_preview: 'У вас немає прав для перегляду анімації'
+    player_only: 'Ця команда доступна лише гравцям'
+    specify_animation: 'Вкажіть ім''я анімації: /originchat animation {command} <ім''я>'
+    animation_not_found: 'Анімація ''{name}'' не знайдена'
+    animations_not_found: 'Анімації не знайдені'
+    animations_list: 'Список анімацій ({count}):'
+    animation_info: 'Інформація про анімацію ''{name}'':'
+    interval: 'Інтервал: {interval} тиків'
+    frames_count: 'Кадрів: {count}'
+    current_frame: 'Поточний кадр: {index}'
+    frames_title: 'Кадри:'
+    frame_number: 'Кадр {number}: '
+    preview_title: 'Попередній перегляд анімації ''{name}'':'
+    usage_text: 'Використання в тексті: {placeholder}'
+    all_frames: 'Всі кадри анімації:'
+    interval_between: 'Інтервал між кадрами: {interval} тиків ({seconds} сек)'
+    total_frames: 'Всього кадрів: {count}'
+    usage_hint: 'Для перегляду анімації в дії використовуйте текст з плейсхолдером {placeholder}'
+    reloaded: 'Анімації успішно перезавантажено'
+
+  animations:
+    title: '=== Команди управління анімаціями ==='
+    reload: 'Перезавантажити анімації'
+    list: 'Показати список анімацій'
+    info: 'Показати інформацію про анімацію'
+    preview: 'Показати всі кадри анімації з форматуванням'
+    no_permission_reload: 'У вас немає прав для перезавантаження анімацій'
+    no_permission_list: 'У вас немає прав для перегляду списку анімацій'
+    no_permission_info: 'У вас немає прав для перегляду інформації про анімацію'
+    no_permission_preview: 'У вас немає прав для перегляду анімації'
+    player_only: 'Ця команда доступна лише гравцям'
+    specify_animation: 'Вкажіть ім''я анімації: /originchat animation {command} <ім''я>'
+    animation_not_found: 'Анімація ''{name}'' не знайдена'
+    animations_not_found: 'Анімації не знайдені'
+    animations_list: 'Список анімацій ({count}):'
+    animation_info: 'Інформація про анімацію ''{name}'':'
+    interval: 'Інтервал: {interval} тиків'
+    frames_count: 'Кадрів: {count}'
+    current_frame: 'Поточний кадр: {index}'
+    frames_title: 'Кадри:'
+    frame_number: 'Кадр {number}: '
+    preview_title: 'Попередній перегляд анімації ''{name}'':'
+    usage_text: 'Використання в тексті: {placeholder}'
+    all_frames: 'Всі кадри анімації:'
+    interval_between: 'Інтервал між кадрами: {interval} тиків ({seconds} сек)'
+    total_frames: 'Всього кадрів: {count}'
+    usage_hint: 'Для перегляду анімації в дії використовуйте текст з плейсхолдером {placeholder}'
+    reloaded: 'Анімації успішно перезавантажено'
+
+modules:
+  locale_advancements:
+    name: 'Локалізовані досягнення'
+    description: 'Модуль для відображення локалізованих повідомлень про досягнення'
+  chat:
+    name: 'Чат'
+    description: 'Додає розподіл і форматування чату'
+    messages:
+      no-permission: '&cВи не маєте прав для чату!'
+      nobody-heard: '&cНіхто вас не почув!'
+      chat-not-found: '&cЧат не знайдено!'
+      cooldown: '&cВи на перезарядці! Зачекайте {cooldown} секунд.'
+      translate-enabled: '&aАвтоматичний переклад повідомлень увімкнено.'
+      translate-disabled: '&cАвтоматичний переклад повідомлень вимкнено.'
+  server_messages:
+    name: 'Серверні повідомлення'
+    description: 'Керування повідомленнями при вході/виході гравців'
+    join_messages:
+      - '&a+ &f{player} &7приєднався до сервера'
+      - '&aЛаскаво просимо, &f{player}!'
+      - '&aГравець &f{player} &aзайшов на сервер'
+    leave_messages:
+      - '&c- &f{player} &7покинув сервер'
+      - '&cГравець &f{player} &cпокинув сервер'
+      - '&f{player} &7відключився'
+    personal_welcome_messages:
+      - '&6Ласкаво просимо на сервер, &f{player}&6!'
+      - '&6Приємної гри, &f{player}&6!'
+      - '&6Раді вас знову бачити, &f{player}&6!'
+  private_messages:
+    name: 'Приватні повідомлення'
+    description: 'Модуль для надсилання особистих повідомлень між гравцями'
+    format:
+      sender: '&7Ви &8-> &7{receiver}: &f{message}'
+      receiver: '&7{sender} &8-> &7Вам: &f{message}'
+    messages:
+      not-a-player: '&cЦя команда доступна лише гравцям!'
+      player-not-specified: '&cБудь ласка, вкажіть ім''я гравця!'
+      message-not-specified: '&cБудь ласка, введіть повідомлення!'
+      player-not-found: '&cГравець {player} не знайдений або не в мережі!'
+      cannot-message-yourself: '&cВи не можете надіслати повідомлення самому собі!'
+      no-reply-target: '&cНікому відповісти! Спочатку надішліть повідомлення комусь.'
+  locale_deaths:
+    name: 'Локалізовані смерті'
+    description: 'Модуль для відображення локалізованих повідомлень про смерть'
+  roleplay:
+    name: 'Рольова гра'
+    description: 'Додає команди та функції для рольової гри'
+    format:
+      me: '&d* {player} {message}'
+      do: '&e[ДІЯ] {player}: {message}'
+      try: '&6[СПРОБА] {player}: {message} ({result})'
+      todo: '&b[ЗАВДАННЯ] {player}: {message}'
+      ball: '&a[КУЛЯ] {player}: {message} — {result}'
+      gme: '&d[ГЛОБАЛЬНО] * {player} {message}'
+      gdo: '&e[ГЛОБАЛЬНО] [ДІЯ] {player}: {message}'
+      gtry: '&6[ГЛОБАЛЬНО] [СПРОБА] {player}: {message} ({result})'
+      gtodo: '&b[ГЛОБАЛЬНО] [ЗАВДАННЯ] {player}: {message}'
+      gball: '&a[ГЛОБАЛЬНО] [КУЛЯ] {player}: {message} — {result}'
+      roll: '&9[КІСТКИ] {player} кидає {min}-{max}: &b{result}'
+      groll: '&9[ГЛОБАЛЬНО] [КІСТКИ] {player} кидає {min}-{max}: &b{result}'
+      try_success: '&6[СПРОБА] {player}: {message} (&aуспіх&6)'
+      try_failure: '&6[СПРОБА] {player}: {message} (&cневдача&6)'
+      gtry_success: '&6[ГЛОБАЛЬНО] [СПРОБА] {player}: {message} (&aуспіх&6)'
+      gtry_failure: '&6[ГЛОБАЛЬНО] [СПРОБА] {player}: {message} (&cневдача&6)'
+    errors:
+      player-not-found: '&cГравець {player} не знайдений або не в мережі!'
+      cannot-target-yourself: '&cВи не можете використовувати цю команду на собі!'
+      not-enough-arguments: '&cНедостатньо аргументів!'
+      not-a-player: '&cЦя команда доступна лише гравцям!'
+      unknown-result: '&cНевідомий результат!'
+    results:
+      - успіх
+      - невдача
+      - так
+      - ні
+      - можливо
+  tab:
+    name: 'Таб-лист'
+    description: 'Налаштовує список гравців у табі'
+    header:
+      - '&b{animation_welcome}'
+      - '&7Онлайн: {online}/{max_online}'
+    footer:
+      - '&eПриємної гри!'
+      - '&7discord.gg/yourserver'

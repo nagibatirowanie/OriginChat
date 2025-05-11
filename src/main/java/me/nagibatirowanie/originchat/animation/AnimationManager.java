@@ -23,19 +23,23 @@ import java.util.regex.Pattern;
 public class AnimationManager {
 
     private final OriginChat plugin;
-    private final Map<String, Animation> animations;
-    private final Pattern animationPattern;
+    private final Map<String, Animation> animations = new HashMap<>();
+    private final Pattern animationPattern = Pattern.compile("\\{animation_([^}]+)\\}");
     private FileConfiguration animationsConfig;
     private BukkitTask animationTask;
+    private final Object animationLock = new Object(); // Объект для синхронизации
     
     public AnimationManager(OriginChat plugin) {
         this.plugin = plugin;
-        this.animations = new HashMap<>();
-        this.animationPattern = Pattern.compile("\\{animation_([^}]+)\\}");
         
-        loadAnimationsConfig();
-        loadAnimations();
-        startAnimationTask();
+        try {
+            loadAnimationsConfig();
+            loadAnimations();
+            startAnimationTask();
+        } catch (Exception e) {
+            plugin.getPluginLogger().severe("Ошибка при инициализации AnimationManager: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
     
     /**
@@ -65,64 +69,121 @@ public class AnimationManager {
      * Загружает анимации из конфигурации
      */
     public void loadAnimations() {
-        animations.clear();
-        
-        if (animationsConfig == null) {
-            plugin.getPluginLogger().warning("Не удалось загрузить анимации: конфигурация не инициализирована");
-            return;
-        }
-        
-        for (String key : animationsConfig.getKeys(false)) {
-            ConfigurationSection section = animationsConfig.getConfigurationSection(key);
-            if (section == null) continue;
+        synchronized (animationLock) {
+            animations.clear();
             
-            int interval = section.getInt("interval", 20); // Интервал в тиках (по умолчанию 1 секунда)
-            List<String> frames = section.getStringList("frames");
-            
-            if (frames.isEmpty()) {
-                plugin.getPluginLogger().warning("Анимация '" + key + "' не содержит кадров и будет пропущена");
-                continue;
+            if (animationsConfig == null) {
+                plugin.getPluginLogger().warning("Не удалось загрузить анимации: конфигурация не инициализирована");
+                return;
             }
             
-            Animation animation = new Animation(key, interval, frames);
-            animations.put(key, animation);
-            plugin.getPluginLogger().info("Загружена анимация '" + key + "' с " + frames.size() + " кадрами и интервалом " + interval + " тиков");
+            try {
+                for (String key : animationsConfig.getKeys(false)) {
+                    ConfigurationSection section = animationsConfig.getConfigurationSection(key);
+                    if (section == null) continue;
+                    
+                    int interval = section.getInt("interval", 20); // Интервал в тиках (по умолчанию 1 секунда)
+                    
+                    // Проверяем, есть ли локализованные кадры
+                    ConfigurationSection framesSection = section.getConfigurationSection("frames");
+                    Animation animation;
+                    
+                    if (framesSection != null) {
+                        // Новый формат с локализацией
+                        Map<String, List<String>> localizedFrames = new HashMap<>();
+                        boolean hasFrames = false;
+                        
+                        // Загружаем кадры для каждого языка
+                        for (String locale : framesSection.getKeys(false)) {
+                            List<String> localeFrames = framesSection.getStringList(locale);
+                            if (!localeFrames.isEmpty()) {
+                                localizedFrames.put(locale, localeFrames);
+                                hasFrames = true;
+                            }
+                        }
+                        
+                        if (!hasFrames) {
+                            plugin.getPluginLogger().warning("Анимация '" + key + "' не содержит кадров и будет пропущена");
+                            continue;
+                        }
+                        
+                        animation = new Animation(key, interval, localizedFrames);
+                        plugin.getPluginLogger().info("Загружена анимация '" + key + "' с локализацией для " + 
+                                localizedFrames.size() + " языков и интервалом " + interval + " тиков");
+                    } else {
+                        // Старый формат без локализации
+                        List<String> frames = section.getStringList("frames");
+                        
+                        if (frames.isEmpty()) {
+                            plugin.getPluginLogger().warning("Анимация '" + key + "' не содержит кадров и будет пропущена");
+                            continue;
+                        }
+                        
+                        animation = new Animation(key, interval, frames);
+                        plugin.getPluginLogger().info("Загружена анимация '" + key + "' с " + frames.size() + 
+                                " кадрами и интервалом " + interval + " тиков");
+                    }
+                    
+                    animations.put(key, animation);
+                }
+                
+                plugin.getPluginLogger().info("Загружено " + animations.size() + " анимаций");
+            } catch (Exception e) {
+                plugin.getPluginLogger().severe("Ошибка при загрузке анимаций: " + e.getMessage());
+                e.printStackTrace();
+            }
         }
-        
-        plugin.getPluginLogger().info("Загружено " + animations.size() + " анимаций");
     }
     
     /**
      * Запускает задачу обновления кадров анимаций
      */
     private void startAnimationTask() {
-        // Останавливаем предыдущую задачу, если она существует
-        if (animationTask != null) {
-            animationTask.cancel();
-        }
-        
-        // Запускаем новую задачу, которая будет обновлять кадры анимаций
-        animationTask = new BukkitRunnable() {
-            @Override
-            public void run() {
-                for (Animation animation : animations.values()) {
-                    animation.nextFrame();
-                }
+        try {
+            // Останавливаем предыдущую задачу, если она существует
+            if (animationTask != null && !animationTask.isCancelled()) {
+                animationTask.cancel();
             }
-        }.runTaskTimer(plugin, 1L, 1L); // Запускаем каждый тик для точного контроля интервалов
+            
+            // Запускаем новую задачу, которая будет обновлять кадры анимаций
+            animationTask = new BukkitRunnable() {
+                @Override
+                public void run() {
+                    try {
+                        synchronized (animationLock) {
+                            for (Animation animation : animations.values()) {
+                                if (animation != null) {
+                                    animation.nextFrame();
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                        plugin.getPluginLogger().severe("Ошибка при обновлении кадров анимации: " + e.getMessage());
+                    }
+                }
+            }.runTaskTimer(plugin, 1L, 1L); // Запускаем каждый тик для точного контроля интервалов
+        } catch (Exception e) {
+            plugin.getPluginLogger().severe("Ошибка при запуске задачи анимации: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
     
     /**
      * Останавливает задачу обновления анимаций
      */
     public void stopAnimationTask() {
-        if (animationTask != null) {
-            animationTask.cancel();
-            animationTask = null;
+        try {
+            if (animationTask != null && !animationTask.isCancelled()) {
+                animationTask.cancel();
+                animationTask = null;
+            }
+            
+            // Останавливаем все активные анимированные сообщения
+            me.nagibatirowanie.originchat.animation.AnimatedMessage.stopAll();
+        } catch (Exception e) {
+            plugin.getPluginLogger().severe("Ошибка при остановке задачи анимации: " + e.getMessage());
+            e.printStackTrace();
         }
-        
-        // Останавливаем все активные анимированные сообщения
-        me.nagibatirowanie.originchat.animation.AnimatedMessage.stopAll();
     }
     
     /**
@@ -155,30 +216,50 @@ public class AnimationManager {
             return "";
         }
         
-        Matcher matcher = animationPattern.matcher(text);
-        StringBuffer result = new StringBuffer();
-        
-        while (matcher.find()) {
-            String animationName = matcher.group(1);
-            Animation animation = animations.get(animationName);
+        try {
+            Matcher matcher = animationPattern.matcher(text);
+            StringBuffer result = new StringBuffer();
             
-            String replacement = "";
-            if (animation != null) {
-                replacement = animation.getCurrentFrame();
-                // Обрабатываем вложенные плейсхолдеры в кадре анимации
-                if (player != null && replacement.contains("{player}")) {
-                    replacement = replacement.replace("{player}", player.getName());
+            while (matcher.find()) {
+                String animationName = matcher.group(1);
+                Animation animation;
+                
+                synchronized (animationLock) {
+                    animation = animations.get(animationName);
                 }
-            } else {
-                replacement = "[Анимация '" + animationName + "' не найдена]";
+                
+                String replacement = "";
+                if (animation != null) {
+                    // Получаем язык игрока, если игрок онлайн
+                    String locale = Animation.DEFAULT_LOCALE;
+                    if (player != null) {
+                        // Получаем язык из LocaleManager
+                        locale = plugin.getLocaleManager().getPlayerLocale(player);
+                        // Проверяем, есть ли кадры для этого языка
+                        if (!animation.hasLocale(locale)) {
+                            locale = Animation.DEFAULT_LOCALE; // Используем язык по умолчанию, если нет перевода
+                        }
+                    }
+                    
+                    replacement = animation.getCurrentFrame(locale);
+                    // Обрабатываем вложенные плейсхолдеры в кадре анимации
+                    if (player != null && replacement != null && replacement.contains("{player}")) {
+                        replacement = replacement.replace("{player}", player.getName());
+                    }
+                } else {
+                    replacement = "[Анимация '" + animationName + "' не найдена]";
+                }
+                
+                // Экранируем специальные символы в replacement для Matcher.appendReplacement
+                matcher.appendReplacement(result, Matcher.quoteReplacement(replacement));
             }
             
-            // Экранируем специальные символы в replacement для Matcher.appendReplacement
-            matcher.appendReplacement(result, Matcher.quoteReplacement(replacement));
+            matcher.appendTail(result);
+            return result.toString();
+        } catch (Exception e) {
+            plugin.getPluginLogger().warning("Ошибка при обработке анимаций в тексте: " + e.getMessage());
+            return text; // Возвращаем исходный текст в случае ошибки
         }
-        
-        matcher.appendTail(result);
-        return result.toString();
     }
     
     /**
@@ -186,7 +267,9 @@ public class AnimationManager {
      * @return список имен анимаций
      */
     public List<String> getAnimationNames() {
-        return new ArrayList<>(animations.keySet());
+        synchronized (animationLock) {
+            return new ArrayList<>(animations.keySet());
+        }
     }
     
     /**
@@ -195,6 +278,8 @@ public class AnimationManager {
      * @return объект анимации или null, если анимация не найдена
      */
     public Animation getAnimation(String name) {
-        return animations.get(name);
+        synchronized (animationLock) {
+            return animations.get(name);
+        }
     }
 }

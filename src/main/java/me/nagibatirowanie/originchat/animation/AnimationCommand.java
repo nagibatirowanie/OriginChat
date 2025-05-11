@@ -74,14 +74,43 @@ public class AnimationCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
                 sender.sendMessage("§eИнформация об анимации '" + animName + "':");
-                sender.sendMessage("§fИнтервал: §e" + animation.getInterval() + " тиков");
-                sender.sendMessage("§fКадров: §e" + animation.getFrames().size());
-                sender.sendMessage("§fТекущий кадр: §e" + (animation.getCurrentFrameIndex() + 1));
-                sender.sendMessage("§fКадры:");
-                int index = 0;
-                for (String frame : animation.getFrames()) {
-                    sender.sendMessage("§7" + (index + 1) + ". §f" + frame);
-                    index++;
+                sender.sendMessage("§fИнтервал: §e" + animation.getInterval() + " тиков §7(" + (animation.getInterval() / 20.0) + " сек)");
+                
+                // Проверяем, есть ли локализованные кадры
+                List<String> availableLocales = animation.getAvailableLocales();
+                if (availableLocales.size() > 1) {
+                    sender.sendMessage("§fДоступные языки: §e" + String.join(", ", availableLocales));
+                    
+                    // Если отправитель - игрок, показываем кадры для его языка
+                    String locale = Animation.DEFAULT_LOCALE;
+                    if (sender instanceof Player) {
+                        Player player = (Player) sender;
+                        locale = plugin.getLocaleManager().getPlayerLocale(player);
+                        if (!animation.hasLocale(locale)) {
+                            locale = Animation.DEFAULT_LOCALE;
+                        }
+                        sender.sendMessage("§fВаш язык: §e" + locale);
+                    }
+                    
+                    List<String> frames = animation.getFramesForLocale(locale);
+                    sender.sendMessage("§fКадров для языка '" + locale + "': §e" + frames.size());
+                    sender.sendMessage("§fТекущий кадр: §e" + (animation.getCurrentFrameIndex() + 1));
+                    sender.sendMessage("§fКадры для языка '" + locale + "':");
+                    int index = 0;
+                    for (String frame : frames) {
+                        sender.sendMessage("§7" + (index + 1) + ". §f" + frame);
+                        index++;
+                    }
+                } else {
+                    // Стандартный вывод для анимаций без локализации
+                    sender.sendMessage("§fКадров: §e" + animation.getFrames().size());
+                    sender.sendMessage("§fТекущий кадр: §e" + (animation.getCurrentFrameIndex() + 1));
+                    sender.sendMessage("§fКадры:");
+                    int index = 0;
+                    for (String frame : animation.getFrames()) {
+                        sender.sendMessage("§7" + (index + 1) + ". §f" + frame);
+                        index++;
+                    }
                 }
                 return true;
                 
@@ -109,9 +138,24 @@ public class AnimationCommand implements CommandExecutor, TabCompleter {
                 sender.sendMessage("§eПредпросмотр анимации '" + previewName + "':");
                 sender.sendMessage("§fИспользование в тексте: §e{animation_" + previewName + "}");
                 
+                // Проверяем, есть ли локализованные кадры
+                List<String> previewLocales = previewAnim.getAvailableLocales();
+                
+                // Получаем язык игрока
+                String locale = plugin.getLocaleManager().getPlayerLocale(player);
+                if (!previewAnim.hasLocale(locale)) {
+                    locale = Animation.DEFAULT_LOCALE;
+                }
+                
+                if (previewLocales.size() > 1) {
+                    sender.sendMessage("§fДоступные языки: §e" + String.join(", ", previewLocales));
+                    sender.sendMessage("§fВаш язык: §e" + locale);
+                    sender.sendMessage("§fПоказаны кадры для языка: §e" + locale);
+                }
+                
                 // Выводим все кадры анимации сразу с правильным форматированием цветов
                 sender.sendMessage("§fВсе кадры анимации:");
-                List<String> frames = previewAnim.getFrames();
+                List<String> frames = previewAnim.getFramesForLocale(locale);
                 for (int i = 0; i < frames.size(); i++) {
                     String frame = frames.get(i);
                     // Заменяем плейсхолдер игрока, если он есть

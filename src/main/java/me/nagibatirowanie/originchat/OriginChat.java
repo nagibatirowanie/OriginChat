@@ -49,14 +49,7 @@ public final class OriginChat extends JavaPlugin {
         // Инициализируем менеджеры после базы данных
         localeManager = new LocaleManager(this);
         
-        // Добавляем небольшую задержку перед инициализацией TranslateManager
-        // чтобы убедиться, что база данных полностью готова
-        try {
-            Thread.sleep(100); // Небольшая задержка в 100 мс
-        } catch (InterruptedException e) {
-            // Игнорируем прерывание
-        }
-        
+        // Инициализируем TranslateManager после базы данных
         translateManager = new TranslateManager(this);
         
         // Инициализируем менеджер анимаций
