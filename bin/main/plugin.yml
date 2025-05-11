@@ -14,7 +14,7 @@ commands:
   originchat:
     description: Основная команда плагина OriginChat
     aliases: [ochat, oc]
-    usage: /originchat <reload|module|help>
+    usage: /originchat <reload|module|animation|help>
     permission: originchat.admin
   msg:
     description: Отправить приватное сообщение игроку
@@ -90,6 +90,21 @@ permissions:
   originchat.admin:
     description: Доступ к административным командам плагина
     default: op
+  originchat.animation:
+    description: Базовый доступ к командам анимаций
+    default: true
+  originchat.animation.reload:
+    description: Доступ к перезагрузке анимаций
+    default: op
+  originchat.animation.list:
+    description: Доступ к просмотру списка анимаций
+    default: true
+  originchat.animation.info:
+    description: Доступ к просмотру информации об анимациях
+    default: true
+  originchat.animation.preview:
+    description: Доступ к предпросмотру анимаций
+    default: true
   originchat.module.chat:
     description: Доступ к функциям модуля чата
     default: true

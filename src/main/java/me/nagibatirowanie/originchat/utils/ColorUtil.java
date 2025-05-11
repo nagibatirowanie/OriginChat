@@ -1,6 +1,8 @@
 package me.nagibatirowanie.originchat.utils;
 
 import me.clip.placeholderapi.PlaceholderAPI;
+import me.nagibatirowanie.originchat.OriginChat;
+import me.nagibatirowanie.originchat.animation.AnimationManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
@@ -67,14 +69,23 @@ public class ColorUtil {
     }
 
     /**
-     * Заменяет PlaceholderAPI плейсхолдеры в тексте
+     * Заменяет PlaceholderAPI плейсхолдеры и анимации в тексте
      */
     public static String setPlaceholders(Player player, String text) {
         if (text == null || text.isEmpty()) return "";
+        
+        // Сначала обрабатываем анимации
+        String processed = text;
+        AnimationManager animationManager = OriginChat.getInstance().getAnimationManager();
+        if (animationManager != null && processed.contains("{animation_")) {
+            processed = animationManager.processAnimations(processed, player);
+        }
+        
+        // Затем обрабатываем PlaceholderAPI плейсхолдеры
         if (player != null && isPlaceholderAPIEnabled()) {
             try {
                 String prev;
-                String result = text;
+                String result = processed;
                 int maxIterations = 10;
                 int count = 0;
                 do {
@@ -88,7 +99,7 @@ public class ColorUtil {
                 e.printStackTrace();
             }
         }
-        return text;
+        return processed;
     }
 
     /**

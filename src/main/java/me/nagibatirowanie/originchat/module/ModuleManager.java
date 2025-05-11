@@ -181,6 +181,9 @@ public class ModuleManager {
             plugin.getConfigManager().reloadConfig(module.getConfigName());
         }
         
+        // Перезагружаем локализации при перезагрузке модуля
+        plugin.getLocaleManager().loadLocales();
+        
         if (wasEnabled) {
             if (!enableModule(moduleId)) {
                 plugin.getPluginLogger().severe("Failed to enable the module '" + moduleId + "' after the reload!");

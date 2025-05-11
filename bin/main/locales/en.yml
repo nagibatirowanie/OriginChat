@@ -31,6 +31,34 @@ commands:
       - "&b/originchat module reload <name> &7- Reload a module"
       - "&7=========================="
 
+  animations:
+    title: "=== Animation Commands ==="
+    reload: "Reload animations"
+    list: "Show animation list"
+    info: "Show animation information"
+    preview: "Show all animation frames with formatting"
+    no_permission_reload: "You don't have permission to reload animations"
+    no_permission_list: "You don't have permission to view animation list"
+    no_permission_info: "You don't have permission to view animation information"
+    no_permission_preview: "You don't have permission to preview animations"
+    player_only: "This command is only available to players"
+    specify_animation: "Specify animation name: /originchat animation {command} <name>"
+    animation_not_found: "Animation '{name}' not found"
+    animations_not_found: "No animations found"
+    animations_list: "Animation list ({count}):"
+    animation_info: "Information about animation '{name}':"
+    interval: "Interval: {interval} ticks"
+    frames_count: "Frames: {count}"
+    current_frame: "Current frame: {index}"
+    frames_title: "Frames:"
+    frame_number: "Frame {number}: "
+    preview_title: "Preview of animation '{name}':"
+    usage_text: "Usage in text: {placeholder}"
+    all_frames: "All animation frames:"
+    interval_between: "Interval between frames: {interval} ticks ({seconds} sec)"
+    total_frames: "Total frames: {count}"
+    usage_hint: "To see the animation in action, use text with placeholder {placeholder}"
+    reloaded: "Animations successfully reloaded"
   
   module_list:
     lines:
@@ -45,6 +73,7 @@ modules:
   locale_advancements:
     name: "Locale Advancements"
     description: "Module for displaying localized achievement messages"
+  
   chat:
     name: "Chat Module"
     description: "Adds chat distribution and formatting"

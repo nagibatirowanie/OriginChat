@@ -30,6 +30,35 @@ commands:
       - "&b/originchat module disable <имя> &7- Выключить модуль"
       - "&b/originchat module reload <имя> &7- Перезагрузить модуль"
       - "&7========================="
+
+  animations:
+    title: "=== Команды управления анимациями ==="
+    reload: "Перезагрузить анимации"
+    list: "Показать список анимаций"
+    info: "Показать информацию об анимации"
+    preview: "Показать все кадры анимации с форматированием"
+    no_permission_reload: "У вас нет прав для перезагрузки анимаций"
+    no_permission_list: "У вас нет прав для просмотра списка анимаций"
+    no_permission_info: "У вас нет прав для просмотра информации об анимации"
+    no_permission_preview: "У вас нет прав для предпросмотра анимаций"
+    player_only: "Эта команда доступна только для игроков"
+    specify_animation: "Укажите имя анимации: /originchat animation {command} <имя>"
+    animation_not_found: "Анимация '{name}' не найдена"
+    animations_not_found: "Анимации не найдены"
+    animations_list: "Список анимаций ({count}):"
+    animation_info: "Информация об анимации '{name}':"
+    interval: "Интервал: {interval} тиков"
+    frames_count: "Кадров: {count}"
+    current_frame: "Текущий кадр: {index}"
+    frames_title: "Кадры:"
+    frame_number: "Кадр {number}: "
+    preview_title: "Предпросмотр анимации '{name}':"
+    usage_text: "Использование в тексте: {placeholder}"
+    all_frames: "Все кадры анимации:"
+    interval_between: "Интервал между кадрами: {interval} тиков ({seconds} сек)"
+    total_frames: "Всего кадров: {count}"
+    usage_hint: "Для просмотра анимации в действии используйте текст с плейсхолдером {placeholder}"
+    reloaded: "Анимации успешно перезагружены"
   
   module_list:
     lines:
@@ -44,16 +73,6 @@ modules:
   locale_advancements:
     name: "Локализованные достижения"
     description: "Модуль для отображения локализованных сообщений о достижениях"
-  chat:
-    name: "Чат"
-    description: "Добавляет распределение и форматирование чата"
-    messages:
-      no-permission: "&cYou don't have permission to chat!"
-      nobody-heard: "&cNobody heard you!"
-      chat-not-found: "&cChat not found!"
-      cooldown: "&cYou are on cooldown! Wait {cooldown} seconds."
-      translate-enabled: "&aAutomatic message translation enabled."
-      translate-disabled: "&cAutomatic message translation disabled."
   server_messages:
     name: "Серверные сообщения"
     description: "Управление сообщениями входа/выхода игроков"

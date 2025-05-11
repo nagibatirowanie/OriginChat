@@ -1,5 +1,6 @@
 package me.nagibatirowanie.originchat;
 
+import me.nagibatirowanie.originchat.animation.AnimationManager;
 import me.nagibatirowanie.originchat.config.ConfigManager;
 import me.nagibatirowanie.originchat.database.DatabaseManager;
 import me.nagibatirowanie.originchat.locale.LocaleManager;
@@ -16,10 +17,13 @@ public final class OriginChat extends JavaPlugin {
     private LocaleManager localeManager;
     private TranslateManager translateManager;
     private DatabaseManager databaseManager;
+    private AnimationManager animationManager;
     private LoggerUtil logger;
 
     @Override
     public void onEnable() {
+        // Регистрируем слушатель анимаций
+        new me.nagibatirowanie.originchat.animation.AnimationListener(this);
         instance = this;
         logger = new LoggerUtil(this);
         
@@ -55,6 +59,9 @@ public final class OriginChat extends JavaPlugin {
         
         translateManager = new TranslateManager(this);
         
+        // Инициализируем менеджер анимаций
+        animationManager = new AnimationManager(this);
+        
         moduleManager = new ModuleManager(this);
         moduleManager.loadModules();
         
@@ -68,6 +75,10 @@ public final class OriginChat extends JavaPlugin {
     public void onDisable() {
         if (moduleManager != null) {
             moduleManager.unloadModules();
+        }
+        
+        if (animationManager != null) {
+            animationManager.stopAnimationTask();
         }
         
         if (databaseManager != null) {
@@ -92,6 +103,19 @@ public final class OriginChat extends JavaPlugin {
      */
     public ConfigManager getConfigManager() {
         return configManager;
+    }
+    
+    /**
+     * Get module manager
+     * @return module manager
+     */
+    
+    /**
+     * Get animation manager
+     * @return animation manager
+     */
+    public AnimationManager getAnimationManager() {
+        return animationManager;
     }
     
     /**
