@@ -6,7 +6,7 @@ authors: [ nagibatirowanie ]
 description: 'Продвинутый плагин для форматирования чата'
 
 # Зависимости плагина
-depend: []
+depend: [ ProtocolLib ]
 softdepend: [PlaceholderAPI]
 
 # Команды плагина
@@ -157,3 +157,19 @@ permissions:
   originchat.translate:
     description: Доступ к управлению автоматическим переводом сообщений
     default: true
+  originchat.chat.formatting:
+    description: Доступ к использованию цветов и hex/minimessage форматирования в чате
+    default: op
+  originchat.chat.placeholders:
+    description: Доступ к использованию плейсхолдеров и анимаций в чате
+    default: op
+  # Права для кулдауна чата
+  originchat.chat.cooldown.0:
+    description: Отключение кулдауна чата
+    default: op
+  originchat.chat.cooldown.3:
+    description: Установка кулдауна чата в 3 секунды
+    default: false
+  originchat.chat.cooldown.10:
+    description: Установка кулдауна чата в 10 секунд
+    default: false

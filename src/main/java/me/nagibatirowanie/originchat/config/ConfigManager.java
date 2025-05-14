@@ -1,5 +1,6 @@
 package me.nagibatirowanie.originchat.config;
 
+import com.tchristofferson.configupdater.ConfigUpdater;
 import me.nagibatirowanie.originchat.OriginChat;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -10,6 +11,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,14 +24,56 @@ public class ConfigManager {
 
     private final OriginChat plugin;
     private final Map<String, FileConfiguration> configs;
-    private final ConfigUpdater configUpdater;
+    private final Map<String, List<String>> excludedPaths;
     
     private FileConfiguration mainConfig;
     
     public ConfigManager(OriginChat plugin) {
         this.plugin = plugin;
         this.configs = new HashMap<>();
-        this.configUpdater = new ConfigUpdater(plugin);
+        this.excludedPaths = new HashMap<>();
+        
+        // Добавляем исключения для секций, которые не должны восстанавливаться
+        // Обратите внимание: исключаются только секции верхнего уровня, а не полные пути
+        // Например, для пути "chats.admin" будет исключена вся секция "chats"
+        addExcludedPath("modules/chat", "chats.admin");
+        addExcludedPath("modules/chat", "chats.private");
+        
+        // Добавляем те же исключения для имени файла без пути (для обратной совместимости)
+        addExcludedPath("config", "modules.enabled");
+
+        // Можно добавить и другие исключения для разных конфигураций
+        // addExcludedPath("config", "some.path");
+        
+        // Для отладки
+        plugin.getLogger().info("Добавлены исключения для конфигурации: секции верхнего уровня");
+    }
+    
+    /**
+     * Добавляет путь к списку исключений, которые не будут восстанавливаться при обновлении
+     * @param configName имя конфигурации без расширения .yml
+     * @param path путь к полю в конфигурации (например, "chats.admin")
+     */
+    public void addExcludedPath(String configName, String path) {
+        // Получаем только первую часть пути (секцию верхнего уровня)
+        // Например, из "chats.admin" получаем "chats"
+        String section = path.split("\\.")[0];
+        excludedPaths.computeIfAbsent(configName, k -> new ArrayList<>()).add(section);
+    }
+    
+    /**
+     * Добавляет несколько путей к списку исключений
+     * @param configName имя конфигурации без расширения .yml
+     * @param paths список путей к полям
+     */
+    public void addExcludedPaths(String configName, List<String> paths) {
+        // Для каждого пути получаем только секцию верхнего уровня
+        List<String> sections = new ArrayList<>();
+        for (String path : paths) {
+            String section = path.split("\\.")[0];
+            sections.add(section);
+        }
+        excludedPaths.computeIfAbsent(configName, k -> new ArrayList<>()).addAll(sections);
     }
     
     /**
@@ -50,16 +95,25 @@ public class ConfigManager {
         mainConfig = plugin.getConfig();
                
         File configFile = new File(plugin.getDataFolder(), "config.yml");
-                
-        boolean updated = configUpdater.checkAndUpdateConfig(configFile, mainConfig, "config.yml");
-                
-        if (updated) {
-                        plugin.reloadConfig();
+        
+        try {
+            // Получаем список исключений для конфигурации
+            // Важно: библиотека ConfigUpdater ожидает только имена секций верхнего уровня, а не полные пути
+            List<String> ignoredSections = excludedPaths.getOrDefault("config", new ArrayList<>());
+            
+            // Обновляем конфигурацию с помощью библиотеки
+            ConfigUpdater.update(plugin, "config.yml", configFile, ignoredSections);
+            
+            // Перезагружаем конфигурацию после обновления
+            plugin.reloadConfig();
             mainConfig = plugin.getConfig();
+        } catch (IOException e) {
+            plugin.getPluginLogger().severe("Ошибка при обновлении конфигурации: " + e.getMessage());
+            e.printStackTrace();
         }
         
         configs.put("config", mainConfig);
-            }
+    }
     
     /**
      * Load custom config
@@ -67,21 +121,49 @@ public class ConfigManager {
      * @return loaded configuration or null in case of an error
      */
     public FileConfiguration loadConfig(String name) {
-        File configFile = new File(plugin.getDataFolder(), name + ".yml");
+        // Обрабатываем пути с директориями (например, "modules/server_brand")
+        String resourcePath = name + ".yml";
+        File configFile = new File(plugin.getDataFolder(), resourcePath);
         
         if (!configFile.exists()) {
+            // Создаем все необходимые директории
             configFile.getParentFile().mkdirs();
-            plugin.saveResource(name + ".yml", false);
+            
+            // Пытаемся сохранить ресурс из JAR-файла
+            try {
+                // Проверяем, существует ли ресурс в JAR-файле
+                if (plugin.getResource(resourcePath) != null) {
+                    plugin.saveResource(resourcePath, false);
+                    plugin.getLogger().info("Создан файл конфигурации: " + resourcePath);
+                } else {
+                    // Если ресурс не существует в JAR, создаем пустой файл
+                    configFile.createNewFile();
+                    plugin.getLogger().info("Создан пустой файл конфигурации: " + resourcePath);
+                }
+            } catch (Exception e) {
+                plugin.getPluginLogger().severe("Ошибка при создании файла конфигурации '" + name + "': " + e.getMessage());
+                e.printStackTrace();
+            }
         }
         
         FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
         
-        InputStream defaultConfigStream = plugin.getResource(name + ".yml");
-        if (defaultConfigStream != null) {
-            YamlConfiguration defaultConfig = YamlConfiguration.loadConfiguration(
-                    new InputStreamReader(defaultConfigStream, StandardCharsets.UTF_8));
-            
-            configUpdater.checkAndUpdateConfig(configFile, config, name + ".yml");
+        try {
+            // Проверяем, существует ли ресурс в JAR для обновления
+            if (plugin.getResource(resourcePath) != null) {
+                // Получаем список исключений для конфигурации
+                // Важно: библиотека ConfigUpdater ожидает только имена секций верхнего уровня, а не полные пути
+                List<String> ignoredSections = excludedPaths.getOrDefault(name, new ArrayList<>());
+                
+                // Обновляем конфигурацию с помощью библиотеки
+                ConfigUpdater.update(plugin, resourcePath, configFile, ignoredSections);
+                
+                // Перезагружаем конфигурацию после обновления
+                config = YamlConfiguration.loadConfiguration(configFile);
+            }
+        } catch (IOException e) {
+            plugin.getPluginLogger().severe("Ошибка при обновлении конфигурации '" + name + "': " + e.getMessage());
+            e.printStackTrace();
         }
         
         configs.put(name, config);
@@ -246,11 +328,5 @@ public class ConfigManager {
         return getLocalizedMessageList(moduleName, path, locale);
     }
     
-    /**
-     * Get the config updater
-     * @return config updater
-     */
-    public ConfigUpdater getConfigUpdater() {
-        return configUpdater;
-    }
+
 }

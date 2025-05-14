@@ -22,7 +22,6 @@
 package me.nagibatirowanie.originchat.module.modules;
 
 import me.nagibatirowanie.originchat.OriginChat;
-import me.nagibatirowanie.originchat.locale.LocaleManager;
 import me.nagibatirowanie.originchat.module.AbstractModule;
 import me.nagibatirowanie.originchat.translate.TranslateManager;
 import me.nagibatirowanie.originchat.utils.ColorUtil;
@@ -38,12 +37,10 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -57,17 +54,10 @@ public class ChatModule extends AbstractModule implements Listener, CommandExecu
     private int maxMessageLength;
     private boolean enabled;
 
-
-    private LocaleManager localeManager;
-    private final Map<UUID, Long> lastMessageTime = new ConcurrentHashMap<>();
-    // Кеш для хранения кулдаунов игроков
-    private final Map<UUID, Integer> playerCooldownCache = new ConcurrentHashMap<>();
-    // Время последнего обновления кеша для каждого игрока
-    private final Map<UUID, Long> cooldownCacheUpdateTime = new ConcurrentHashMap<>();
+    private final Map<UUID, Long> lastMessageTime = new HashMap<>();
+    private final Map<String, Integer> cooldowns = new HashMap<>();
     private int defaultCooldown = 3;
     private boolean cooldownEnabled = true;
-    // Время жизни кеша в миллисекундах (1 минута)
-    private static final long CACHE_TTL = 60000;
     
     private boolean translationEnabled = true;
 
@@ -97,25 +87,11 @@ public class ChatModule extends AbstractModule implements Listener, CommandExecu
         // Регистрируем обработчики событий и команд
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         plugin.getCommand("translatetoggle").setExecutor(this);
-
-        localeManager = plugin.getLocaleManager();
-        
-        // Запускаем задачу очистки кеша кулдаунов каждую минуту
-        Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, this::clearExpiredCooldownCache, 1200L, 1200L);
-        
-        // Инициализируем время последнего сообщения для всех онлайн-игроков
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            lastMessageTime.put(player.getUniqueId(), 0L);
-            plugin.getPluginLogger().info("[ChatModule] Инициализировано время последнего сообщения для игрока " + player.getName());
-        }
     }
 
     @Override
     public void onDisable() {
         HandlerList.unregisterAll(this);
-        // Очищаем кеш времени последних сообщений
-        lastMessageTime.clear();
-        plugin.getPluginLogger().info("[ChatModule] Кеш времени последних сообщений очищен");
     }
 
     /**
@@ -141,23 +117,24 @@ public class ChatModule extends AbstractModule implements Listener, CommandExecu
                 msgTranslateEnabled = msgSection.getString("translate-enabled", msgTranslateEnabled);
             }
 
-            // Load Cooldown
+            // Load Kuldown
             ConfigurationSection cooldownSection = config.getConfigurationSection("cooldown");
+            cooldowns.clear();
             if (cooldownSection != null) {
-                if (cooldownSection.contains("enabled")) {
-                    cooldownEnabled = cooldownSection.getBoolean("enabled", true);
-                }
-                if (cooldownSection.contains("default")) {
-                    defaultCooldown = cooldownSection.getInt("default", 3);
+                for (String key : cooldownSection.getKeys(false)) {
+                    if (key.equalsIgnoreCase("enabled")) {
+                        cooldownEnabled = cooldownSection.getBoolean("enabled", true);
+                    } else if (key.equalsIgnoreCase("default")) {
+                        defaultCooldown = cooldownSection.getInt("default", 3);
+                    } else {
+                        cooldowns.put(key, cooldownSection.getInt(key, defaultCooldown));
+                    }
                 }
             } else {
                 defaultCooldown = config.getInt("cooldown.default", 3);
-                cooldownEnabled = true;
+                cooldowns.put("originchat.moder", config.getInt("cooldown.originchat.moder", 2));
+                cooldowns.put("originchat.admin", config.getInt("cooldown.originchat.admin", 0));
             }
-            
-            // Очищаем кеш кулдаунов при перезагрузке конфига
-            playerCooldownCache.clear();
-            cooldownCacheUpdateTime.clear();
             loadChatConfigs();
         } catch (Exception e) {
             log("❗ Error when loading chat configuration: " + e.getMessage());
@@ -196,77 +173,16 @@ public class ChatModule extends AbstractModule implements Listener, CommandExecu
     }
 
 
-    /**
-     * Получает значение кулдауна для игрока на основе его прав
-     * Ищет права формата originchat.chat.cooldown.<число> и возвращает наименьшее значение
-     * Использует кеширование для оптимизации производительности
-     * @param player игрок
-     * @return значение кулдауна в секундах
-     */
     private int getPlayerCooldown(Player player) {
-        UUID playerUUID = player.getUniqueId();
-        
-        // Проверяем, есть ли кешированное значение и не устарело ли оно
-        if (playerCooldownCache.containsKey(playerUUID)) {
-            long lastUpdateTime = cooldownCacheUpdateTime.getOrDefault(playerUUID, 0L);
-            if (System.currentTimeMillis() - lastUpdateTime < CACHE_TTL) {
-                int cachedCooldown = playerCooldownCache.get(playerUUID);
-                plugin.getPluginLogger().info("[ChatModule] Используем кешированное значение кулдауна для игрока " + player.getName() + ": " + cachedCooldown + " сек.");
-                return cachedCooldown;
-            }
-        }
-        
-        // Если у игрока есть право администратора, возвращаем 0 (без кулдауна)
         if (player.hasPermission("originchat.admin")) {
-            plugin.getPluginLogger().info("[ChatModule] Игрок " + player.getName() + " имеет право администратора, кулдаун отключен");
-            updateCooldownCache(playerUUID, 0);
             return 0;
         }
-        
-        // Ищем все права формата originchat.chat.cooldown.<число>
-        int minCooldown = defaultCooldown;
-        for (int i = 0; i <= 60; i++) { // Проверяем значения от 0 до 60 секунд
-            String permission = "originchat.chat.cooldown." + i;
-            if (player.hasPermission(permission) && i < minCooldown) {
-                minCooldown = i;
-                plugin.getPluginLogger().info("[ChatModule] Найдено право " + permission + " для игрока " + player.getName() + ", установлен кулдаун: " + i + " сек.");
+        for (Map.Entry<String, Integer> entry : cooldowns.entrySet()) {
+            if (player.hasPermission(entry.getKey())) {
+                return entry.getValue();
             }
         }
-        
-        // Обновляем кеш
-        updateCooldownCache(playerUUID, minCooldown);
-        plugin.getPluginLogger().info("[ChatModule] Установлен кулдаун для игрока " + player.getName() + ": " + minCooldown + " сек.");
-        
-        return minCooldown;
-    }
-    
-    /**
-     * Обновляет кеш кулдаунов для игрока
-     * @param playerUUID UUID игрока
-     * @param cooldownValue значение кулдауна
-     */
-    private void updateCooldownCache(UUID playerUUID, int cooldownValue) {
-        playerCooldownCache.put(playerUUID, cooldownValue);
-        cooldownCacheUpdateTime.put(playerUUID, System.currentTimeMillis());
-    }
-    
-    /**
-     * Очищает устаревшие записи в кеше кулдаунов
-     */
-    private void clearExpiredCooldownCache() {
-        long currentTime = System.currentTimeMillis();
-        Set<UUID> expiredEntries = new HashSet<>();
-        
-        for (Map.Entry<UUID, Long> entry : cooldownCacheUpdateTime.entrySet()) {
-            if (currentTime - entry.getValue() > CACHE_TTL) {
-                expiredEntries.add(entry.getKey());
-            }
-        }
-        
-        for (UUID uuid : expiredEntries) {
-            playerCooldownCache.remove(uuid);
-            cooldownCacheUpdateTime.remove(uuid);
-        }
+        return defaultCooldown;
     }
 
     /**
@@ -277,33 +193,33 @@ public class ChatModule extends AbstractModule implements Listener, CommandExecu
      */
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        //plugin.getPluginLogger().info("[ChatModule] Выполнение команды: " + command.getName());
+        plugin.getPluginLogger().info("[ChatModule] Выполнение команды: " + command.getName());
         
         if (!(sender instanceof Player)) {
-            //plugin.getPluginLogger().info("[ChatModule] Команда выполнена не игроком, отклоняем");
+            plugin.getPluginLogger().info("[ChatModule] Команда выполнена не игроком, отклоняем");
             sender.sendMessage("§cЭта команда доступна только для игроков");
             return true;
         }
         
         Player player = (Player) sender;
-        //plugin.getPluginLogger().info("[ChatModule] Игрок " + player.getName() + " выполняет команду translatetoggle");
+        plugin.getPluginLogger().info("[ChatModule] Игрок " + player.getName() + " выполняет команду translatetoggle");
         
         if (!translationEnabled) {
-            //plugin.getPluginLogger().info("[ChatModule] Функция автоперевода отключена на сервере");
+            plugin.getPluginLogger().info("[ChatModule] Функция автоперевода отключена на сервере");
             player.sendMessage(formatMessage("§cФункция автоперевода отключена на сервере."));
             return true;
         }
         
-        //plugin.getPluginLogger().info("[ChatModule] Вызываем toggleTranslate для игрока " + player.getName());
+        plugin.getPluginLogger().info("[ChatModule] Вызываем toggleTranslate для игрока " + player.getName());
         boolean newState = plugin.getTranslateManager().toggleTranslate(player);
-        //plugin.getPluginLogger().info("[ChatModule] Новое состояние автоперевода для игрока " + player.getName() + ": " + newState);
+        plugin.getPluginLogger().info("[ChatModule] Новое состояние автоперевода для игрока " + player.getName() + ": " + newState);
         
         if (newState) {
-            //plugin.getPluginLogger().info("[ChatModule] Отправляем сообщение о включении автоперевода игроку " + player.getName());
-            localeManager.sendMessage(player, "commands.translate_enabled");
+            plugin.getPluginLogger().info("[ChatModule] Отправляем сообщение о включении автоперевода игроку " + player.getName());
+            player.sendMessage(formatMessage(msgTranslateEnabled));
         } else {
-            //plugin.getPluginLogger().info("[ChatModule] Отправляем сообщение о выключении автоперевода игроку " + player.getName());
-            localeManager.sendMessage(player, "commands.translate_disabled");
+            plugin.getPluginLogger().info("[ChatModule] Отправляем сообщение о выключении автоперевода игроку " + player.getName());
+            player.sendMessage(formatMessage(msgTranslateDisabled));
         }
         
         return true;
@@ -316,21 +232,6 @@ public class ChatModule extends AbstractModule implements Listener, CommandExecu
      */
     public boolean isTranslateEnabled(Player player) {
         return plugin.getTranslateManager().isTranslateEnabled(player);
-    }
-    
-    /**
-     * Обработчик события входа игрока на сервер
-     * Инициализирует время последнего сообщения
-     */
-    @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent event) {
-        if (!enabled) {
-            return;
-        }
-        
-        Player player = event.getPlayer();
-        lastMessageTime.put(player.getUniqueId(), 0L);
-        plugin.getPluginLogger().info("[ChatModule] Инициализировано время последнего сообщения для игрока " + player.getName());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -348,30 +249,18 @@ public class ChatModule extends AbstractModule implements Listener, CommandExecu
 
         if (cooldownEnabled) {
             int cooldown = getPlayerCooldown(player);
-            long now = System.currentTimeMillis();
-            
-            // Проверяем, есть ли игрок в кеше времени последнего сообщения
-            if (!lastMessageTime.containsKey(player.getUniqueId())) {
-                plugin.getPluginLogger().info("[ChatModule] Игрок " + player.getName() + " не найден в кеше времени последнего сообщения. Инициализируем.");
-                lastMessageTime.put(player.getUniqueId(), 0L);
-            }
-            
             if (cooldown > 0) {
+                long now = System.currentTimeMillis();
                 long last = lastMessageTime.getOrDefault(player.getUniqueId(), 0L);
                 long diff = (now - last) / 1000;
-                plugin.getPluginLogger().info("[ChatModule] Проверка кулдауна для игрока " + player.getName() + ": прошло " + diff + " сек. из " + cooldown + " сек.");
                 if (diff < cooldown) {
                     String msg = plugin.getConfigManager().getLocalizedMessage("chat", "messages.cooldown", player.getLocale().toString()).replace("{cooldown}", String.valueOf(cooldown - diff));
                     player.sendMessage(formatMessage(msg));
-                    plugin.getPluginLogger().info("[ChatModule] Сообщение игрока " + player.getName() + " заблокировано из-за кулдауна. Осталось ждать: " + (cooldown - diff) + " сек.");
                     event.setCancelled(true);
                     return;
                 }
+                lastMessageTime.put(player.getUniqueId(), now);
             }
-            
-            // Всегда обновляем время последнего сообщения, даже если кулдаун равен 0
-            plugin.getPluginLogger().info("[ChatModule] Обновляем время последнего сообщения для игрока " + player.getName());
-            lastMessageTime.put(player.getUniqueId(), now);
         }
 
         event.setCancelled(true);
@@ -532,54 +421,21 @@ public class ChatModule extends AbstractModule implements Listener, CommandExecu
 
 
     private String formatChatMessage(Player player, String message, ChatConfig config, String chatName) {
-        // 1) Сырой формат из конфига с подстановкой неизменяемых плейсхолдеров
-        String raw = config.getFormat()
-            .replace("{player}", player.getName())
-            .replace("{chat}", chatName)
-            .replace("{world}", player.getWorld().getName());
-    
-        // 2) Маркер вместо {message}
-        final String MSG_MARKER = "&&MSG&&";
-        String withMarker = raw.replace("{message}", MSG_MARKER);
-    
-        // 3) Полное форматирование префикса и суффикса:
-        //    – allowColors = true   → все теги цветов из конфига,
-        //    – useMiniMessage = miniMessage,
-        //    – allowPlaceholders = true → все %…% разворачиваются
-        String allConfigFormatted = ColorUtil.format(
-            player,
-            withMarker,
-            /* allowColors= */ true,
-            /* useMiniMessage= */ miniMessage,
-            /* allowPlaceholders= */ true
-        );
-    
-        // 4) Разбиваем по маркеру, чтобы убрать его из итоговой строки
-        String[] parts = allConfigFormatted.split(Pattern.quote(MSG_MARKER), -1);
-        String prefix = parts.length > 0 ? parts[0] : "";
-        String suffix = parts.length > 1 ? parts[1] : "";
-    
-        // 5) Проверяем права игрока на цвета и на плейсхолдеры
-        boolean canColors       = player.hasPermission("originchat.format.colors");
-        boolean canPlaceholders = player.hasPermission("originchat.format.placeholders");
-    
-        // 6) Форматируем текст сообщения игрока:
-        //    – если есть право на цвета → разрешаем HEX и MiniMessage,
-        //      и разворачиваем %…% только при наличии allowPlaceholders
-        //    – если нет права на цвета → отключаем любые цвета/MiniMessage,
-        //      но всё ещё можем разворачивать %…% при allowPlaceholders
-        String msgFormatted = ColorUtil.format(
-            player,
-            message,
-            /* allowColors=       */ canColors && hexColors,
-            /* useMiniMessage=    */ canColors && miniMessage,
-            /* allowPlaceholders= */ canPlaceholders
-        );
-    
-        // 7) Склеиваем всё вместе и возвращаем
-        return prefix + msgFormatted + suffix;
+        String format = config.getFormat();
+        
+        // Заменяем основные плейсхолдеры
+        format = format.replace("{player}", player.getName());
+        format = format.replace("{message}", message);
+        format = format.replace("{chat}", chatName);
+        format = format.replace("{world}", player.getWorld().getName());
+        
+        // Проверяем права игрока на использование форматирования
+        boolean canUseColors = player.hasPermission("originchat.format.colors");
+        boolean canUsePlaceholders = player.hasPermission("originchat.format.placeholders");
+        
+        // Используем метод format с передачей игрока и параметров форматирования
+        return ColorUtil.format(player, format, canUseColors, canUseColors, canUsePlaceholders);
     }
-    
     
     /**
      * Форматируем сообщение с учетом плейсхолдеров
@@ -591,12 +447,12 @@ public class ChatModule extends AbstractModule implements Listener, CommandExecu
     
     /**
      * Форматируем сообщение игроку с учетом плейсхолдеров и прав игрока
-    */
-    // private String formatMessage(Player player, String message) {
-    //     // Для системных сообщений всегда разрешаем цвета и плейсхолдеры
-    //     // Это не сообщения игрока, а сообщения системы игроку
-    //     return ColorUtil.format(player, message, true, true, true);
-    // }
+     */
+    private String formatMessage(Player player, String message) {
+        // Для системных сообщений всегда разрешаем цвета и плейсхолдеры
+        // Это не сообщения игрока, а сообщения системы игроку
+        return ColorUtil.format(player, message, true, true, true);
+    }
 
     private static class ChatConfig {
         private final String prefix;

@@ -4,8 +4,8 @@ commands:
   no_permission: '&cУ вас немає прав для виконання цієї команди!'
   unknown_command: '&cНевідома команда. Використовуйте /originchat help для довідки.'
   plugin_reloaded: '&aПлагін OriginChat успішно перезавантажено!'
-  translate-enabled: '&aАвтоматичний переклад повідомлень увімкнено.'
-  translate-disabled: '&cАвтоматичний переклад повідомлень вимкнено.'
+  translate_enabled: '&aАвтоматичний переклад повідомлень увімкнено.'
+  translate_disabled: '&cАвтоматичний переклад повідомлень вимкнено.'
   
   module:
     usage: '&cВикористання: /originchat module <list|enable|disable|reload> [ім''я_модуля]'
@@ -101,6 +101,18 @@ modules:
   locale_advancements:
     name: 'Локалізовані досягнення'
     description: 'Модуль для відображення локалізованих повідомлень про досягнення'
+    
+  scoreboard:
+    name: 'Скорборд'
+    description: 'Налаштовує бічну панель гравця (скорборд)'
+    title: '&e&lOriginChat'
+    lines:
+      - '&7Ім''я: &f{player}'
+      - '&7Світ: &f{world}'
+      - '&7Онлайн: &f{online}/{max_online}'
+      - '&7Здоров''я: &c{health}/{max_health}'
+      - '&7Рівень: &a{level}'
+      - '&7Позиція: &f{x}, {y}, {z}'
   chat:
     name: 'Чат'
     description: 'Додає розподіл і форматування чату'
@@ -183,3 +195,6 @@ modules:
     footer:
       - '&eПриємної гри!'
       - '&7discord.gg/yourserver'
+  server_brand:
+    name: 'Бренд сервера'
+    description: 'Налаштовує відображуваний бренд сервера в клієнті'

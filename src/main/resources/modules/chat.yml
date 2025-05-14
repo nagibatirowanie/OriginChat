@@ -9,18 +9,13 @@ mini-message: true
 
 max-message-length: 256
 
-format:
-  # Main message format (supports MiniMessage and HEX colors)
-  message: '<gray>[<color:#00AAFF>%player_name%</color>]</gray> <white>%message%</white>'
-  # Private message format
-  private-message: '<gray>[<color:#FF55FF>PM</color>] <color:#00AAFF>%sender%</color> -> <color:#00AAFF>%receiver%</color>:</gray> <white>%message%</white>'
 
 chats:
   # Global chat (no prefix)
   global:
     prefix: "!"
     radius: -1
-    format: "<gray>[Global]</gray> <white>{player}: {message}</white>"
+    format: "<gray>[Global]</gray> <white>%luckperms_prefix% {player}: {message}</white>"
     permission-write: ""
     permission-view: ""
   
@@ -28,7 +23,7 @@ chats:
   local:
     prefix: ""
     radius: 50
-    format: "<yellow>[Local]</yellow> <white>{player}: {message}</white>"
+    format: "<yellow>[Local]</yellow> <white>%luckperms_prefix%{player}: {message}</white>"
     permission-write: ""
     permission-view: ""
   
@@ -36,7 +31,7 @@ chats:
   private:
     prefix: "@"
     radius: -1
-    format: "<red>[Private]</red> <white>{player}: {message}</white>"
+    format: "<red>[Private]</red> <white>%luckperms_prefix%{player}: {message}</white>"
     permission-write: "originchat.chat.private"
     permission-view: "originchat.chat.private"
   
@@ -44,11 +39,9 @@ chats:
   admin:
     prefix: "#"
     radius: -1
-    format: "<gold>[Admin]</gold> <white>{player}: {message}</white>"
+    format: "<gold>[Admin]</gold> <white>%luckperms_prefix%{player}: {message}</white>"
     permission-write: "originchat.chat.admin"
     permission-view: "originchat.chat.admin"
 
 cooldown:
   default: 3
-  originchat.moder: 2
-  originchat.admin: 0

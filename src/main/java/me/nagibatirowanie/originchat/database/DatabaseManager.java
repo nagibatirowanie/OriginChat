@@ -10,12 +10,15 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
 import java.io.File;
+import java.io.IOException;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -49,13 +52,19 @@ public class DatabaseManager {
         
         FileConfiguration config = YamlConfiguration.loadConfiguration(databaseConfigFile);
         
-        // Проверяем и обновляем конфигурацию, если необходимо
-        boolean updated = plugin.getConfigManager().getConfigUpdater().checkAndUpdateConfig(
-                databaseConfigFile, config, "database.yml");
-        
-        if (updated) {
+        try {
+            // Получаем список исключений для конфигурации
+            List<String> ignoredSections = new ArrayList<>();
+            
+            // Обновляем конфигурацию с помощью библиотеки
+            com.tchristofferson.configupdater.ConfigUpdater.update(plugin, "database.yml", databaseConfigFile, ignoredSections);
+            
+            // Перезагружаем конфигурацию после обновления
             config = YamlConfiguration.loadConfiguration(databaseConfigFile);
             plugin.getPluginLogger().info("Конфигурация базы данных была обновлена");
+        } catch (IOException e) {
+            plugin.getPluginLogger().severe("Ошибка при обновлении конфигурации базы данных: " + e.getMessage());
+            e.printStackTrace();
         }
         
         return config;

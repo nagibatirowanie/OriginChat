@@ -6,6 +6,8 @@ import me.nagibatirowanie.originchat.module.modules.LocaleAdvancementsModule;
 import me.nagibatirowanie.originchat.module.modules.LocaleDeathsModule;
 import me.nagibatirowanie.originchat.module.modules.PrivateMessageModule;
 import me.nagibatirowanie.originchat.module.modules.RoleplayModule;
+import me.nagibatirowanie.originchat.module.modules.ScoreboardModule;
+import me.nagibatirowanie.originchat.module.modules.ServerBrandModule;
 import me.nagibatirowanie.originchat.module.modules.ServerMessagesModule;
 import me.nagibatirowanie.originchat.module.modules.TabModule;
 
@@ -41,6 +43,8 @@ public class ModuleManager {
         registerModule(new ServerMessagesModule(plugin));
         registerModule(new LocaleAdvancementsModule(plugin));
         registerModule(new LocaleDeathsModule(plugin));
+        registerModule(new ScoreboardModule(plugin));
+        registerModule(new ServerBrandModule(plugin));
 
         List<String> enabledFromConfig = plugin.getConfigManager().getMainConfig().getStringList("modules.enabled");
         

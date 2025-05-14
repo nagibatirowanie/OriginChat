@@ -51,9 +51,9 @@ public class ColorUtil {
         put("&r", "<reset>");
     }};
 
-    // Обновленный serializer для правильной обработки HEX-цветов
     private static final LegacyComponentSerializer LEGACY_SERIALIZER = LegacyComponentSerializer.builder()
             .hexColors()
+            .useUnusualXRepeatedCharacterHexFormat()
             .build();
 
     private static Boolean placeholderAPIEnabled = null;
@@ -118,29 +118,6 @@ public class ColorUtil {
     }
 
     /**
-     * Обрабатывает HEX-цвета в формате &#RRGGBB или #RRGGBB напрямую в формат §x§R§R§G§G§B§B
-     * для правильного отображения в табе и других местах, где нужны legacy цвета
-     */
-    public static String processHexColorsToLegacy(String text) {
-        if (text == null || text.isEmpty()) return "";
-        
-        Matcher matcher = HEX_PATTERN.matcher(text);
-        StringBuffer result = new StringBuffer();
-        
-        while (matcher.find()) {
-            String hexColor = matcher.group(2);
-            StringBuilder replacement = new StringBuilder("§x");
-            for (char c : hexColor.toCharArray()) {
-                replacement.append("§").append(c);
-            }
-            matcher.appendReplacement(result, replacement.toString());
-        }
-        matcher.appendTail(result);
-        
-        return result.toString();
-    }
-
-    /**
      * Форматирует строку: &-коды, hex, MiniMessage → MiniMessage → Component → legacy string
      * 
      * @param text Текст для форматирования
@@ -167,12 +144,6 @@ public class ColorUtil {
         // Если форматирование отключено, возвращаем текст как есть или только с плейсхолдерами
         if (!enableColors && !enableMiniMessage) {
             return processed;
-        }
-        
-        // Если разрешено обработать HEX-цвета, но отключен MiniMessage, обрабатываем HEX напрямую
-        if (enableColors && !enableMiniMessage && (processed.contains("&#") || processed.contains("#"))) {
-            String legacyColored = processed.replace('&', '§');
-            return processHexColorsToLegacy(legacyColored);
         }
         
         // Создаем компонент с учетом настроек форматирования
@@ -224,12 +195,6 @@ public class ColorUtil {
             return processed;
         }
         
-        // Если разрешено обработать HEX-цвета, но отключен MiniMessage, обрабатываем HEX напрямую
-        if (enableColors && !enableMiniMessage && (processed.contains("&#") || processed.contains("#"))) {
-            String legacyColored = processed.replace('&', '§');
-            return processHexColorsToLegacy(legacyColored);
-        }
-        
         // Создаем компонент с учетом настроек форматирования
         Component component = toComponent(processed, enableColors, enableMiniMessage);
         return LEGACY_SERIALIZER.serialize(component);
@@ -275,34 +240,27 @@ public class ColorUtil {
         text = text.replace('§', '&');
 
         // HEX цвета: &#RRGGBB или #RRGGBB -> <#RRGGBB>
-        Matcher matcher = HEX_PATTERN.matcher(text);
-        StringBuffer sb = new StringBuffer();
-        
-        while (matcher.find()) {
-            matcher.appendReplacement(sb, "<#" + matcher.group(2) + ">");
-        }
-        matcher.appendTail(sb);
-        String result = sb.toString();
+        String result = HEX_PATTERN.matcher(text).replaceAll(match -> "<color:#" + match.group(2) + ">");
 
         // &-коды -> MiniMessage теги
-        StringBuilder finalResult = new StringBuilder();
+        StringBuilder sb = new StringBuilder();
         for (int i = 0; i < result.length(); ) {
             boolean replaced = false;
             for (Map.Entry<String, String> entry : COLOR_MAP.entrySet()) {
                 String code = entry.getKey();
                 if (result.startsWith(code, i)) {
-                    finalResult.append(entry.getValue());
+                    sb.append(entry.getValue());
                     i += code.length();
                     replaced = true;
                     break;
                 }
             }
             if (!replaced) {
-                finalResult.append(result.charAt(i));
+                sb.append(result.charAt(i));
                 i++;
             }
         }
-        return finalResult.toString();
+        return sb.toString();
     }
 
     /**

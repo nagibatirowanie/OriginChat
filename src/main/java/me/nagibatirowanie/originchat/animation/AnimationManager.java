@@ -9,6 +9,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -55,13 +56,19 @@ public class AnimationManager {
         
         animationsConfig = YamlConfiguration.loadConfiguration(configFile);
         
-        // Проверяем и обновляем конфигурацию, если необходимо
-        boolean updated = plugin.getConfigManager().getConfigUpdater().checkAndUpdateConfig(
-                configFile, animationsConfig, "animations.yml");
-        
-        if (updated) {
+        try {
+            // Получаем список исключений для конфигурации
+            List<String> ignoredSections = new ArrayList<>();
+            
+            // Обновляем конфигурацию с помощью библиотеки
+            com.tchristofferson.configupdater.ConfigUpdater.update(plugin, "animations.yml", configFile, ignoredSections);
+            
+            // Перезагружаем конфигурацию после обновления
             animationsConfig = YamlConfiguration.loadConfiguration(configFile);
             plugin.getPluginLogger().info("Конфигурация анимаций была обновлена");
+        } catch (IOException e) {
+            plugin.getPluginLogger().severe("Ошибка при обновлении конфигурации анимаций: " + e.getMessage());
+            e.printStackTrace();
         }
     }
     

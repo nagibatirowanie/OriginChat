@@ -259,20 +259,23 @@ public class TabModule extends AbstractModule {
         
         header = applyPlaceholders(player, header);
         footer = applyPlaceholders(player, footer);
-
-        header = ColorUtil.format(player, header);
-        footer = ColorUtil.format(player, footer);
+        
+        // Применяем стандартное форматирование с поддержкой HEX-цветов
+        header = ColorUtil.format(player, header, true, true, true);
+        footer = ColorUtil.format(player, footer, true, true, true);
         
         player.setPlayerListHeaderFooter(header, footer);
     }
 
 
     private String getCustomName(Player player) {
-        // Сначала заменяем базовые плейсхолдеры, затем применяем форматирование через ColorUtil
+        // Сначала заменяем базовые плейсхолдеры и {player}, затем применяем форматирование через ColorUtil
         String name = playerFormat;
         name = applyPlaceholders(player, name);
-        name = ColorUtil.format(player, name);
         name = name.replace("{player}", player.getName());
+        
+        // Применяем форматирование с поддержкой HEX-цветов
+        name = ColorUtil.format(player, name, true, true, true);
         
         return name;
     }

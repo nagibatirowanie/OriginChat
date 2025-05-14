@@ -1,7 +1,7 @@
 plugins {
     id 'java'
     id("xyz.jpenilla.run-paper") version "2.3.1"
-    //id("io.github.goooler.shadow") version "8.1.8"
+    id 'com.gradleup.shadow' version '8.3.0'
 }
 
 group = 'me.nagibatirowanie'
@@ -20,13 +20,25 @@ repositories {
     maven {
         url = 'https://repo.extendedclip.com/releases/'
     }
+    maven { url "https://repo.dmulloy2.net/repository/public/" }
+    maven { url = uri("https://repo.codemc.io/repository/maven-releases/") }
+    
 }
 
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT")
     compileOnly 'net.luckperms:api:5.4'
     compileOnly 'me.clip:placeholderapi:2.11.6'
-    implementation("org.ahocorasick:ahocorasick:0.4.0")
+    compileOnly 'com.comphenix.protocol:ProtocolLib:5.1.0'
+    implementation 'fr.mrmicky:fastboard:2.1.4'
+    implementation 'com.tchristofferson:ConfigUpdater:2.2-SNAPSHOT'
+    
+    // Добавляем Netty для ByteBuf
+    implementation 'io.netty:netty-buffer:4.1.107.Final'
+    implementation 'io.netty:netty-codec:4.1.107.Final'
+    
+    //implementation("org.ahocorasick:ahocorasick:0.4.0")
+    //implementation("com.github.retrooper:packetevents-spigot:2.7.0")
 }
 
 tasks {
@@ -38,20 +50,23 @@ tasks {
     }
     
     // Настройка Shadow JAR для включения зависимостей и переименования пакетов
-    //shadowJar {
-        // Настройка relocate для избежания конфликтов с другими плагинами
+    shadowJar {
         //relocate('org.ahocorasick', 'me.nagibatirowanie.originchat.libs.ahocorasick')
+        relocate 'fr.mrmicky.fastboard', 'me.nagibatirowanie.originchat.libs.fastboard'
+        relocate 'com.tchristofferson.configupdater', 'me.nagibatirowanie.originchat.libs.configupdater'
+        //relocate 'com.github.retrooper','me.nagibatirowanie.originchat.libs.packetevents'
         
-        // Исключаем ненужные файлы из итогового JAR
-        //minimize()
+        // Перемещаем классы Netty в наше пространство имен
+        relocate 'io.netty', 'me.nagibatirowanie.originchat.libs.netty'
+
+        minimize()
         
-        // Настройка архива
-        //archiveClassifier.set('')
-    //}
+        archiveClassifier.set('')
+    }
     
     // Привязываем задачу shadowJar к задаче build
     build {
-        //dependsOn(shadowJar)
+        dependsOn(shadowJar)
     }
 }
 
@@ -78,4 +93,3 @@ processResources {
         expand props
     }
 }
-

@@ -28,4 +28,5 @@ modules:
     - 'server_messages'
     - 'locale_advancements'
     - 'locale_deaths'
-    - 'auto_translate'
+    - 'scoreboard'
+    - 'server_brand'

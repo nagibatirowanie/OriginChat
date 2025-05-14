@@ -9,6 +9,8 @@ import me.nagibatirowanie.originchat.translate.TranslateManager;
 import me.nagibatirowanie.originchat.utils.LoggerUtil;
 import org.bukkit.plugin.java.JavaPlugin;
 
+
+
 public final class OriginChat extends JavaPlugin {
 
     private static OriginChat instance;
@@ -19,6 +21,7 @@ public final class OriginChat extends JavaPlugin {
     private DatabaseManager databaseManager;
     private AnimationManager animationManager;
     private LoggerUtil logger;
+    
 
     @Override
     public void onEnable() {
@@ -57,7 +60,8 @@ public final class OriginChat extends JavaPlugin {
         
         moduleManager = new ModuleManager(this);
         moduleManager.loadModules();
-        
+    
+    
         new me.nagibatirowanie.originchat.commands.CommandManager(this);
         
         logger.info("OriginChat successfully enabled :3");
@@ -150,4 +154,5 @@ public final class OriginChat extends JavaPlugin {
     public LoggerUtil getPluginLogger() {
         return logger;
     }
+
 }

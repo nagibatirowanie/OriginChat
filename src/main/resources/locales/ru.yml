@@ -5,8 +5,8 @@ commands:
   no_permission: "&cУ вас нет прав для выполнения этой команды!"
   unknown_command: "&cНеизвестная команда. Используйте /originchat help для справки."
   plugin_reloaded: "&aПлагин OriginChat успешно перезагружен!"
-  translate-enabled: "&aАвтоматический перевод сообщений включен."
-  translate-disabled: "&cАвтоматический перевод сообщений выключен."
+  translate_enabled: "&aАвтоматический перевод сообщений включен."
+  translate_disabled: "&cАвтоматический перевод сообщений выключен."
   
   module:
     usage: "&cИспользование: /originchat module <list|enable|disable|reload> [имя_модуля]"
@@ -73,6 +73,18 @@ modules:
   locale_advancements:
     name: "Локализованные достижения"
     description: "Модуль для отображения локализованных сообщений о достижениях"
+    
+  scoreboard:
+    name: "Скорборд"
+    description: "Настраивает боковую панель игрока (скорборд)"
+    title: "&e&lOriginChat"
+    lines:
+      - "&7Имя: &f{player}"
+      - "&7Мир: &f{world}"
+      - "&7Онлайн: &f{online}/{max_online}"
+      - "&7Здоровье: &c{health}/{max_health}"
+      - "&7Уровень: &a{level}"
+      - "&7Позиция: &f{x}, {y}, {z}"
   server_messages:
     name: "Серверные сообщения"
     description: "Управление сообщениями входа/выхода игроков"
@@ -149,4 +161,7 @@ modules:
     footer:
       - "&eПриятной игры!"
       - "&7discord.gg/yourserver"
+  server_brand:
+    name: "Бренд сервера"
+    description: "Настраивает отображаемый бренд сервера в клиенте"
   
