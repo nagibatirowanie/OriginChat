@@ -2,9 +2,11 @@ package me.nagibatirowanie.originchat.module;
 
 import me.nagibatirowanie.originchat.OriginChat;
 import me.nagibatirowanie.originchat.module.modules.ChatModule;
+import me.nagibatirowanie.originchat.module.modules.EmojiModule;
 import me.nagibatirowanie.originchat.module.modules.LocaleAdvancementsModule;
 import me.nagibatirowanie.originchat.module.modules.LocaleDeathsModule;
 import me.nagibatirowanie.originchat.module.modules.MentionsModule;
+import me.nagibatirowanie.originchat.module.modules.PlayerInfoModule;
 import me.nagibatirowanie.originchat.module.modules.PrivateMessageModule;
 import me.nagibatirowanie.originchat.module.modules.RoleplayModule;
 import me.nagibatirowanie.originchat.module.modules.ScoreboardModule;
@@ -47,6 +49,8 @@ public class ModuleManager {
         registerModule(new ScoreboardModule(plugin));
         registerModule(new ServerBrandModule(plugin));
         registerModule(new MentionsModule(plugin));
+        registerModule(new PlayerInfoModule(plugin));
+        registerModule(new EmojiModule(plugin));
 
         List<String> enabledFromConfig = plugin.getConfigManager().getMainConfig().getStringList("modules.enabled");
         

@@ -72,6 +72,10 @@ commands:
     status_disabled: "&cDisabled"
 
 modules:
+  emoji:
+    name: "Emoji Module"
+    description: "Replaces text emoticons with UTF emoji symbols"
+    
   locale_advancements:
     name: "Locale Advancements"
     description: "Module for displaying localized achievement messages"
@@ -184,3 +188,7 @@ modules:
     subtitle: "&e{player} mentioned you in chat"
     chat_message: "&a{player} &7mentioned you in chat"
     actionbar: "Test"
+  player_info:
+    name: "Player Info"
+    description: "Shows player information on right-click"
+    format: "&7Player: &f{player}"

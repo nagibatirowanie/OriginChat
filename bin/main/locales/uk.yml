@@ -207,3 +207,7 @@ modules:
     subtitle: '&e{player} згадав вас у чаті'
     chat_message: '&a{player} &7згадав вас у чаті'
     actionbar: "Test"
+  player_info:
+    name: 'Інформація про гравця'
+    description: 'Показує інформацію про гравця при натисканні ПКМ'
+    format: '&7Гравець: &f{player}'

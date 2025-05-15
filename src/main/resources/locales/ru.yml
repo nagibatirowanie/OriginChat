@@ -72,6 +72,10 @@ commands:
     status_disabled: "&cВыключен"
 
 modules:
+  emoji:
+    name: "Модуль эмодзи"
+    description: "Заменяет текстовые смайлики на UTF символы эмодзи"
+    
   locale_advancements:
     name: "Локализованные достижения"
     description: "Модуль для отображения локализованных сообщений о достижениях"
@@ -173,3 +177,7 @@ modules:
     subtitle: "&e{player} упомянул вас в чате"
     chat_message: "&a{player} &7упомянул вас в чате"
     actionbar: "Test"
+  player_info:
+    name: "Информация об игроке"
+    description: "Показывает информацию об игроке при нажатии ПКМ"
+    format: "&7Игрок: &f{player}"

@@ -31,3 +31,4 @@ modules:
     - 'scoreboard'
     - 'server_brand'
     - 'mentions'
+    - 'player_info'
