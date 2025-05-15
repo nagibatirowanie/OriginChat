@@ -7,6 +7,8 @@ commands:
   plugin_reloaded: "&aПлагин OriginChat успешно перезагружен!"
   translate_enabled: "&aАвтоматический перевод сообщений включен."
   translate_disabled: "&cАвтоматический перевод сообщений выключен."
+  chat_cleared_by: "&aЧат был очищен игроком &f{player}&a!"
+  chat_cleared_by_console: "&aЧат был очищен консолью!"
   
   module:
     usage: "&cИспользование: /originchat module <list|enable|disable|reload> [имя_модуля]"
@@ -160,8 +162,14 @@ modules:
       - "&7Онлайн: {online}/{max_online}"
     footer:
       - "&eПриятной игры!"
-      - "&7discord.gg/yourserver"
+      - "&7discord.gg/yourserver"  
   server_brand:
     name: "Бренд сервера"
     description: "Настраивает отображаемый бренд сервера в клиенте"
-  
+  mentions:
+    name: "Упоминания"
+    description: "Добавляет упоминания игроков в чате с уведомлениями"
+    title: "&6Вас упомянули!"
+    subtitle: "&e{player} упомянул вас в чате"
+    chat_message: "&a{player} &7упомянул вас в чате"
+    actionbar: "Test"

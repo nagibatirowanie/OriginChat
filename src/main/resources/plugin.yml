@@ -26,6 +26,11 @@ commands:
     aliases: [reply]
     usage: /r <сообщение>
     permission: originchat.pm.reply
+  clearchat:
+    description: Очистить чат для всех игроков
+    aliases: [cc]
+    usage: /clearchat
+    permission: originchat.command.clearchat
   # Команды ролевой игры
   me:
     description: Действие от первого лица
@@ -89,6 +94,9 @@ commands:
 permissions:
   originchat.admin:
     description: Доступ к административным командам плагина
+    default: op
+  originchat.command.clearchat:
+    description: Доступ к команде очистки чата
     default: op
   originchat.animation:
     description: Базовый доступ к командам анимаций

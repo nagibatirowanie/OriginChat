@@ -34,6 +34,9 @@ public class CommandManager implements CommandExecutor, TabCompleter {
         
         plugin.getCommand("translatetoggle").setExecutor(this);
         plugin.getCommand("translatetoggle").setTabCompleter(this);
+        
+        // Регистрируем команду очистки чата
+        new ClearChatCommand(plugin);
     }
 
     @Override

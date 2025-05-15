@@ -1,0 +1,30 @@
+# Конфигурация модуля упоминаний
+enabled: true
+
+# Символ, который будет использоваться для упоминаний (@игрок)
+mention_symbol: '@'
+
+# Кулдаун между упоминаниями одного игрока в секундах (0 - отключить)
+cooldown: 30
+
+# Настройки звукового уведомления
+sound:
+  enabled: true
+  # Название звука из Bukkit Sound enum
+  # https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Sound.html
+  name: ENTITY_EXPERIENCE_ORB_PICKUP
+  volume: 1.0
+  pitch: 1.0
+
+# Настройки заголовка (title)
+title:
+  enabled: true
+  # display_mode: title | subtitle | actionbar | both
+  display_mode: both
+  fade_in: 10
+  stay: 70
+  fade_out: 20
+
+# Настройки уведомления в чате
+chat_notification:
+  enabled: true

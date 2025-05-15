@@ -30,3 +30,4 @@ modules:
     - 'locale_deaths'
     - 'scoreboard'
     - 'server_brand'
+    - 'mentions'

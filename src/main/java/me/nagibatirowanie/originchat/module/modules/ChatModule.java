@@ -56,6 +56,14 @@ public class ChatModule extends AbstractModule implements Listener, CommandExecu
     private boolean miniMessage;
     private int maxMessageLength;
     private boolean enabled;
+    
+    /**
+     * Возвращает карту конфигураций чатов
+     * @return карта конфигураций чатов
+     */
+    public Map<String, ChatConfig> getChatConfigs() {
+        return chatConfigs;
+    }
 
 
     private LocaleManager localeManager;

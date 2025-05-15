@@ -6,6 +6,8 @@ commands:
   plugin_reloaded: '&aПлагін OriginChat успішно перезавантажено!'
   translate_enabled: '&aАвтоматичний переклад повідомлень увімкнено.'
   translate_disabled: '&cАвтоматичний переклад повідомлень вимкнено.'
+  chat_cleared_by: '&aЧат був очищений гравцем &f{player}&a!'
+  chat_cleared_by_console: '&aЧат був очищений консоллю!'
   
   module:
     usage: '&cВикористання: /originchat module <list|enable|disable|reload> [ім''я_модуля]'
@@ -198,3 +200,10 @@ modules:
   server_brand:
     name: 'Бренд сервера'
     description: 'Налаштовує відображуваний бренд сервера в клієнті'
+  mentions:
+    name: 'Згадування'
+    description: 'Додає згадування гравців у чаті з сповіщеннями'
+    title: '&6Вас згадали!'
+    subtitle: '&e{player} згадав вас у чаті'
+    chat_message: '&a{player} &7згадав вас у чаті'
+    actionbar: "Test"
