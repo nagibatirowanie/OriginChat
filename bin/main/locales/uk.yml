@@ -211,3 +211,9 @@ modules:
     name: 'Інформація про гравця'
     description: 'Показує інформацію про гравця при натисканні ПКМ'
     format: '&7Гравець: &f{player}'
+  afk:
+    name: 'Модуль AFK'
+    description: 'Додає функціональність AFK (відійшов від клавіатури)'
+    messages:
+      player_now_afk: '&7{player} &eтепер AFK'
+      player_no_longer_afk: '&7{player} &eбільше не AFK'

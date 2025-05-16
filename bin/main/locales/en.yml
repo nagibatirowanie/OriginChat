@@ -192,3 +192,9 @@ modules:
     name: "Player Info"
     description: "Shows player information on right-click"
     format: "&7Player: &f{player}"
+  afk:
+    name: "AFK Module"
+    description: "Adds AFK (Away From Keyboard) functionality"
+    messages:
+      player_now_afk: "&7{player} &eis now AFK"
+      player_no_longer_afk: "&7{player} &eis no longer AFK"

@@ -89,6 +89,9 @@ commands:
     description: Информация о базе данных
     usage: /dbinfo [player <имя>|stats]
     permission: originchat.admin
+  afk:
+    description: Toggle AFK status
+    usage: /afk
 
 # Права плагина
 permissions:
@@ -124,6 +127,9 @@ permissions:
     default: true
   originchat.pm.reply:
     description: Доступ к ответу на приватные сообщения
+    default: true
+  originchat.afk:
+    description: Доступ к команде AFK
     default: true
   # Права для ролевых команд
   originchat.roleplay.me:

@@ -11,7 +11,7 @@ settings:
 # Locale settings
 locale:
   # Default language (ru, en)
-  default: 'ru'
+  default: 'en'
   # Enable automatic language detection from client
   auto_detect: true
 
@@ -32,3 +32,4 @@ modules:
     - 'server_brand'
     - 'mentions'
     - 'player_info'
+    - 'emoji'

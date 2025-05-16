@@ -1,6 +1,7 @@
 package me.nagibatirowanie.originchat.module;
 
 import me.nagibatirowanie.originchat.OriginChat;
+import me.nagibatirowanie.originchat.module.modules.AfkModule;
 import me.nagibatirowanie.originchat.module.modules.ChatModule;
 import me.nagibatirowanie.originchat.module.modules.EmojiModule;
 import me.nagibatirowanie.originchat.module.modules.LocaleAdvancementsModule;
@@ -39,6 +40,7 @@ public class ModuleManager {
      */
     public void loadModules() {
         // register all modules
+        registerModule(new AfkModule(plugin));
         registerModule(new ChatModule(plugin));
         registerModule(new TabModule(plugin));
         registerModule(new PrivateMessageModule(plugin));
