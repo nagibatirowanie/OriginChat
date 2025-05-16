@@ -72,6 +72,10 @@ commands:
     status_disabled: "&cВыключен"
 
 modules:
+  chat_bubbles:
+    name: "Чат-баблы"
+    description: "Отображает сообщения чата в виде голограмм над головами игроков"
+    
   emoji:
     name: "Модуль эмодзи"
     description: "Заменяет текстовые смайлики на UTF символы эмодзи"

@@ -72,6 +72,10 @@ commands:
     status_disabled: "&cDisabled"
 
 modules:
+  chat_bubbles:
+    name: "Chat Bubbles"
+    description: "Displays chat messages as holograms above players' heads"
+    
   emoji:
     name: "Emoji Module"
     description: "Replaces text emoticons with UTF emoji symbols"

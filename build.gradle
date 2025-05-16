@@ -18,10 +18,18 @@ repositories {
         url = "https://oss.sonatype.org/content/groups/public/"
     }
     maven {
+        name = "codemc"
+        url = "https://repo.codemc.io/repository/maven-public/"
+    }
+    maven {
         url = 'https://repo.extendedclip.com/releases/'
     }
     maven { url "https://repo.dmulloy2.net/repository/public/" }
     maven { url = uri("https://repo.codemc.io/repository/maven-releases/") }
+    maven { 
+      name = "jitpack"
+      url = "https://jitpack.io/"
+    }
     
 }
 
@@ -30,6 +38,8 @@ dependencies {
     compileOnly 'net.luckperms:api:5.4'
     compileOnly 'me.clip:placeholderapi:2.11.6'
     compileOnly 'com.comphenix.protocol:ProtocolLib:5.1.0'
+    compileOnly 'com.github.decentsoftware-eu:decentholograms:2.8.17'
+
     implementation 'fr.mrmicky:fastboard:2.1.4'
     implementation 'com.tchristofferson:ConfigUpdater:2.2-SNAPSHOT'
     

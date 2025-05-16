@@ -24,6 +24,7 @@ package me.nagibatirowanie.originchat.module.modules;
 import me.nagibatirowanie.originchat.OriginChat;
 import me.nagibatirowanie.originchat.locale.LocaleManager;
 import me.nagibatirowanie.originchat.module.AbstractModule;
+import me.nagibatirowanie.originchat.module.modules.ChatBubblesModule;
 import me.nagibatirowanie.originchat.translate.TranslateManager;
 import me.nagibatirowanie.originchat.utils.ColorUtil;
 import me.nagibatirowanie.originchat.utils.TranslateUtil;
@@ -78,6 +79,9 @@ public class ChatModule extends AbstractModule implements Listener, CommandExecu
     private static final long CACHE_TTL = 60000;
     
     private boolean translationEnabled = true;
+    
+    // Ссылка на модуль чат-баблов для интеграции
+    private ChatBubblesModule chatBubblesModule;
 
     private String msgNoPermission;
     private String msgNobodyHeard;
@@ -107,6 +111,19 @@ public class ChatModule extends AbstractModule implements Listener, CommandExecu
         plugin.getCommand("translatetoggle").setExecutor(this);
 
         localeManager = plugin.getLocaleManager();
+        
+        // Получаем ссылку на модуль чат-баблов для интеграции
+        try {
+            chatBubblesModule = (ChatBubblesModule) plugin.getModuleManager().getModule("chat_bubbles");
+            if (chatBubblesModule != null) {
+                log("Интеграция с модулем Chat Bubbles успешно установлена");
+            } else {
+                log("Модуль Chat Bubbles не найден, интеграция невозможна");
+            }
+        } catch (Exception e) {
+            log("❗ Ошибка при получении модуля Chat Bubbles: " + e.getMessage());
+            e.printStackTrace();
+        }
         
         // Запускаем задачу очистки кеша кулдаунов каждую минуту
         Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, this::clearExpiredCooldownCache, 1200L, 1200L);
@@ -401,6 +418,16 @@ public class ChatModule extends AbstractModule implements Listener, CommandExecu
                 // Сохраняем финальное сообщение для использования в лямбдах
                 final String finalMessage = message;
                 String formattedMessage = formatChatMessage(player, finalMessage, chatConfig, chatName);
+                
+                // Создаем чат-бабл, если модуль доступен
+                if (chatBubblesModule != null) {
+                    // Вызываем метод createChatBubble в основном потоке с указанием имени чата
+                    final String finalChatName = chatName;
+                    plugin.getServer().getScheduler().runTask(plugin, () -> {
+                        chatBubblesModule.createChatBubble(player, finalMessage, finalChatName);
+                        debug("Создан чат-бабл для сообщения игрока " + player.getName() + " в чате '" + finalChatName + "'");
+                    });
+                }
                 
                 // Если перевод отключен на сервере, отправляем сообщение всем как обычно
                 if (!translationEnabled) {

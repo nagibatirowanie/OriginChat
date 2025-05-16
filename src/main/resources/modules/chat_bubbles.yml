@@ -1,0 +1,27 @@
+# Configuration for Chat Bubbles module
+enabled: true
+
+# Format of the chat bubble
+# Available placeholders: {message}
+format: "{message}"
+
+# Maximum length of the message in the chat bubble
+# Messages longer than this will be truncated
+max-length: 32
+
+# Time in seconds to display the chat bubble
+display-time: 5
+
+# Height of the hologram above player's head
+# Higher values will place the bubble higher above the player
+bubble-height: 2.5
+
+# List of chat types for which chat bubbles will be displayed
+# If empty, chat bubbles will be displayed for all chats
+# Example:
+# allow-chats:
+#   - global
+#   - local
+allow-chats:
+  - global
+  - local

@@ -7,7 +7,9 @@ description: 'Продвинутый плагин для форматирова�
 
 # Зависимости плагина
 depend: [ ProtocolLib ]
-softdepend: [PlaceholderAPI]
+softdepend:
+  - DecentHolograms
+  - PlaceholderAPI
 
 # Команды плагина
 commands:

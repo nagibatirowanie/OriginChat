@@ -187,7 +187,7 @@ public class AfkModule extends AbstractModule implements Listener {
                 // Проверяем, нацелен ли моб на этого игрока
                 if (monster.getTarget() != null && monster.getTarget().equals(player)) {
                     monster.setTarget(null);
-                    debug("Убрана цель моба " + monster.getType() + " с AFK игрока " + player.getName());
+                    //debug("Убрана цель моба " + monster.getType() + " с AFK игрока " + player.getName());
                 }
             }
         }
@@ -318,12 +318,12 @@ public class AfkModule extends AbstractModule implements Listener {
                     if ((damager instanceof Monster && invulnerableToMobs) || 
                         (damager instanceof Player && invulnerableToPlayers)) {
                         event.setCancelled(true);
-                        debug("AFK игрок " + player.getName() + " защищен от урона от " + damager.getType());
+                        //debug("AFK игрок " + player.getName() + " защищен от урона от " + damager.getType());
                     }
                 } else if (invulnerableToMobs) {
                     // Если это другой тип урона и включена защита от мобов, то защищаем и от других типов урона
                     event.setCancelled(true);
-                    debug("AFK игрок " + player.getName() + " защищен от урона типа " + event.getCause());
+                    //debug("AFK игрок " + player.getName() + " защищен от урона типа " + event.getCause());
                 }
             }
         }
@@ -350,7 +350,7 @@ public class AfkModule extends AbstractModule implements Listener {
                 }
                 
                 // Логируем для отладки
-                debug("Моб " + event.getEntity().getType() + " попытался атаковать AFK игрока " + player.getName() + ", атака предотвращена");
+               //debug("Моб " + event.getEntity().getType() + " попытался атаковать AFK игрока " + player.getName() + ", атака предотвращена");
             }
         }
     }
@@ -376,7 +376,7 @@ public class AfkModule extends AbstractModule implements Listener {
                 }
                 
                 // Логируем для отладки
-                debug("Моб " + event.getEntity().getType() + " попытался атаковать AFK игрока " + player.getName() + ", атака предотвращена");
+                //debug("Моб " + event.getEntity().getType() + " попытался атаковать AFK игрока " + player.getName() + ", атака предотвращена");
             }
         }
     }

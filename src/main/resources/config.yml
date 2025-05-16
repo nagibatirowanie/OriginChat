@@ -33,3 +33,4 @@ modules:
     - 'mentions'
     - 'player_info'
     - 'emoji'
+    - 'chat_bubbles'
