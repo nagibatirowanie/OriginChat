@@ -214,6 +214,5 @@ public class OpMessagesSubmodule implements Listener {
      */
     public void setEnabled(boolean enabled) {
         this.opMessageEnabled = enabled;
-        plugin.getConfigManager().saveConfig("modules/server_messages");
     }
 }

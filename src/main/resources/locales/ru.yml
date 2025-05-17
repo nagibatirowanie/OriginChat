@@ -118,6 +118,20 @@ modules:
       sender: "&aВы сняли права оператора с игрока &f{target}&a!"
       target: "&cВаши права оператора были сняты игроком &f{sender}&c!"
       broadcast: "&f{sender} &aснял права оператора с игрока &f{target}&a!"
+    seed_messages:
+      player: "&aКлюч генерации мира: &f{seed}"
+      console: "Ключ генерации мира: {seed}"
+    gamemode_messages:
+      sender: '&aВы изменили режим игры игрока &f{target}&a на &f{gamemode}&a!'
+      target: '&aВаш режим игры был изменен на &f{gamemode}&a игроком &f{sender}&a!'
+      broadcast: '&f{sender} &aизменил режим игры игрока &f{target}&a на &f{gamemode}&a!'
+      player_not_found: '&cИгрок &f{player}&c не найден!'
+      already_in_gamemode: '&cИгрок &f{player}&c уже находится в режиме &f{gamemode}&c!'
+      modes:
+        survival: выживание
+        creative: творческий
+        adventure: приключение
+        spectator: наблюдатель
   private_messages:
     name: "Приватные сообщения"
     description: "Модуль для отправки личных сообщений между игроками"

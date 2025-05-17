@@ -1,3 +1,24 @@
+/*
+ * This file is part of OriginChat, a Minecraft plugin.
+ *
+ * Copyright (c) 2025 nagibatirowanie
+ *
+ * OriginChat is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This plugin is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this plugin. If not, see <https://www.gnu.org/licenses/>.
+ *
+ * Created with ❤️ for the Minecraft community.
+ */
+
 package me.nagibatirowanie.originchat.module.modules;
 
 import me.nagibatirowanie.originchat.OriginChat;
@@ -26,99 +47,103 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Модуль для управления режимом AFK (Away From Keyboard)
+ * Module for managing AFK (Away From Keyboard) status.
  */
 public class AfkModule extends AbstractModule implements Listener {
 
     private boolean enabled;
     private boolean autoAfkEnabled;
-    private int autoAfkTime; // время в секундах
+    private int autoAfkTime; // time in seconds
     private boolean invulnerableToMobs;
     private boolean invulnerableToPlayers;
     private boolean mobsIgnoreAfk;
-    
+
     private final Map<UUID, Boolean> afkPlayers = new HashMap<>();
     private final Map<UUID, Location> lastLocations = new HashMap<>();
     private final Map<UUID, Long> lastActivityTime = new HashMap<>();
-    
+
     private AfkCommand afkCommand;
     private BukkitRunnable mobProtectionTask;
 
+    /**
+     * Constructs the AFK module.
+     * @param plugin The main plugin instance.
+     */
     public AfkModule(OriginChat plugin) {
         super(plugin, "afk", "AFK Module", "Adds AFK (Away From Keyboard) functionality", "1.0");
     }
 
+    /**
+     * Called when the module is enabled.
+     */
     @Override
     public void onEnable() {
         loadModuleConfig("modules/afk");
         loadConfig();
-        
+
         if (!enabled) {
             return;
         }
-        
-        // Регистрируем обработчик событий
+
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        
-        // Регистрируем команду
+
         afkCommand = new AfkCommand(plugin, this);
-        
-        // Запускаем задачу проверки автоматического AFK
+
         if (autoAfkEnabled) {
             startAutoAfkTask();
         }
-        
-        // Запускаем задачу активной защиты от мобов
+
         if (mobsIgnoreAfk) {
             startMobProtectionTask();
         }
-        
+
         log("AFK module has been successfully enabled.");
     }
 
+    /**
+     * Called when the module is disabled.
+     */
     @Override
     public void onDisable() {
         HandlerList.unregisterAll(this);
-        
-        // Останавливаем задачу защиты от мобов
+
         if (mobProtectionTask != null) {
             mobProtectionTask.cancel();
             mobProtectionTask = null;
         }
-        
-        // Отключаем режим AFK у всех игроков
+
+        // Set AFK status to false for all players
         for (UUID uuid : new HashMap<>(afkPlayers).keySet()) {
             Player player = Bukkit.getPlayer(uuid);
             if (player != null && player.isOnline()) {
                 setAfk(player, false);
             }
         }
-        
+
         afkPlayers.clear();
         lastLocations.clear();
         lastActivityTime.clear();
-        
-        // Отменяем регистрацию команды
+
         if (afkCommand != null) {
             afkCommand.unregister();
             afkCommand = null;
         }
-        
+
         log("AFK module has been disabled.");
     }
 
     /**
-     * Загружает настройки из конфигурации
+     * Loads the module's configuration.
      */
     private void loadConfig() {
         try {
             enabled = config.getBoolean("enabled", true);
             autoAfkEnabled = config.getBoolean("auto-afk.enabled", true);
-            autoAfkTime = config.getInt("auto-afk.time", 300); // 5 минут по умолчанию
+            autoAfkTime = config.getInt("auto-afk.time", 300); // 5 minutes by default
             invulnerableToMobs = config.getBoolean("invulnerable.mobs", true);
             invulnerableToPlayers = config.getBoolean("invulnerable.players", false);
             mobsIgnoreAfk = config.getBoolean("mobs-ignore-afk", true);
-            
+
             log("Configuration loaded successfully.");
         } catch (Exception e) {
             log("❗ Error loading AFK module configuration: " + e.getMessage());
@@ -127,37 +152,37 @@ public class AfkModule extends AbstractModule implements Listener {
     }
 
     /**
-     * Запускает задачу проверки автоматического AFK
+     * Starts the automatic AFK check task.
      */
     private void startAutoAfkTask() {
         Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             long currentTime = System.currentTimeMillis();
             for (Player player : Bukkit.getOnlinePlayers()) {
                 UUID uuid = player.getUniqueId();
-                
-                // Пропускаем игроков, которые уже в AFK
+
                 if (isAfk(player)) {
                     continue;
                 }
-                
-                // Проверяем время последней активности
+
                 if (lastActivityTime.containsKey(uuid)) {
                     long lastActivity = lastActivityTime.get(uuid);
-                    long idleTime = (currentTime - lastActivity) / 1000; // в секундах
-                    
+                    long idleTime = (currentTime - lastActivity) / 1000; // in seconds
+
+                    // Проверяем, не двигался ли игрок указанное время
                     if (idleTime >= autoAfkTime) {
-                        setAfk(player, true);
+                        // Устанавливаем статус AFK автоматически (manual = false)
+                        setAfk(player, true, false);
                     }
                 } else {
-                    // Инициализируем время активности для новых игроков
+                    // Initialize activity time for new players
                     updateActivity(player);
                 }
             }
-        }, 20L, 20L); // Проверка каждую секунду
+        }, 20L, 20L); // Check every second
     }
 
     /**
-     * Запускает задачу активной защиты от мобов для AFK игроков
+     * Starts the active mob protection task for AFK players.
      */
     private void startMobProtectionTask() {
         mobProtectionTask = new BukkitRunnable() {
@@ -165,89 +190,103 @@ public class AfkModule extends AbstractModule implements Listener {
             public void run() {
                 for (Player player : Bukkit.getOnlinePlayers()) {
                     if (isAfk(player)) {
-                        // Активно убираем всех мобов, нацеленных на AFK игрока
+                        // Actively clear targets of all mobs targeting the AFK player
                         clearMobTargets(player);
                     }
                 }
             }
         };
-        mobProtectionTask.runTaskTimer(plugin, 20L, 20L); // Запуск каждую секунду
+        mobProtectionTask.runTaskTimer(plugin, 20L, 20L); // Run every second
     }
 
     /**
-     * Очищает цели всех мобов-монстров, которые нацелены на данного игрока
-     * @param player игрок, цели на которого нужно очистить
+     * Clears the targets of all hostile mobs that are targeting the specified player.
+     * @param player The player whose targets should be cleared.
      */
     private void clearMobTargets(Player player) {
-        // Проверяем все сущности в радиусе 32 блоков от игрока
         for (Entity entity : player.getNearbyEntities(32, 32, 32)) {
             if (entity instanceof Monster) {
                 Monster monster = (Monster) entity;
-                
-                // Проверяем, нацелен ли моб на этого игрока
+
                 if (monster.getTarget() != null && monster.getTarget().equals(player)) {
                     monster.setTarget(null);
-                    //debug("Убрана цель моба " + monster.getType() + " с AFK игрока " + player.getName());
                 }
             }
         }
     }
 
     /**
-     * Обновляет время последней активности игрока
-     * @param player игрок
+     * Updates the player's last activity time.
+     * @param player The player to update activity for.
      */
     public void updateActivity(Player player) {
         lastActivityTime.put(player.getUniqueId(), System.currentTimeMillis());
     }
 
     /**
-     * Устанавливает статус AFK для игрока
-     * @param player игрок
-     * @param afk новый статус AFK
+     * Sets the AFK status for a player.
+     * @param player The player to set AFK status for.
+     * @param afk The new AFK status (true for AFK, false for not AFK).
+     * @param manual Whether this change was triggered manually (true) or automatically (false).
      */
-    public void setAfk(Player player, boolean afk) {
+    public void setAfk(Player player, boolean afk, boolean manual) {
         UUID uuid = player.getUniqueId();
         boolean wasAfk = isAfk(player);
-        
+
         if (afk == wasAfk) {
-            return; // Статус не изменился
+            return; // Status did not change
         }
-        
+
         afkPlayers.put(uuid, afk);
         
         if (afk) {
-            // Игрок входит в режим AFK
-            broadcastAfkStatus(player, true);
+            // Сохраняем информацию о том, как игрок попал в режим AFK
+            manualAfk.put(uuid, manual);
             
-            // Немедленно очищаем все цели мобов при входе в режим AFK
+            // Player enters AFK mode
+            broadcastAfkStatus(player, true);
+
+            // Immediately clear all mob targets upon entering AFK
             if (mobsIgnoreAfk) {
                 clearMobTargets(player);
             }
         } else {
-            // Игрок выходит из режима AFK
+            // Player leaves AFK mode
             broadcastAfkStatus(player, false);
             updateActivity(player);
+            
+            // Удаляем информацию о способе входа в режим AFK
+            manualAfk.remove(uuid);
         }
+    }
+    
+    /**
+     * Sets the AFK status for a player (backward compatibility).
+     * @param player The player to set AFK status for.
+     * @param afk The new AFK status (true for AFK, false for not AFK).
+     */
+    public void setAfk(Player player, boolean afk) {
+        // По умолчанию считаем, что изменение статуса происходит вручную
+        setAfk(player, afk, true);
     }
 
     /**
-     * Проверяет, находится ли игрок в режиме AFK
-     * @param player игрок
-     * @return true, если игрок в режиме AFK
+     * Checks if a player is currently in AFK mode.
+     * @param player The player to check.
+     * @return true if the player is in AFK mode, false otherwise.
      */
     public boolean isAfk(Player player) {
         return afkPlayers.getOrDefault(player.getUniqueId(), false);
     }
 
     /**
-     * Отправляет всем игрокам сообщение о смене статуса AFK
-     * @param player игрок, изменивший статус
-     * @param afk новый статус AFK
+     * Broadcasts a message to all online players about a player's AFK status change.
+     * @param player The player whose status changed.
+     * @param afk The new AFK status (true if now AFK, false if no longer AFK).
      */
     private void broadcastAfkStatus(Player player, boolean afk) {
         String messageKey = afk ? "modules.afk.messages.player_now_afk" : "modules.afk.messages.player_no_longer_afk";
-        
+
         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
             String locale = plugin.getLocaleManager().getPlayerLocale(onlinePlayer);
             String message = plugin.getLocaleManager().getMessage(messageKey, locale)
@@ -257,7 +296,8 @@ public class AfkModule extends AbstractModule implements Listener {
     }
 
     /**
-     * Обработчик события входа игрока на сервер
+     * Handles the PlayerJoinEvent to initialize AFK-related data for the player.
+     * @param event The PlayerJoinEvent.
      */
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
@@ -267,7 +307,8 @@ public class AfkModule extends AbstractModule implements Listener {
     }
 
     /**
-     * Обработчик события выхода игрока с сервера
+     * Handles the PlayerQuitEvent to remove AFK-related data for the player.
+     * @param event The PlayerQuitEvent.
      */
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
@@ -277,106 +318,111 @@ public class AfkModule extends AbstractModule implements Listener {
         lastActivityTime.remove(uuid);
     }
 
+    // Хранение информации о том, как игрок попал в режим AFK (автоматически или вручную)
+    private final Map<UUID, Boolean> manualAfk = new HashMap<>();
+    
     /**
-     * Обработчик события движения игрока
+     * Handles the PlayerMoveEvent to update activity and check for leaving AFK status.
+     * @param event The PlayerMoveEvent.
      */
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerMove(PlayerMoveEvent event) {
         Player player = event.getPlayer();
         Location from = event.getFrom();
         Location to = event.getTo();
-        
-        // Проверяем, было ли реальное движение (изменение координат)
+
+        // Check if it was a significant movement (changed coordinates)
         if (to != null && (from.getX() != to.getX() || from.getY() != to.getY() || from.getZ() != to.getZ())) {
-            // Обновляем время активности
-            updateActivity(player);
+            // Обновляем последнюю локацию игрока
             lastLocations.put(player.getUniqueId(), to);
             
-            // Если игрок был в AFK и двинулся, выводим его из режима AFK
-            if (isAfk(player) && autoAfkEnabled) {
+            UUID uuid = player.getUniqueId();
+            boolean isPlayerAfk = isAfk(player);
+            
+            // Если игрок в режиме AFK и был установлен в этот режим автоматически,
+            // то выводим его из режима AFK при движении
+            if (isPlayerAfk && !manualAfk.getOrDefault(uuid, true)) {
                 setAfk(player, false);
+            }
+            
+            // Обновляем время активности только если игрок НЕ в режиме AFK
+            if (!isPlayerAfk) {
+                updateActivity(player);
             }
         }
     }
 
     /**
-     * Обработчик события получения урона игроком от любого источника
+     * Handles the EntityDamageEvent to prevent damage to AFK players based on configuration.
+     * @param event The EntityDamageEvent.
      */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onEntityDamage(EntityDamageEvent event) {
-        // Проверяем, является ли цель игроком в режиме AFK
+        // Check if the target is a player in AFK mode
         if (event.getEntity() instanceof Player) {
             Player player = (Player) event.getEntity();
-            
+
             if (isAfk(player)) {
-                // Если это урон от сущности
+                // If damage is from an entity
                 if (event instanceof EntityDamageByEntityEvent) {
                     EntityDamageByEntityEvent entityEvent = (EntityDamageByEntityEvent) event;
                     Entity damager = entityEvent.getDamager();
-                    
-                    // Проверяем настройки защиты от урона
-                    if ((damager instanceof Monster && invulnerableToMobs) || 
+
+                    // Check damage protection settings
+                    if ((damager instanceof Monster && invulnerableToMobs) ||
                         (damager instanceof Player && invulnerableToPlayers)) {
                         event.setCancelled(true);
-                        //debug("AFK игрок " + player.getName() + " защищен от урона от " + damager.getType());
                     }
                 } else if (invulnerableToMobs) {
-                    // Если это другой тип урона и включена защита от мобов, то защищаем и от других типов урона
+                    // If it's another damage type and mob invulnerability is enabled, protect
                     event.setCancelled(true);
-                    //debug("AFK игрок " + player.getName() + " защищен от урона типа " + event.getCause());
                 }
             }
         }
     }
 
     /**
-     * Обработчик события нацеливания моба на игрока
-     * Используется в более старых версиях Minecraft
+     * Handles the EntityTargetEvent to prevent mobs from targeting AFK players (for older versions).
+     * @param event The EntityTargetEvent.
      */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onEntityTarget(EntityTargetEvent event) {
-        // Проверяем, является ли цель игроком в режиме AFK
+        // Check if the target is a player in AFK mode
         if (event.getTarget() instanceof Player && mobsIgnoreAfk) {
             Player player = (Player) event.getTarget();
-            
+
             if (isAfk(player)) {
-                // Отменяем событие и явно сбрасываем цель
+                // Cancel the event and explicitly unset the target
                 event.setCancelled(true);
                 event.setTarget(null);
-                
-                // Если сущность - монстр, явно сбрасываем его цель
+
+                // If the entity is a monster, explicitly unset its target
                 if (event.getEntity() instanceof Monster) {
                     ((Monster) event.getEntity()).setTarget(null);
                 }
-                
-                // Логируем для отладки
-               //debug("Моб " + event.getEntity().getType() + " попытался атаковать AFK игрока " + player.getName() + ", атака предотвращена");
             }
         }
     }
-    
+
     /**
-     * Обработчик события нацеливания моба на живую сущность (игрока)
-     * Используется в более новых версиях Minecraft
+     * Handles the EntityTargetLivingEntityEvent to prevent mobs from targeting AFK players (for newer versions).
+     * @param event The EntityTargetLivingEntityEvent.
      */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onEntityTargetLivingEntity(EntityTargetLivingEntityEvent event) {
-        // Проверяем, является ли цель игроком в режиме AFK
+        // Check if the target is a player in AFK mode
         if (event.getTarget() instanceof Player && mobsIgnoreAfk) {
             Player player = (Player) event.getTarget();
-            
+
             if (isAfk(player)) {
-                // Отменяем событие и явно сбрасываем цель
+                // Cancel the event and explicitly unset the target
                 event.setCancelled(true);
                 event.setTarget(null);
-                
-                // Если сущность - монстр, явно сбрасываем его цель
+
+                // If the entity is a monster, explicitly unset its target
                 if (event.getEntity() instanceof Monster) {
                     ((Monster) event.getEntity()).setTarget(null);
                 }
-                
-                // Логируем для отладки
-                //debug("Моб " + event.getEntity().getType() + " попытался атаковать AFK игрока " + player.getName() + ", атака предотвращена");
             }
         }
     }

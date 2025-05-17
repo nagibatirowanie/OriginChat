@@ -47,8 +47,10 @@ public class ServerMessagesModule extends AbstractModule implements Listener {
     private List<String> leaveMessages;
     private List<String> personalWelcomeMessages;
 
-    // Submodule for handling operator permission grant messages
+    // Submodules for handling special messages
     private OpMessagesSubmodule opMessagesSubmodule;
+    private GamemodeMessagesSubmodule gamemodeMessagesSubmodule;
+    private SeedMessagesSubmodule seedMessagesSubmodule;
 
     /**
      * Constructor for the ServerMessagesModule.
@@ -68,10 +70,18 @@ public class ServerMessagesModule extends AbstractModule implements Listener {
         loadConfig();
         Bukkit.getPluginManager().registerEvents(this, plugin);
 
-        // Initialize the operator messages submodule
+        // Initialize the submodules
         opMessagesSubmodule = new OpMessagesSubmodule(plugin, this);
         opMessagesSubmodule.loadConfig();
         opMessagesSubmodule.initialize();
+        
+        gamemodeMessagesSubmodule = new GamemodeMessagesSubmodule(plugin, this);
+        gamemodeMessagesSubmodule.loadConfig();
+        gamemodeMessagesSubmodule.initialize();
+        
+        seedMessagesSubmodule = new SeedMessagesSubmodule(plugin, this);
+        seedMessagesSubmodule.loadConfig();
+        seedMessagesSubmodule.initialize();
 
         log("Server messages module loaded.");
     }
@@ -84,9 +94,17 @@ public class ServerMessagesModule extends AbstractModule implements Listener {
         PlayerJoinEvent.getHandlerList().unregister(this);
         PlayerQuitEvent.getHandlerList().unregister(this);
 
-        // Shutdown the operator messages submodule
+        // Shutdown the submodules
         if (opMessagesSubmodule != null) {
             opMessagesSubmodule.shutdown();
+        }
+        
+        if (gamemodeMessagesSubmodule != null) {
+            gamemodeMessagesSubmodule.shutdown();
+        }
+        
+        if (seedMessagesSubmodule != null) {
+            seedMessagesSubmodule.shutdown();
         }
 
         log("Server messages module disabled.");
@@ -130,6 +148,30 @@ public class ServerMessagesModule extends AbstractModule implements Listener {
             if (!config.contains("disable_vanilla_op_messages")) {
                 config.set("disable_vanilla_op_messages", true);
             }
+            
+            // Check for gamemode message submodule settings
+            if (!config.contains("gamemode_message_enabled")) {
+                config.set("gamemode_message_enabled", true);
+            }
+            
+            // Setting to disable vanilla gamemode messages
+            if (!config.contains("disable_vanilla_gamemode_messages")) {
+                config.set("disable_vanilla_gamemode_messages", true);
+            }
+            
+            // Check for seed message submodule settings
+            if (!config.contains("seed_message_enabled")) {
+                config.set("seed_message_enabled", true);
+            }
+            
+            // Setting to disable vanilla seed messages
+            if (!config.contains("disable_vanilla_seed_messages")) {
+                config.set("disable_vanilla_seed_messages", true);
+            }
+            
+            // Setting to broadcast seed command usage to ops
+            // Removed seed_broadcast_to_ops config
+            
 
             saveModuleConfig("modules/server_messages");
         } catch (Exception e) {
@@ -245,5 +287,23 @@ public class ServerMessagesModule extends AbstractModule implements Listener {
      */
     public OpMessagesSubmodule getOpMessagesSubmodule() {
         return opMessagesSubmodule;
+    }
+    
+    /**
+     * Gets the submodule for handling gamemode change messages.
+     *
+     * @return The GamemodeMessagesSubmodule instance.
+     */
+    public GamemodeMessagesSubmodule getGamemodeMessagesSubmodule() {
+        return gamemodeMessagesSubmodule;
+    }
+    
+    /**
+     * Gets the submodule for handling seed command messages.
+     *
+     * @return The SeedMessagesSubmodule instance.
+     */
+    public SeedMessagesSubmodule getSeedMessagesSubmodule() {
+        return seedMessagesSubmodule;
     }
 }

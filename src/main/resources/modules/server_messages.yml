@@ -10,3 +10,21 @@ leave_message_enabled: true
 # Enable/disable personal welcome messages
 personal_welcome_enabled: true
 
+# Enable/disable operator messages
+op_message_enabled: true
+
+# Disable vanilla operator messages
+disable_vanilla_op_messages: true
+
+# Enable/disable gamemode change messages
+gamemode_message_enabled: true
+
+# Disable vanilla gamemode messages
+disable_vanilla_gamemode_messages: true
+
+# Enable/disable seed command messages
+seed_message_enabled: true
+
+# Disable vanilla seed messages
+disable_vanilla_seed_messages: true
+

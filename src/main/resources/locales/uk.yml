@@ -152,6 +152,18 @@ modules:
       sender: '&aВи зняли права оператора з гравця &f{target}&a!'
       target: '&cВаші права оператора були зняті гравцем &f{sender}&c!'
       broadcast: '&f{sender} &aзняв права оператора з гравця &f{target}&a!'
+    seed_messages:
+      player: '&aКлюч генерації світу: &f{seed}'
+      console: 'Ключ генерації світу: {seed}'
+    gamemode_messages:
+      sender: '&aВи змінили режим гри гравця &f{target}&a на &f{gamemode}&a!'
+      target: '&aВаш режим гри було змінено на &f{gamemode}&a гравцем &f{sender}&a!'
+      broadcast: '&f{sender} &aзмінив режим гри гравця &f{target}&a на &f{gamemode}&a!'
+      modes:
+        survival: 'виживання'
+        creative: 'творчий'
+        adventure: 'пригоди'
+        spectator: 'спостерігач'
   private_messages:
     name: 'Приватні повідомлення'
     description: 'Модуль для надсилання особистих повідомлень між гравцями'
