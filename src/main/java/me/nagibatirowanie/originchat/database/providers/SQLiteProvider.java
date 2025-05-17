@@ -10,7 +10,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 /**
- * Провайдер для работы с SQLite
+ * Provider for working with SQLite
  */
 public class SQLiteProvider implements DatabaseProvider {
 
@@ -29,16 +29,16 @@ public class SQLiteProvider implements DatabaseProvider {
     public void initialize() throws SQLException {
         try {
             Class.forName("org.sqlite.JDBC");
-            
+
             if (!plugin.getDataFolder().exists()) {
                 plugin.getDataFolder().mkdirs();
             }
-            
+
             connection = DriverManager.getConnection("jdbc:sqlite:" + databaseFile.getAbsolutePath());
-            plugin.getPluginLogger().info("SQLite соединение установлено.");
+            plugin.getPluginLogger().info("SQLite connection established.");
         } catch (ClassNotFoundException e) {
-            plugin.getPluginLogger().severe("Не удалось найти драйвер SQLite: " + e.getMessage());
-            throw new SQLException("Не удалось найти драйвер SQLite", e);
+            plugin.getPluginLogger().severe("Failed to find SQLite driver: " + e.getMessage());
+            throw new SQLException("Failed to find SQLite driver", e);
         }
     }
 
@@ -55,9 +55,9 @@ public class SQLiteProvider implements DatabaseProvider {
         if (connection != null) {
             try {
                 connection.close();
-                plugin.getPluginLogger().info("SQLite соединение закрыто.");
+                plugin.getPluginLogger().info("SQLite connection closed.");
             } catch (SQLException e) {
-                plugin.getPluginLogger().warning("Ошибка при закрытии SQLite соединения: " + e.getMessage());
+                plugin.getPluginLogger().warning("Error while closing SQLite connection: " + e.getMessage());
             }
         }
     }
@@ -74,7 +74,7 @@ public class SQLiteProvider implements DatabaseProvider {
     @Override
     public void migrate() throws SQLException {
         try (Statement statement = getConnection().createStatement()) {
-            // Создаем базовые таблицы
+            // Create basic player data table
             statement.execute("CREATE TABLE IF NOT EXISTS oc_players (" +
                     "uuid VARCHAR(36) PRIMARY KEY, " +
                     "name VARCHAR(16) NOT NULL, " +
@@ -84,7 +84,7 @@ public class SQLiteProvider implements DatabaseProvider {
                     "last_join TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
                     ");");
 
-            // Создаем таблицу для настроек перевода
+            // Create table for translation settings
             statement.execute("CREATE TABLE IF NOT EXISTS oc_translate_settings (" +
                     "player_uuid VARCHAR(36) PRIMARY KEY, " +
                     "enabled INTEGER DEFAULT 0, " +
@@ -92,8 +92,8 @@ public class SQLiteProvider implements DatabaseProvider {
                     "target_lang VARCHAR(10) DEFAULT 'en', " +
                     "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
                     ");");
-            
-            plugin.getPluginLogger().info("SQLite миграции выполнены успешно.");
+
+            plugin.getPluginLogger().info("SQLite migrations completed successfully.");
         }
     }
 

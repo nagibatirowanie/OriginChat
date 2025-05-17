@@ -1,5 +1,25 @@
-package me.nagibatirowanie.originchat.utils;
+/*
+ * This file is part of OriginChat, a Minecraft plugin.
+ *
+ * Copyright (c) 2025 nagibatirowanie
+ *
+ * OriginChat is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This plugin is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this plugin. If not, see <https://www.gnu.org/licenses/>.
+ *
+ * Created with ❤️ for the Minecraft community.
+ */
 
+package me.nagibatirowanie.originchat.utils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -11,31 +31,32 @@ import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import me.nagibatirowanie.originchat.OriginChat;
 import static org.apache.commons.lang3.StringEscapeUtils.unescapeHtml4;
 
 /**
- * Утилитный класс для перевода текста с использованием Google Translate API
+ * Utility class for text translation using Google Translate API
  */
 public class TranslateUtil {
     
     private static final Pattern TRANSLATION_PATTERN = Pattern.compile("class=\"result-container\">([^<]*)<\\/div>", Pattern.MULTILINE);
+    private static final OriginChat plugin = OriginChat.getInstance();
     
     /**
-     * Нормализует код языка для использования с Google Translate
+     * Normalizes language code for use with Google Translate
      * 
-     * @param langCode Код языка (например, "en", "ru", "uk", "uk_UA")
-     * @return Нормализованный код языка для Google Translate
+     * @param langCode Language code (e.g., "en", "ru", "uk", "uk_UA")
+     * @return Normalized language code for Google Translate
      */
     private static String normalizeLanguageCode(String langCode) {
         if (langCode == null || langCode.isEmpty()) {
-            return "en"; // Возвращаем английский по умолчанию
+            return "en"; // Return English by default
         }
         
-        // Заменяем подчеркивание на дефис для совместимости с Google Translate
+        // Replace underscore with hyphen for compatibility with Google Translate
         if (langCode.contains("_")) {
             String[] parts = langCode.split("_");
-            // Для большинства языков достаточно только кода языка
-            // Но для некоторых (китайский, японский и т.д.) важен и региональный код
+            // For some languages (Chinese, Japanese, etc.) regional code is important
             if (parts[0].equals("zh") || parts[0].equals("ja") || 
                 parts[0].equals("ko") || parts[0].equals("pt") ||
                 parts[0].equals("uk") || parts[0].equals("ru") ||
@@ -51,12 +72,12 @@ public class TranslateUtil {
     }
 
     /**
-     * Переводит текст на указанный язык
+     * Translates text to the specified language
      *
-     * @param text    Исходный текст для перевода
-     * @param toLang  Целевой язык (код языка, например "en", "ru", "uk", "uk-UA")
-     * @return        Переведенный текст
-     * @throws IOException в случае ошибки сети или перевода
+     * @param text    Source text to translate
+     * @param toLang  Target language (language code, e.g., "en", "ru", "uk", "uk-UA")
+     * @return        Translated text
+     * @throws IOException in case of network or translation error
      */
     public static String translate(String text, String toLang) throws IOException {
         if (text == null || text.trim().isEmpty()) {
@@ -73,12 +94,14 @@ public class TranslateUtil {
                 response.append(line).append("\n");
             }
         } catch (IOException e) {
-            String errorMsg = String.format("Ошибка при обращении к сервису перевода. Язык: %s, Текст: '%s', URL: %s, Сообщение: %s", normalizedLang, text, url, e.getMessage());
-            System.err.println("[TranslateUtil] " + errorMsg);
+            String errorMsg = String.format("Error accessing translation service. Language: %s, Text: '%s', URL: %s, Message: %s", 
+                    normalizedLang, text, url, e.getMessage());
+            plugin.getLogger().warning(errorMsg);
             throw new IOException(errorMsg, e);
         } catch (Exception e) {
-            String errorMsg = String.format("Неизвестная ошибка при переводе. Язык: %s, Текст: '%s', URL: %s, Сообщение: %s", normalizedLang, text, url, e.getMessage());
-            System.err.println("[TranslateUtil] " + errorMsg);
+            String errorMsg = String.format("Unknown error during translation. Language: %s, Text: '%s', URL: %s, Message: %s", 
+                    normalizedLang, text, url, e.getMessage());
+            plugin.getLogger().warning(errorMsg);
             throw new IOException(errorMsg, e);
         }
         Matcher matcher = TRANSLATION_PATTERN.matcher(response);
@@ -88,43 +111,46 @@ public class TranslateUtil {
                 return unescapeHtml4(match);
             }
         }
-        String errorMsg = String.format("Не удалось выполнить перевод. Язык: %s, Текст: '%s', URL: %s, Ответ: %s", normalizedLang, text, url, response.toString());
-        System.err.println("[TranslateUtil] " + errorMsg);
+        String errorMsg = String.format("Failed to perform translation. Language: %s, Text: '%s', URL: %s", 
+                normalizedLang, text, url);
+        plugin.getLogger().warning(errorMsg);
         throw new IOException(errorMsg);
     }
 
     /**
-     * Асинхронно переводит текст на указанный язык
+     * Asynchronously translates text to the specified language
      *
-     * @param text    Исходный текст для перевода
-     * @param toLang  Целевой язык (код языка, например "en", "ru", "uk", "uk-UA", "uk_UA")
-     * @return        CompletableFuture с результатом перевода
+     * @param text    Source text to translate
+     * @param toLang  Target language (language code, e.g., "en", "ru", "uk", "uk-UA", "uk_UA")
+     * @return        CompletableFuture with translation result
      */
     public static CompletableFuture<String> translateAsync(String text, String toLang) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                String result = translate(text, toLang);
-                return result;
+                return translate(text, toLang);
             } catch (IOException e) {
-                String errorMsg = String.format("Ошибка перевода на язык %s. Текст: '%s'. Причина: %s", toLang, text, e.getMessage());
+                String errorMsg = String.format("Translation error to language %s. Text: '%s'. Reason: %s", 
+                        toLang, text, e.getMessage());
+                plugin.getLogger().warning(errorMsg);
                 throw new RuntimeException(errorMsg, e);
             } catch (Exception e) {
-                String errorMsg = String.format("Неизвестная ошибка перевода на язык %s. Текст: '%s'. Причина: %s", toLang, text, e.getMessage());
-                System.err.println("[TranslateUtil] " + errorMsg);
+                String errorMsg = String.format("Unknown translation error to language %s. Text: '%s'. Reason: %s", 
+                        toLang, text, e.getMessage());
+                plugin.getLogger().warning(errorMsg);
                 throw new RuntimeException(errorMsg, e);
             }
         });
     }
 
     /**
-     * Определяет язык переданного текста
+     * Detects the language of provided text
      *
-     * @param text Текст для определения языка
-     * @return Предполагаемый язык текста (английское описание)
+     * @param text Text for language detection
+     * @return Presumed language of the text (English description)
      */
     public static String detectLanguage(String text) {
         try {
-            // Создаем специальный URL для определения языка
+            // Create special URL for language detection
             String encodedText = URLEncoder.encode(text.trim(), StandardCharsets.UTF_8);
             URL url = new URL(String.format("https://translate.google.com/m?hl=en&sl=auto&tl=en&ie=UTF-8&prev=_m&q=%s", 
                     encodedText));
@@ -137,7 +163,7 @@ public class TranslateUtil {
                 }
             }
             
-            // Ищем информацию о языке в ответе
+            // Find language information in the response
             Pattern languagePattern = Pattern.compile("class=\"[^\"]*?\">\\s*Translated from\\s+([^<]+)\\s*<", Pattern.MULTILINE);
             Matcher matcher = languagePattern.matcher(response);
             
@@ -145,23 +171,9 @@ public class TranslateUtil {
                 return matcher.group(1).trim();
             }
             
-            return "Неизвестный";
+            return "Unknown";
         } catch (Exception e) {
-            return "Неизвестный";
+            return "Unknown";
         }
-    }
-}
-
-class TranslateExample {
-    
-    public static void main(String[] args) {
-        // Пример 2: Асинхронный перевод
-        TranslateUtil.translateAsync("Hello world", "ru")
-            .thenAccept(translation -> System.out.println("Асинхронный перевод: " + translation))
-            .exceptionally(ex -> {
-                System.err.println("Ошибка асинхронного перевода: " + ex.getMessage());
-                return null;
-            });
-        
     }
 }

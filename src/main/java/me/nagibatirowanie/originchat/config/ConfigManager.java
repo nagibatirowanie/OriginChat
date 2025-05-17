@@ -8,11 +8,7 @@ import org.bukkit.entity.Player;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,41 +29,41 @@ public class ConfigManager {
         this.configs = new HashMap<>();
         this.excludedPaths = new HashMap<>();
         
-        // Добавляем исключения для секций, которые не должны восстанавливаться
-        // Обратите внимание: исключаются только секции верхнего уровня, а не полные пути
-        // Например, для пути "chats.admin" будет исключена вся секция "chats"
+        // Add exclusions for sections that should not be restored
+        // Note: only top-level sections are excluded, not full paths
+        // For example, for path "chats.admin", the entire "chats" section will be excluded
         addExcludedPath("modules/chat", "chats.admin");
         addExcludedPath("modules/chat", "chats.private");
         
-        // Добавляем те же исключения для имени файла без пути (для обратной совместимости)
+        // Add the same exclusions for file name without path (for backward compatibility)
         addExcludedPath("config", "modules.enabled");
 
-        // Можно добавить и другие исключения для разных конфигураций
+        // You can add other exclusions for different configurations
         // addExcludedPath("config", "some.path");
         
-        // Для отладки
-        plugin.getLogger().info("Добавлены исключения для конфигурации: секции верхнего уровня");
+        // For debugging
+        plugin.getPluginLogger().debug("Added exclusions for configuration: top-level sections");
     }
     
     /**
-     * Добавляет путь к списку исключений, которые не будут восстанавливаться при обновлении
-     * @param configName имя конфигурации без расширения .yml
-     * @param path путь к полю в конфигурации (например, "chats.admin")
+     * Adds a path to the list of exclusions that will not be restored during update
+     * @param configName configuration name without .yml extension
+     * @param path path to the field in configuration (e.g., "chats.admin")
      */
     public void addExcludedPath(String configName, String path) {
-        // Получаем только первую часть пути (секцию верхнего уровня)
-        // Например, из "chats.admin" получаем "chats"
+        // Get only the first part of the path (top-level section)
+        // For example, from "chats.admin" we get "chats"
         String section = path.split("\\.")[0];
         excludedPaths.computeIfAbsent(configName, k -> new ArrayList<>()).add(section);
     }
     
     /**
-     * Добавляет несколько путей к списку исключений
-     * @param configName имя конфигурации без расширения .yml
-     * @param paths список путей к полям
+     * Adds multiple paths to the exclusion list
+     * @param configName configuration name without .yml extension
+     * @param paths list of paths to fields
      */
     public void addExcludedPaths(String configName, List<String> paths) {
-        // Для каждого пути получаем только секцию верхнего уровня
+        // For each path, get only the top-level section
         List<String> sections = new ArrayList<>();
         for (String path : paths) {
             String section = path.split("\\.")[0];
@@ -97,18 +93,18 @@ public class ConfigManager {
         File configFile = new File(plugin.getDataFolder(), "config.yml");
         
         try {
-            // Получаем список исключений для конфигурации
-            // Важно: библиотека ConfigUpdater ожидает только имена секций верхнего уровня, а не полные пути
+            // Get the list of exclusions for configuration
+            // Important: ConfigUpdater library expects only top-level section names, not full paths
             List<String> ignoredSections = excludedPaths.getOrDefault("config", new ArrayList<>());
             
-            // Обновляем конфигурацию с помощью библиотеки
+            // Update configuration using the library
             ConfigUpdater.update(plugin, "config.yml", configFile, ignoredSections);
             
-            // Перезагружаем конфигурацию после обновления
+            // Reload configuration after update
             plugin.reloadConfig();
             mainConfig = plugin.getConfig();
         } catch (IOException e) {
-            plugin.getPluginLogger().severe("Ошибка при обновлении конфигурации: " + e.getMessage());
+            plugin.getPluginLogger().severe("Error updating configuration: " + e.getMessage());
             e.printStackTrace();
         }
         
@@ -121,27 +117,27 @@ public class ConfigManager {
      * @return loaded configuration or null in case of an error
      */
     public FileConfiguration loadConfig(String name) {
-        // Обрабатываем пути с директориями (например, "modules/server_brand")
+        // Handle paths with directories (e.g., "modules/server_brand")
         String resourcePath = name + ".yml";
         File configFile = new File(plugin.getDataFolder(), resourcePath);
         
         if (!configFile.exists()) {
-            // Создаем все необходимые директории
+            // Create all necessary directories
             configFile.getParentFile().mkdirs();
             
-            // Пытаемся сохранить ресурс из JAR-файла
+            // Try to save resource from JAR file
             try {
-                // Проверяем, существует ли ресурс в JAR-файле
+                // Check if resource exists in JAR file
                 if (plugin.getResource(resourcePath) != null) {
                     plugin.saveResource(resourcePath, false);
-                    plugin.getLogger().info("Создан файл конфигурации: " + resourcePath);
+                    plugin.getPluginLogger().debug("Configuration file created: " + resourcePath);
                 } else {
-                    // Если ресурс не существует в JAR, создаем пустой файл
+                    // If resource doesn't exist in JAR, create empty file
                     configFile.createNewFile();
-                    plugin.getLogger().info("Создан пустой файл конфигурации: " + resourcePath);
+                    plugin.getPluginLogger().debug("Empty configuration file created: " + resourcePath);
                 }
             } catch (Exception e) {
-                plugin.getPluginLogger().severe("Ошибка при создании файла конфигурации '" + name + "': " + e.getMessage());
+                plugin.getPluginLogger().severe("Error creating configuration file '" + name + "': " + e.getMessage());
                 e.printStackTrace();
             }
         }
@@ -149,20 +145,20 @@ public class ConfigManager {
         FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
         
         try {
-            // Проверяем, существует ли ресурс в JAR для обновления
+            // Check if resource exists in JAR for updating
             if (plugin.getResource(resourcePath) != null) {
-                // Получаем список исключений для конфигурации
-                // Важно: библиотека ConfigUpdater ожидает только имена секций верхнего уровня, а не полные пути
+                // Get list of exclusions for configuration
+                // Important: ConfigUpdater library expects only top-level section names, not full paths
                 List<String> ignoredSections = excludedPaths.getOrDefault(name, new ArrayList<>());
                 
-                // Обновляем конфигурацию с помощью библиотеки
+                // Update configuration using the library
                 ConfigUpdater.update(plugin, resourcePath, configFile, ignoredSections);
                 
-                // Перезагружаем конфигурацию после обновления
+                // Reload configuration after update
                 config = YamlConfiguration.loadConfiguration(configFile);
             }
         } catch (IOException e) {
-            plugin.getPluginLogger().severe("Ошибка при обновлении конфигурации '" + name + "': " + e.getMessage());
+            plugin.getPluginLogger().severe("Error updating configuration '" + name + "': " + e.getMessage());
             e.printStackTrace();
         }
         
@@ -327,6 +323,4 @@ public class ConfigManager {
         
         return getLocalizedMessageList(moduleName, path, locale);
     }
-    
-
 }

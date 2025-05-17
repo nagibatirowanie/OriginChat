@@ -9,7 +9,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 /**
- * Провайдер для работы с MySQL
+ * Provider for working with MySQL
  */
 public class MySQLProvider implements DatabaseProvider {
 
@@ -36,13 +36,13 @@ public class MySQLProvider implements DatabaseProvider {
     public void initialize() throws SQLException {
         try {
             Class.forName("com.mysql.jdbc.Driver");
-            
+
             String url = "jdbc:mysql://" + host + ":" + port + "/" + database + "?useSSL=" + useSSL;
             connection = DriverManager.getConnection(url, username, password);
-            plugin.getPluginLogger().info("MySQL соединение установлено.");
+            plugin.getPluginLogger().info("MySQL connection established.");
         } catch (ClassNotFoundException e) {
-            plugin.getPluginLogger().severe("Не удалось найти драйвер MySQL: " + e.getMessage());
-            throw new SQLException("Не удалось найти драйвер MySQL", e);
+            plugin.getPluginLogger().severe("MySQL driver not found: " + e.getMessage());
+            throw new SQLException("MySQL driver not found", e);
         }
     }
 
@@ -59,9 +59,9 @@ public class MySQLProvider implements DatabaseProvider {
         if (connection != null) {
             try {
                 connection.close();
-                plugin.getPluginLogger().info("MySQL соединение закрыто.");
+                plugin.getPluginLogger().info("MySQL connection closed.");
             } catch (SQLException e) {
-                plugin.getPluginLogger().warning("Ошибка при закрытии MySQL соединения: " + e.getMessage());
+                plugin.getPluginLogger().warning("Error while closing MySQL connection: " + e.getMessage());
             }
         }
     }
@@ -78,7 +78,7 @@ public class MySQLProvider implements DatabaseProvider {
     @Override
     public void migrate() throws SQLException {
         try (Statement statement = getConnection().createStatement()) {
-            // Создаем базовые таблицы
+            // Create basic player data table
             statement.execute("CREATE TABLE IF NOT EXISTS oc_players (" +
                     "uuid VARCHAR(36) PRIMARY KEY, " +
                     "name VARCHAR(16) NOT NULL, " +
@@ -87,8 +87,8 @@ public class MySQLProvider implements DatabaseProvider {
                     "first_join TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
                     "last_join TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
                     ");");
-            
-            plugin.getPluginLogger().info("MySQL миграции выполнены успешно.");
+
+            plugin.getPluginLogger().info("MySQL migrations completed successfully.");
         }
     }
 

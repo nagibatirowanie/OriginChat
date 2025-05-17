@@ -9,7 +9,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 /**
- * Провайдер для работы с PostgreSQL
+ * Provider for working with PostgreSQL
  */
 public class PostgreSQLProvider implements DatabaseProvider {
 
@@ -36,16 +36,16 @@ public class PostgreSQLProvider implements DatabaseProvider {
     public void initialize() throws SQLException {
         try {
             Class.forName("org.postgresql.Driver");
-            
+
             String url = "jdbc:postgresql://" + host + ":" + port + "/" + database;
             if (!useSSL) {
                 url += "?ssl=false";
             }
             connection = DriverManager.getConnection(url, username, password);
-            plugin.getPluginLogger().info("PostgreSQL соединение установлено.");
+            plugin.getPluginLogger().info("PostgreSQL connection established.");
         } catch (ClassNotFoundException e) {
-            plugin.getPluginLogger().severe("Не удалось найти драйвер PostgreSQL: " + e.getMessage());
-            throw new SQLException("Не удалось найти драйвер PostgreSQL", e);
+            plugin.getPluginLogger().severe("PostgreSQL driver not found: " + e.getMessage());
+            throw new SQLException("PostgreSQL driver not found", e);
         }
     }
 
@@ -62,9 +62,9 @@ public class PostgreSQLProvider implements DatabaseProvider {
         if (connection != null) {
             try {
                 connection.close();
-                plugin.getPluginLogger().info("PostgreSQL соединение закрыто.");
+                plugin.getPluginLogger().info("PostgreSQL connection closed.");
             } catch (SQLException e) {
-                plugin.getPluginLogger().warning("Ошибка при закрытии PostgreSQL соединения: " + e.getMessage());
+                plugin.getPluginLogger().warning("Error while closing PostgreSQL connection: " + e.getMessage());
             }
         }
     }
@@ -81,7 +81,7 @@ public class PostgreSQLProvider implements DatabaseProvider {
     @Override
     public void migrate() throws SQLException {
         try (Statement statement = getConnection().createStatement()) {
-            // Создаем базовые таблицы
+            // Create basic player data table
             statement.execute("CREATE TABLE IF NOT EXISTS oc_players (" +
                     "uuid VARCHAR(36) PRIMARY KEY, " +
                     "name VARCHAR(16) NOT NULL, " +
@@ -90,8 +90,8 @@ public class PostgreSQLProvider implements DatabaseProvider {
                     "first_join TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
                     "last_join TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
                     ");");
-            
-            plugin.getPluginLogger().info("PostgreSQL миграции выполнены успешно.");
+
+            plugin.getPluginLogger().info("PostgreSQL migrations completed successfully.");
         }
     }
 

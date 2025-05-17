@@ -1,35 +1,10 @@
-/*
- * This file is part of OriginChat, a Minecraft plugin.
- *
- * Copyright (c) 2025 nagibatirowanie
- *
- * OriginChat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This plugin is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this plugin. If not, see <https://www.gnu.org/licenses/>.
- *
- * Created with ❤️ for the Minecraft community.
- */
-
-
 package me.nagibatirowanie.originchat.module.modules;
 
 import me.nagibatirowanie.originchat.OriginChat;
 import me.nagibatirowanie.originchat.module.AbstractModule;
 import me.nagibatirowanie.originchat.utils.ColorUtil;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.translation.GlobalTranslator;
-import org.bukkit.ChatColor;
-import org.bukkit.Color;
 import org.bukkit.Sound;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -41,7 +16,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import java.util.Locale;
 
 /**
- * Module for localized death messages
+ * Module to display localized death messages with optional sound effects.
  */
 public class LocaleDeathsModule extends AbstractModule implements Listener {
 
@@ -50,11 +25,11 @@ public class LocaleDeathsModule extends AbstractModule implements Listener {
     private String deathSound;
     private String prefix;
     private String suffix;
-    private boolean registered = false;
+    private boolean registered;
 
     public LocaleDeathsModule(OriginChat plugin) {
         super(plugin, "locale_deaths", "Localized Death Messages",
-              "Module for displaying localized death messages for players", "1.0");
+              "Displays localized death messages with sound effects", "1.0");
     }
 
     @Override
@@ -78,71 +53,76 @@ public class LocaleDeathsModule extends AbstractModule implements Listener {
         }
     }
 
-    // Load settings from config
+    /**
+     * Loads death message settings from configuration.
+     */
     private void loadConfig() {
         try {
-            ConfigurationSection deathMessagesConfig = config.getConfigurationSection("death_messages");
-            if (deathMessagesConfig == null) deathMessagesConfig = config.createSection("death_messages");
+            ConfigurationSection section = config.getConfigurationSection("death_messages");
+            if (section == null) {
+                section = config.createSection("death_messages");
+            }
 
-            disableVanillaMessages = deathMessagesConfig.getBoolean("disable-vanilla-messages", true);
-            playSound = deathMessagesConfig.getBoolean("play_sound", true);
-            deathSound = deathMessagesConfig.getString("death_sound", "ENTITY_CAT_DEATH");
-            prefix = deathMessagesConfig.getString("prefix", "");
-            suffix = deathMessagesConfig.getString("suffix", "");
-            debug("LocaleDeathsModule configuration loaded.");
+            disableVanillaMessages = section.getBoolean("disable-vanilla-messages", true);
+            playSound = section.getBoolean("play_sound", true);
+            deathSound = section.getString("death_sound", "ENTITY_CAT_DEATH");
+            prefix = section.getString("prefix", "");
+            suffix = section.getString("suffix", "");
         } catch (Exception e) {
-            log("❗ Error when loading LocalDeaths configuration: " + e.getMessage());
+            log("Error loading locale deaths config: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
+    /**
+     * Handles player death events to send localized messages and play sounds.
+     *
+     * @param event the player death event
+     */
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
-        debug("PlayerDeathEvent triggered.");
-
         Player deceased = event.getEntity();
-        Component originalMessage = event.deathMessage();
+        Component original = event.deathMessage();
 
         if (disableVanillaMessages) {
             event.deathMessage(null);
         }
 
-        if (originalMessage == null) {
-            debug("Original death message is null.");
+        if (original == null) {
             return;
         }
 
-        for (Player player : plugin.getServer().getOnlinePlayers()) {
-            Component translatedMessage = getLocalizedMessage(originalMessage, player);
-            Component finalMessage = formatMessage(translatedMessage);
-
-            player.sendMessage(finalMessage);
-
+        for (Player recipient : plugin.getServer().getOnlinePlayers()) {
+            Component localized = GlobalTranslator.render(original, recipient.locale());
+            Component formatted = formatMessage(localized);
+            recipient.sendMessage(formatted);
             if (playSound) {
-                playDeathSound(player, deceased);
+                playSound(recipient, deceased);
             }
         }
     }
 
-    // Get localized message for player
-    private Component getLocalizedMessage(Component originalMessage, Player player) {
-        Locale locale = player.locale();
-        return GlobalTranslator.render(originalMessage, locale);
-    }
-
-    // Format message with prefix and suffix
+    /**
+     * Applies prefix and suffix to a message component.
+     *
+     * @param message the original message
+     * @return the message with prefix and suffix applied
+     */
     private Component formatMessage(Component message) {
-        Component prefixComponent = ColorUtil.toComponent(prefix);
-        Component suffixComponent = ColorUtil.toComponent(suffix);
-        return prefixComponent
-                .append(message)
-                .append(suffixComponent);
+        Component pre = ColorUtil.toComponent(prefix);
+        Component suf = ColorUtil.toComponent(suffix);
+        return pre.append(message).append(suf);
     }
 
-    // Play death sound for player
-    private void playDeathSound(Player player, Player deceased) {
+    /**
+     * Plays the configured death sound to a player at the deceased's location.
+     *
+     * @param player the recipient of the sound
+     * @param deceased the player who died
+     */
+    private void playSound(Player player, Player deceased) {
         try {
-            Sound sound = Sound.valueOf(deathSound.toUpperCase());
+            Sound sound = Sound.valueOf(deathSound.toUpperCase(Locale.ROOT));
             player.playSound(deceased.getLocation(), sound, 1.0F, 1.0F);
         } catch (IllegalArgumentException e) {
             plugin.getPluginLogger().warning("Invalid death sound: " + deathSound);

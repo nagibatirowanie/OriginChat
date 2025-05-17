@@ -7,7 +7,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 /**
- * Слушатель событий для анимаций
+ * Event listener for animations
  */
 public class AnimationListener implements Listener {
 
@@ -19,8 +19,8 @@ public class AnimationListener implements Listener {
     }
     
     /**
-     * Обработчик выхода игрока с сервера
-     * Останавливает все анимированные сообщения для игрока
+     * Handler of player's exit from the server
+     * Stops all animated messages for the player
      */
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {

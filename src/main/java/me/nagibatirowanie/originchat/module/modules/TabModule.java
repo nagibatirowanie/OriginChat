@@ -1,3 +1,24 @@
+/*
+ * This file is part of OriginChat, a Minecraft plugin.
+ *
+ * Copyright (c) 2025 nagibatirowanie
+ *
+ * OriginChat is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This plugin is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this plugin. If not, see <https://www.gnu.org/licenses/>.
+ *
+ * Created with ❤️ for the Minecraft community.
+ */
+
 package me.nagibatirowanie.originchat.module.modules;
 
 import me.nagibatirowanie.originchat.OriginChat;
@@ -18,7 +39,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Module for customizing the server tab with support for sorting players by weights LuckPerms
+ * Module for customizing the server tab with support for sorting players by LuckPerms weights
  */
 public class TabModule extends AbstractModule {
     private List<String> headerLines;
@@ -32,6 +53,11 @@ public class TabModule extends AbstractModule {
     private Scoreboard scoreboard;
     private Map<String, String> groupTeamNames = new HashMap<>();
 
+    /**
+     * Creates a new TabModule instance
+     * 
+     * @param plugin The OriginChat plugin instance
+     */
     public TabModule(OriginChat plugin) {
         super(plugin, "tab", "Tab", "Customizes the player tab list", "1.0");
     }
@@ -53,15 +79,18 @@ public class TabModule extends AbstractModule {
         setupScoreboard();
         setupTeams();
         startUpdateTask();
-        
     }
 
-
+    /**
+     * Creates a new scoreboard for tab list management
+     */
     private void setupScoreboard() {
         scoreboard = Objects.requireNonNull(Bukkit.getScoreboardManager()).getNewScoreboard();
     }
 
-
+    /**
+     * Loads module configuration from config file
+     */
     private void loadConfig() {
         try {
             enabled = config.getBoolean("enabled", true);
@@ -76,7 +105,7 @@ public class TabModule extends AbstractModule {
                     groupPriorities.put(group.toLowerCase(), section.getInt(group));
                 }
             }
-            log("Конфигурация успешно загружена");
+            log("Configuration loaded successfully");
         } catch (Exception e) {
             plugin.getLogger().severe("❗ Error loading the TabModule configuration: " + e.getMessage());
             e.printStackTrace();
@@ -84,7 +113,7 @@ public class TabModule extends AbstractModule {
     }
 
     /**
-     * Customizing LuckPerms
+     * Sets up LuckPerms integration for group-based sorting
      */
     private void setupLuckPerms() {
         if ("luckperms".equalsIgnoreCase(prioritySortingType)) {
@@ -92,29 +121,30 @@ public class TabModule extends AbstractModule {
                 Class<?> lpClass = Class.forName("net.luckperms.api.LuckPerms");
                 luckPerms = Bukkit.getServicesManager().getRegistration((Class<net.luckperms.api.LuckPerms>) lpClass).getProvider();
                 if (luckPerms == null) {
-                    log("LuckPerms не найден! Используется сортировка по группам из конфигурации.");
+                    log("LuckPerms not found! Using group sorting from configuration.");
                     prioritySortingType = "group";
                 } else {
-                    log("LuckPerms успешно подключен");
+                    log("LuckPerms connected successfully");
                 }
             } catch (ClassNotFoundException e) {
-                log("LuckPerms не установлен на сервере. Используется сортировка по группам.");
+                log("LuckPerms is not installed on the server. Using group sorting.");
                 prioritySortingType = "group";
                 luckPerms = null;
             } catch (Exception e) {
-                log("Ошибка при подключении LuckPerms: " + e.getMessage());
+                log("Error connecting to LuckPerms: " + e.getMessage());
                 prioritySortingType = "group";
                 luckPerms = null;
             }
         }
     }
 
+    /**
+     * Sets up teams for scoreboard-based sorting
+     */
     private void setupTeams() {
-
         clearTeams();
         
         if ("luckperms".equals(prioritySortingType) && luckPerms != null) {
-
             Collection<Group> groups = luckPerms.getGroupManager().getLoadedGroups();
             List<Group> sortedGroups = groups.stream()
                     .sorted(Comparator.<Group>comparingInt(g -> g.getWeight().orElse(0)).reversed())
@@ -132,7 +162,6 @@ public class TabModule extends AbstractModule {
                 position++;
             }
         } else {
-
             List<Map.Entry<String, Integer>> sortedGroups = new ArrayList<>(groupPriorities.entrySet());
             sortedGroups.sort(Map.Entry.<String, Integer>comparingByValue().reversed());
             
@@ -156,7 +185,7 @@ public class TabModule extends AbstractModule {
     }
 
     /**
-     * Starting the tab update task
+     * Starts the tab update task
      */
     private void startUpdateTask() {
         updateTask = new BukkitRunnable() {
@@ -168,6 +197,9 @@ public class TabModule extends AbstractModule {
         updateTask.runTaskTimer(plugin, 0, 20);
     }
 
+    /**
+     * Updates tab list for all online players
+     */
     private void updateAllPlayers() {
         for (Player player : Bukkit.getOnlinePlayers()) {
             String groupName = getPlayerGroup(player);
@@ -196,7 +228,12 @@ public class TabModule extends AbstractModule {
         }
     }
     
-
+    /**
+     * Gets the player's highest priority group
+     * 
+     * @param player The player to get the group for
+     * @return The name of the player's highest priority group
+     */
     private String getPlayerGroup(Player player) {
         if ("luckperms".equals(prioritySortingType) && luckPerms != null) {
             try {
@@ -232,6 +269,9 @@ public class TabModule extends AbstractModule {
         }
     }
     
+    /**
+     * Clears all existing teams from the scoreboard
+     */
     private void clearTeams() {
         for (Team team : scoreboard.getTeams()) {
             team.unregister();
@@ -239,13 +279,15 @@ public class TabModule extends AbstractModule {
         groupTeamNames.clear();
     }
 
-
+    /**
+     * Updates tab header and footer for a specific player
+     * 
+     * @param player The player to update the tab for
+     */
     private void updatePlayerTab(Player player) {
-        // Get localized header and footer for this player
         List<String> localizedHeaderLines = plugin.getConfigManager().getLocalizedMessageList("tab", "header", player);
         List<String> localizedFooterLines = plugin.getConfigManager().getLocalizedMessageList("tab", "footer", player);
         
-        // If localized messages are not available, use default from config
         if (localizedHeaderLines.isEmpty()) {
             localizedHeaderLines = headerLines;
         }
@@ -260,27 +302,35 @@ public class TabModule extends AbstractModule {
         header = applyPlaceholders(player, header);
         footer = applyPlaceholders(player, footer);
         
-        // Применяем стандартное форматирование с поддержкой HEX-цветов
         header = ColorUtil.format(player, header, true, true, true);
         footer = ColorUtil.format(player, footer, true, true, true);
         
         player.setPlayerListHeaderFooter(header, footer);
     }
 
-
+    /**
+     * Gets the custom player name for tab list
+     * 
+     * @param player The player to get the custom name for
+     * @return The formatted player name for tab list
+     */
     private String getCustomName(Player player) {
-        // Сначала заменяем базовые плейсхолдеры и {player}, затем применяем форматирование через ColorUtil
         String name = playerFormat;
         name = applyPlaceholders(player, name);
         name = name.replace("{player}", player.getName());
         
-        // Применяем форматирование с поддержкой HEX-цветов
         name = ColorUtil.format(player, name, true, true, true);
         
         return name;
     }
 
-
+    /**
+     * Applies placeholders to a text string
+     * 
+     * @param player The player to apply placeholders for
+     * @param text The text to apply placeholders to
+     * @return The text with placeholders applied
+     */
     private String applyPlaceholders(Player player, String text) {
         if (text == null) return "";
         
@@ -306,6 +356,9 @@ public class TabModule extends AbstractModule {
         resetAllPlayerTabs();
     }
 
+    /**
+     * Resets tab display for all players to default
+     */
     private void resetAllPlayerTabs() {
         for (Player player : Bukkit.getOnlinePlayers()) {
             player.setPlayerListHeaderFooter("", "");

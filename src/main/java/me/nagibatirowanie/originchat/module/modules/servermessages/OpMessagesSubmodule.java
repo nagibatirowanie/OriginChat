@@ -13,13 +13,13 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import java.util.List;
 
 /**
- * Подмодуль для обработки сообщений о выдаче и снятии прав оператора
+ * Submodule for handling operator permission grant and revoke messages.
  */
 public class OpMessagesSubmodule implements Listener {
     private final OriginChat plugin;
     private final ServerMessagesModule parentModule;
 
-    // Флаги из конфигурации
+    // Configuration flags
     private boolean opMessageEnabled;
     private boolean disableVanillaMessages;
 
@@ -29,7 +29,7 @@ public class OpMessagesSubmodule implements Listener {
     }
 
     /**
-     * Инициализация подмодуля
+     * Initializes the submodule.
      */
     public void initialize() {
         loadConfig();
@@ -38,7 +38,7 @@ public class OpMessagesSubmodule implements Listener {
     }
 
     /**
-     * Отключение подмодуля
+     * Shuts down the submodule.
      */
     public void shutdown() {
         PlayerCommandPreprocessEvent.getHandlerList().unregister(this);
@@ -46,7 +46,7 @@ public class OpMessagesSubmodule implements Listener {
     }
 
     /**
-     * Загрузка конфигурации подмодуля
+     * Loads the submodule's configuration.
      */
     public void loadConfig() {
         opMessageEnabled = parentModule.getConfig().getBoolean("op_message_enabled", true);
@@ -60,11 +60,11 @@ public class OpMessagesSubmodule implements Listener {
         String message = event.getMessage();
         String lower = message.toLowerCase();
 
-        // Обработка /op
+        // Handling /op command
         if (lower.startsWith("/op ") || lower.startsWith("/minecraft:op ")) {
             handleSubcommand(event, message, "op");
         }
-        // Обработка /deop
+        // Handling /deop command
         else if (lower.startsWith("/deop ") || lower.startsWith("/minecraft:deop ")) {
             handleSubcommand(event, message, "deop");
         }
@@ -75,39 +75,39 @@ public class OpMessagesSubmodule implements Listener {
         if (parts.length < 2) return;
         final String rawTarget = parts[1].trim();
         final Player sender = event.getPlayer();
-        final String commandType = type; // Создаем final копию переменной type
+        final String commandType = type; // Creating a final copy of the 'type' variable
 
         if (disableVanillaMessages) {
-            // Отменяем оригинальную команду
+            // Cancelling the original command
             event.setCancelled(true);
-            
-            // Выполняем команду через сервер, но с дополнительной логикой
+
+            // Executing the command via the server, but with additional logic
             Bukkit.getScheduler().runTask(plugin, () -> {
-                // Запоминаем текущее состояние прав игрока
+                // Remembering the player's current operator status
                 final OfflinePlayer targetPlayer = Bukkit.getOfflinePlayer(rawTarget);
                 final boolean wasOpped = targetPlayer != null && targetPlayer.isOp();
-                
-                // Выполняем команду от имени консоли
+
+                // Executing the command as console
                 boolean success = Bukkit.dispatchCommand(Bukkit.getConsoleSender(), commandType + " " + rawTarget);
-                
-                // Проверяем, изменился ли статус оператора
+
+                // Checking if the operator status has changed
                 if (success) {
                     Bukkit.getScheduler().runTaskLater(plugin, () -> {
                         boolean isNowOpped = targetPlayer != null && targetPlayer.isOp();
-                        
-                        // Проверяем, действительно ли команда изменила статус оператора
-                        boolean statusChanged = ("op".equals(commandType) && !wasOpped && isNowOpped) || 
+
+                        // Checking if the command actually changed the operator status
+                        boolean statusChanged = ("op".equals(commandType) && !wasOpped && isNowOpped) ||
                                                ("deop".equals(commandType) && wasOpped && !isNowOpped);
-                        
+
                         if (statusChanged) {
-                            // Отправляем кастомные сообщения
+                            // Sending custom messages
                             if ("op".equals(commandType)) {
                                 sendOpMessages(sender, rawTarget);
                             } else {
                                 sendDeopMessages(sender, rawTarget);
                             }
                         } else {
-                            // Если статус не изменился, отправляем оригинальное сообщение об ошибке
+                            // If the status did not change, sending the original error message
                             if ("op".equals(commandType) && isNowOpped) {
                                 sender.sendMessage(rawTarget + " is already op");
                             } else if ("deop".equals(commandType) && !isNowOpped) {
@@ -120,7 +120,7 @@ public class OpMessagesSubmodule implements Listener {
                 }
             });
         } else {
-            // Если не отключаем стандартные сообщения, просто отправляем наши дополнительно
+            // If standard messages are not disabled, just send our additional ones
             Bukkit.getScheduler().runTaskLater(plugin, () -> {
                 if ("op".equals(commandType)) {
                     sendOpMessages(sender, rawTarget);
@@ -135,7 +135,7 @@ public class OpMessagesSubmodule implements Listener {
         OfflinePlayer offline = Bukkit.getOfflinePlayer(targetName);
         Player target = (offline.isOnline() ? Bukkit.getPlayer(targetName) : null);
 
-        // 1) Сообщение отправителю
+        // 1) Message to the sender
         List<String> senderMsgs = plugin.getConfigManager().getLocalizedMessageList(
                 "server_messages", "op_messages.sender", sender);
         if (!senderMsgs.isEmpty()) {
@@ -143,7 +143,7 @@ public class OpMessagesSubmodule implements Listener {
                     senderMsgs.get(0).replace("{target}", targetName)));
         }
 
-        // 2) Сообщение цели
+        // 2) Message to the target
         if (target != null && target.isOp()) {
             List<String> targetMsgs = plugin.getConfigManager().getLocalizedMessageList(
                     "server_messages", "op_messages.target", target);
@@ -152,7 +152,7 @@ public class OpMessagesSubmodule implements Listener {
                         targetMsgs.get(0).replace("{sender}", sender.getName())));
             }
 
-            // 3) Броадкаст всем опам
+            // 3) Broadcast to all ops
             String broadcast = plugin.getConfigManager().getLocalizedMessage(
                     "server_messages", "op_messages.broadcast", sender);
             if (broadcast != null) {
@@ -170,7 +170,7 @@ public class OpMessagesSubmodule implements Listener {
     private void sendDeopMessages(Player sender, String targetName) {
         Player target = Bukkit.getPlayerExact(targetName);
 
-        // 1) Сообщение отправителю
+        // 1) Message to the sender
         List<String> senderMsgs = plugin.getConfigManager().getLocalizedMessageList(
                 "server_messages", "deop_messages.sender", sender);
         if (!senderMsgs.isEmpty()) {
@@ -178,7 +178,7 @@ public class OpMessagesSubmodule implements Listener {
                     senderMsgs.get(0).replace("{target}", targetName)));
         }
 
-        // 2) Сообщение цели
+        // 2) Message to the target
         if (target != null && !target.isOp()) {
             List<String> targetMsgs = plugin.getConfigManager().getLocalizedMessageList(
                     "server_messages", "deop_messages.target", target);
@@ -187,7 +187,7 @@ public class OpMessagesSubmodule implements Listener {
                         targetMsgs.get(0).replace("{sender}", sender.getName())));
             }
 
-            // 3) Броадкаст всем опам
+            // 3) Broadcast to all ops
             String broadcast = plugin.getConfigManager().getLocalizedMessage(
                     "server_messages", "deop_messages.broadcast", sender);
             if (broadcast != null) {
@@ -203,14 +203,14 @@ public class OpMessagesSubmodule implements Listener {
     }
 
     /**
-     * Проверка, включен ли подмодуль
+     * Checks if the submodule is enabled.
      */
     public boolean isEnabled() {
         return opMessageEnabled;
     }
 
     /**
-     * Включение/выключение подмодуля
+     * Enables/disables the submodule.
      */
     public void setEnabled(boolean enabled) {
         this.opMessageEnabled = enabled;

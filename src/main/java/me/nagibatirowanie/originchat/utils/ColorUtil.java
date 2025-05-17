@@ -1,3 +1,24 @@
+/*
+ * This file is part of OriginChat, a Minecraft plugin.
+ *
+ * Copyright (c) 2025 nagibatirowanie
+ *
+ * OriginChat is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This plugin is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this plugin. If not, see <https://www.gnu.org/licenses/>.
+ *
+ * Created with ❤️ for the Minecraft community.
+ */
+
 package me.nagibatirowanie.originchat.utils;
 
 import me.clip.placeholderapi.PlaceholderAPI;
@@ -51,7 +72,7 @@ public class ColorUtil {
         put("&r", "<reset>");
     }};
 
-    // Обновленный serializer для правильной обработки HEX-цветов
+    // Updated serializer for proper HEX color handling
     private static final LegacyComponentSerializer LEGACY_SERIALIZER = LegacyComponentSerializer.builder()
             .hexColors()
             .build();
@@ -59,7 +80,9 @@ public class ColorUtil {
     private static Boolean placeholderAPIEnabled = null;
 
     /**
-     * Проверяет, установлен ли PlaceholderAPI
+     * Checks if PlaceholderAPI is installed
+     * 
+     * @return true if PlaceholderAPI is available
      */
     public static boolean isPlaceholderAPIEnabled() {
         if (placeholderAPIEnabled == null) {
@@ -69,17 +92,17 @@ public class ColorUtil {
     }
 
     /**
-     * Заменяет PlaceholderAPI плейсхолдеры и анимации в тексте
+     * Replaces PlaceholderAPI placeholders and animations in text
      * 
-     * @param player Игрок для обработки плейсхолдеров
-     * @param text Текст для обработки
-     * @param enableAnimations Разрешить обработку анимаций
-     * @return Текст с обработанными плейсхолдерами и анимациями
+     * @param player Player for processing placeholders
+     * @param text Text to process
+     * @param enableAnimations Whether to process animations
+     * @return Text with processed placeholders and animations
      */
     public static String setPlaceholders(Player player, String text, boolean enableAnimations) {
         if (text == null || text.isEmpty()) return "";
         
-        // Сначала обрабатываем анимации, если они разрешены
+        // Process animations first if enabled
         String processed = text;
         if (enableAnimations) {
             AnimationManager animationManager = OriginChat.getInstance().getAnimationManager();
@@ -88,7 +111,7 @@ public class ColorUtil {
             }
         }
         
-        // Затем обрабатываем PlaceholderAPI плейсхолдеры
+        // Then process PlaceholderAPI placeholders
         if (player != null && isPlaceholderAPIEnabled()) {
             try {
                 String prev;
@@ -110,16 +133,23 @@ public class ColorUtil {
     }
     
     /**
-     * Заменяет PlaceholderAPI плейсхолдеры и анимации в тексте
-     * Анимации включены по умолчанию
+     * Replaces PlaceholderAPI placeholders and animations in text
+     * Animations are enabled by default
+     * 
+     * @param player Player for processing placeholders
+     * @param text Text to process
+     * @return Text with processed placeholders and animations
      */
     public static String setPlaceholders(Player player, String text) {
         return setPlaceholders(player, text, true);
     }
 
     /**
-     * Обрабатывает HEX-цвета в формате &#RRGGBB или #RRGGBB напрямую в формат §x§R§R§G§G§B§B
-     * для правильного отображения в табе и других местах, где нужны legacy цвета
+     * Processes HEX colors in &#RRGGBB or #RRGGBB format directly to §x§R§R§G§G§B§B format
+     * for proper display in tab and other places that require legacy colors
+     * 
+     * @param text Text to process
+     * @return Text with processed HEX colors
      */
     public static String processHexColorsToLegacy(String text) {
         if (text == null || text.isEmpty()) return "";
@@ -141,124 +171,134 @@ public class ColorUtil {
     }
 
     /**
-     * Форматирует строку: &-коды, hex, MiniMessage → MiniMessage → Component → legacy string
+     * Formats string: &-codes, hex, MiniMessage → MiniMessage → Component → legacy string
      * 
-     * @param text Текст для форматирования
-     * @param enableColors Разрешить форматирование цветовых кодов и hex-цветов
-     * @param enableMiniMessage Разрешить форматирование MiniMessage
-     * @param enablePlaceholders Разрешить обработку плейсхолдеров
-     * @param enableAnimations Разрешить обработку анимаций
-     * @return Отформатированный текст
+     * @param text Text to format
+     * @param enableColors Allow color codes and hex colors formatting
+     * @param enableMiniMessage Allow MiniMessage formatting
+     * @param enablePlaceholders Allow processing placeholders
+     * @param enableAnimations Allow processing animations
+     * @return Formatted text
      */
     public static String format(String text, boolean enableColors, boolean enableMiniMessage, boolean enablePlaceholders, boolean enableAnimations) {
         if (text == null || text.isEmpty()) return "";
         
-        // Обработка плейсхолдеров, если они разрешены
+        // Process placeholders if enabled
         String processed = text;
         if (enablePlaceholders && isPlaceholderAPIEnabled() && text.contains("%")) {
-            // Плейсхолдеры обнаружены, но игрок не указан
-            // Можно использовать любого онлайн-игрока для серверных плейсхолдеров
+            // Placeholders detected but player not specified
+            // Can use any online player for server placeholders
             if (!Bukkit.getOnlinePlayers().isEmpty()) {
                 Player anyPlayer = Bukkit.getOnlinePlayers().iterator().next();
                 processed = setPlaceholders(anyPlayer, text, enableAnimations);
             }
         }
         
-        // Если форматирование отключено, возвращаем текст как есть или только с плейсхолдерами
+        // If formatting is disabled, return text as is or with placeholders only
         if (!enableColors && !enableMiniMessage) {
             return processed;
         }
         
-        // Если разрешено обработать HEX-цвета, но отключен MiniMessage, обрабатываем HEX напрямую
+        // If HEX colors processing is allowed but MiniMessage is disabled, process HEX directly
         if (enableColors && !enableMiniMessage && (processed.contains("&#") || processed.contains("#"))) {
             String legacyColored = processed.replace('&', '§');
             return processHexColorsToLegacy(legacyColored);
         }
         
-        // Создаем компонент с учетом настроек форматирования
+        // Create component considering formatting settings
         Component component = toComponent(processed, enableColors, enableMiniMessage);
         return LEGACY_SERIALIZER.serialize(component);
     }
     
     /**
-     * Форматирует строку: &-коды, hex, MiniMessage → MiniMessage → Component → legacy string
+     * Formats string: &-codes, hex, MiniMessage → MiniMessage → Component → legacy string
      * 
-     * @param text Текст для форматирования
-     * @param enableColors Разрешить форматирование цветовых кодов и hex-цветов
-     * @param enableMiniMessage Разрешить форматирование MiniMessage
-     * @param enablePlaceholders Разрешить обработку плейсхолдеров и анимаций
-     * @return Отформатированный текст
+     * @param text Text to format
+     * @param enableColors Allow color codes and hex colors formatting
+     * @param enableMiniMessage Allow MiniMessage formatting
+     * @param enablePlaceholders Allow processing placeholders and animations
+     * @return Formatted text
      */
     public static String format(String text, boolean enableColors, boolean enableMiniMessage, boolean enablePlaceholders) {
-        return format(text, enableColors, enableMiniMessage, enablePlaceholders, false); // Анимации отключены по умолчанию
+        return format(text, enableColors, enableMiniMessage, enablePlaceholders, false); // Animations disabled by default
     }
     
     /**
-     * Форматирует строку: &-коды, hex, MiniMessage → MiniMessage → Component → legacy string
-     * Все типы форматирования включены по умолчанию, кроме анимаций
+     * Formats string: &-codes, hex, MiniMessage → MiniMessage → Component → legacy string
+     * All formatting types enabled by default, except animations
+     * 
+     * @param text Text to format
+     * @return Formatted text
      */
     public static String format(String text) {
-        return format(text, true, true, true, false); // Анимации отключены по умолчанию
+        return format(text, true, true, true, false); // Animations disabled by default
     }
 
     /**
-     * Форматирует строку с плейсхолдерами для конкретного игрока
+     * Formats string with placeholders for specific player
      * 
-     * @param player Игрок для обработки плейсхолдеров
-     * @param text Текст для форматирования
-     * @param enableColors Разрешить форматирование цветовых кодов и hex-цветов
-     * @param enableMiniMessage Разрешить форматирование MiniMessage
-     * @param enablePlaceholders Разрешить обработку плейсхолдеров
-     * @param enableAnimations Разрешить обработку анимаций
-     * @return Отформатированный текст
+     * @param player Player for processing placeholders
+     * @param text Text to format
+     * @param enableColors Allow color codes and hex colors formatting
+     * @param enableMiniMessage Allow MiniMessage formatting
+     * @param enablePlaceholders Allow processing placeholders
+     * @param enableAnimations Allow processing animations
+     * @return Formatted text
      */
     public static String format(Player player, String text, boolean enableColors, boolean enableMiniMessage, boolean enablePlaceholders, boolean enableAnimations) {
         if (text == null || text.isEmpty()) return "";
         if (player == null) return format(text, enableColors, enableMiniMessage, enablePlaceholders, enableAnimations);
         
-        // Обработка плейсхолдеров с привязкой к игроку, если они разрешены
+        // Process placeholders with player context if enabled
         String processed = enablePlaceholders ? setPlaceholders(player, text, enableAnimations) : text;
         
-        // Если форматирование отключено, возвращаем текст как есть или только с плейсхолдерами
+        // If formatting is disabled, return text as is or with placeholders only
         if (!enableColors && !enableMiniMessage) {
             return processed;
         }
         
-        // Если разрешено обработать HEX-цвета, но отключен MiniMessage, обрабатываем HEX напрямую
+        // If HEX colors processing is allowed but MiniMessage is disabled, process HEX directly
         if (enableColors && !enableMiniMessage && (processed.contains("&#") || processed.contains("#"))) {
             String legacyColored = processed.replace('&', '§');
             return processHexColorsToLegacy(legacyColored);
         }
         
-        // Создаем компонент с учетом настроек форматирования
+        // Create component considering formatting settings
         Component component = toComponent(processed, enableColors, enableMiniMessage);
         return LEGACY_SERIALIZER.serialize(component);
     }
     
     /**
-     * Форматирует строку с плейсхолдерами для конкретного игрока
+     * Formats string with placeholders for specific player
      * 
-     * @param player Игрок для обработки плейсхолдеров
-     * @param text Текст для форматирования
-     * @param enableColors Разрешить форматирование цветовых кодов и hex-цветов
-     * @param enableMiniMessage Разрешить форматирование MiniMessage
-     * @param enablePlaceholders Разрешить обработку плейсхолдеров и анимаций
-     * @return Отформатированный текст
+     * @param player Player for processing placeholders
+     * @param text Text to format
+     * @param enableColors Allow color codes and hex colors formatting
+     * @param enableMiniMessage Allow MiniMessage formatting
+     * @param enablePlaceholders Allow processing placeholders and animations
+     * @return Formatted text
      */
     public static String format(Player player, String text, boolean enableColors, boolean enableMiniMessage, boolean enablePlaceholders) {
-        return format(player, text, enableColors, enableMiniMessage, enablePlaceholders, false); // Анимации отключены по умолчанию
+        return format(player, text, enableColors, enableMiniMessage, enablePlaceholders, false); // Animations disabled by default
     }
     
     /**
-     * Форматирует строку с плейсхолдерами для конкретного игрока
-     * Все типы форматирования включены по умолчанию, кроме анимаций
+     * Formats string with placeholders for specific player
+     * All formatting types enabled by default, except animations
+     * 
+     * @param player Player for processing placeholders
+     * @param text Text to format
+     * @return Formatted text
      */
     public static String format(Player player, String text) {
-        return format(player, text, true, true, true, false); // Анимации отключены по умолчанию
+        return format(player, text, true, true, true, false); // Animations disabled by default
     }
 
     /**
-     * Удаляет все цветовые коды из текста
+     * Removes all color codes from text
+     * 
+     * @param text Text to strip colors from
+     * @return Text without color codes
      */
     public static String stripColors(String text) {
         if (text == null || text.isEmpty()) return "";
@@ -266,15 +306,18 @@ public class ColorUtil {
     }
 
     /**
-     * Преобразует строку с &-кодами и hex-цветами в MiniMessage-строку
+     * Converts string with &-codes and hex colors to MiniMessage string
+     * 
+     * @param text Text to convert
+     * @return Text in MiniMessage format
      */
     public static String convertToMiniMessage(String text) {
         if (text == null || text.isEmpty()) return "";
 
-        // Сначала заменяем все символы § на &
+        // First replace all § symbols with &
         text = text.replace('§', '&');
 
-        // HEX цвета: &#RRGGBB или #RRGGBB -> <#RRGGBB>
+        // HEX colors: &#RRGGBB or #RRGGBB -> <#RRGGBB>
         Matcher matcher = HEX_PATTERN.matcher(text);
         StringBuffer sb = new StringBuffer();
         
@@ -284,7 +327,7 @@ public class ColorUtil {
         matcher.appendTail(sb);
         String result = sb.toString();
 
-        // &-коды -> MiniMessage теги
+        // &-codes -> MiniMessage tags
         StringBuilder finalResult = new StringBuilder();
         for (int i = 0; i < result.length(); ) {
             boolean replaced = false;
@@ -306,56 +349,59 @@ public class ColorUtil {
     }
 
     /**
-     * Создаёт компонент из строки с поддержкой &-кодов, hex и MiniMessage
+     * Creates component from string with support for &-codes, hex and MiniMessage
      * 
-     * @param text Текст для преобразования
-     * @param enableColors Разрешить форматирование цветовых кодов и hex-цветов
-     * @param enableMiniMessage Разрешить форматирование MiniMessage
-     * @return Компонент с примененным форматированием
+     * @param text Text to convert
+     * @param enableColors Allow color codes and hex colors formatting
+     * @param enableMiniMessage Allow MiniMessage formatting
+     * @return Component with applied formatting
      */
     public static Component toComponent(String text, boolean enableColors, boolean enableMiniMessage) {
         if (text == null || text.isEmpty()) return Component.empty();
 
-        // Если форматирование отключено, возвращаем текст как есть
+        // If formatting is disabled, return text as is
         if (!enableColors && !enableMiniMessage) {
             return Component.text(text);
         }
         
-        // Конвертируем в MiniMessage, если разрешено форматирование цветов
+        // Convert to MiniMessage if color formatting is allowed
         String processedText = enableColors ? convertToMiniMessage(text) : text;
         
         try {
-            // Используем MiniMessage только если он разрешен
+            // Use MiniMessage only if it's allowed
             if (enableMiniMessage) {
                 return MINI_MESSAGE.deserialize(processedText);
             } else {
-                // Если MiniMessage отключен, но цвета разрешены, используем только цветовые коды
+                // If MiniMessage is disabled but colors are allowed, use only color codes
                 return Component.text(processedText);
             }
         } catch (Exception e) {
-            Bukkit.getLogger().warning("Ошибка при создании компонента через MiniMessage: " + e.getMessage());
+            Bukkit.getLogger().warning("Error creating component via MiniMessage: " + e.getMessage());
             return Component.text(stripColors(text));
         }
     }
     
     /**
-     * Создаёт компонент из строки с поддержкой &-кодов, hex и MiniMessage
-     * Все типы форматирования включены по умолчанию
+     * Creates component from string with support for &-codes, hex and MiniMessage
+     * All formatting types enabled by default
+     * 
+     * @param text Text to convert
+     * @return Component with applied formatting
      */
     public static Component toComponent(String text) {
         return toComponent(text, true, true);
     }
 
     /**
-     * Создаёт компонент из строки с поддержкой плейсхолдеров для игрока
+     * Creates component from string with support for player placeholders
      * 
-     * @param player Игрок для обработки плейсхолдеров
-     * @param text Текст для преобразования
-     * @param enableColors Разрешить форматирование цветовых кодов и hex-цветов
-     * @param enableMiniMessage Разрешить форматирование MiniMessage
-     * @param enablePlaceholders Разрешить обработку плейсхолдеров
-     * @param enableAnimations Разрешить обработку анимаций
-     * @return Компонент с примененным форматированием
+     * @param player Player for processing placeholders
+     * @param text Text to convert
+     * @param enableColors Allow color codes and hex colors formatting
+     * @param enableMiniMessage Allow MiniMessage formatting
+     * @param enablePlaceholders Allow processing placeholders
+     * @param enableAnimations Allow processing animations
+     * @return Component with applied formatting
      */
     public static Component toComponent(Player player, String text, boolean enableColors, boolean enableMiniMessage, boolean enablePlaceholders, boolean enableAnimations) {
         if (text == null || text.isEmpty()) return Component.empty();
@@ -364,24 +410,28 @@ public class ColorUtil {
     }
     
     /**
-     * Создаёт компонент из строки с поддержкой плейсхолдеров для игрока
+     * Creates component from string with support for player placeholders
      * 
-     * @param player Игрок для обработки плейсхолдеров
-     * @param text Текст для преобразования
-     * @param enableColors Разрешить форматирование цветовых кодов и hex-цветов
-     * @param enableMiniMessage Разрешить форматирование MiniMessage
-     * @param enablePlaceholders Разрешить обработку плейсхолдеров и анимаций
-     * @return Компонент с примененным форматированием
+     * @param player Player for processing placeholders
+     * @param text Text to convert
+     * @param enableColors Allow color codes and hex colors formatting
+     * @param enableMiniMessage Allow MiniMessage formatting
+     * @param enablePlaceholders Allow processing placeholders and animations
+     * @return Component with applied formatting
      */
     public static Component toComponent(Player player, String text, boolean enableColors, boolean enableMiniMessage, boolean enablePlaceholders) {
-        return toComponent(player, text, enableColors, enableMiniMessage, enablePlaceholders, false); // Анимации отключены по умолчанию
+        return toComponent(player, text, enableColors, enableMiniMessage, enablePlaceholders, false); // Animations disabled by default
     }
     
     /**
-     * Создаёт компонент из строки с поддержкой плейсхолдеров для игрока
-     * Все типы форматирования включены по умолчанию, кроме анимаций
+     * Creates component from string with support for player placeholders
+     * All formatting types enabled by default, except animations
+     * 
+     * @param player Player for processing placeholders
+     * @param text Text to convert
+     * @return Component with applied formatting
      */
     public static Component toComponent(Player player, String text) {
-        return toComponent(player, text, true, true, true, false); // Анимации отключены по умолчанию
+        return toComponent(player, text, true, true, true, false); // Animations disabled by default
     }
 }

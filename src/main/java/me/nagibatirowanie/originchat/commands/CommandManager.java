@@ -1,14 +1,13 @@
 package me.nagibatirowanie.originchat.commands;
 
 import me.nagibatirowanie.originchat.OriginChat;
-import me.nagibatirowanie.originchat.config.ConfigManager;
 import me.nagibatirowanie.originchat.locale.LocaleManager;
+import me.nagibatirowanie.originchat.utils.ColorUtil;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
-import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,8 +19,6 @@ import java.util.List;
 public class CommandManager implements CommandExecutor, TabCompleter {
 
     private final OriginChat plugin;
-    private ConfigurationSection config;
-    private ConfigManager configManager;
     private LocaleManager localeManager;
 
 
@@ -43,26 +40,20 @@ public class CommandManager implements CommandExecutor, TabCompleter {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         // Обработка команды translatetoggle
         if (command.getName().equalsIgnoreCase("translatetoggle")) {
-            plugin.getLogger().info("[CommandManager] Выполнение команды translatetoggle");
             
             if (!(sender instanceof org.bukkit.entity.Player)) {
-                plugin.getLogger().info("[CommandManager] Команда выполнена не игроком, отклоняем");
                 localeManager.sendMessage(sender, "commands.player_only_command");
                 return true;
             }
             
             org.bukkit.entity.Player player = (org.bukkit.entity.Player) sender;
-            plugin.getLogger().info("[CommandManager] Игрок " + player.getName() + " выполняет команду translatetoggle");
-            
-            plugin.getLogger().info("[CommandManager] Вызываем toggleTranslate для игрока " + player.getName());
+                        
             boolean newState = plugin.getTranslateManager().toggleTranslate(player);
-            plugin.getLogger().info("[CommandManager] Новое состояние автоперевода для игрока " + player.getName() + ": " + newState);
-            
+                        
             if (newState) {
-                plugin.getLogger().info("[CommandManager] Отправляем сообщение о включении автоперевода игроку " + player.getName());
                 localeManager.sendMessage(sender, "commands.translate_enabled");
             } else {
-                plugin.getLogger().info("[CommandManager] Отправляем сообщение о выключении автоперевода игроку " + player.getName());
+                
                 localeManager.sendMessage(sender, "commands.translate_disabled");
             }
             
@@ -367,9 +358,9 @@ public class CommandManager implements CommandExecutor, TabCompleter {
                         if (formattedFrame.contains("{player}")) {
                             formattedFrame = formattedFrame.replace("{player}", player.getName());
                         }
-                        formattedFrame = me.nagibatirowanie.originchat.utils.ColorUtil.format(player, formattedFrame);
+                        formattedFrame = ColorUtil.format(player, formattedFrame);
                     } else {
-                        formattedFrame = me.nagibatirowanie.originchat.utils.ColorUtil.format(formattedFrame);
+                        formattedFrame = ColorUtil.format(formattedFrame);
                     }
                     String frameNumberMsg = localeManager.getMessage("commands.animation.frame_number", locale).replace("{number}", String.valueOf(index + 1));
                     sender.sendMessage("§7" + frameNumberMsg + "§r" + formattedFrame);
@@ -411,7 +402,7 @@ public class CommandManager implements CommandExecutor, TabCompleter {
                         frame = frame.replace("{player}", player.getName());
                     }
                     // Применяем форматирование цветов
-                    frame = me.nagibatirowanie.originchat.utils.ColorUtil.format(player, frame);
+                    frame = ColorUtil.format(player, frame);
                     String frameNumberMsg = localeManager.getMessage("commands.animation.frame_number", locale).replace("{number}", String.valueOf(i + 1));
                     sender.sendMessage("§7" + frameNumberMsg + "§r" + frame);
                 }

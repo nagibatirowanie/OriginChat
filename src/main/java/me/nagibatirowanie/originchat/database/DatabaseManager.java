@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Менеджер базы данных плагина
+ * Plugin database manager
  */
 public class DatabaseManager {
 
@@ -36,34 +36,34 @@ public class DatabaseManager {
     }
 
     /**
-     * Инициализировать менеджер базы данных
+     * Initialize the database manager
      */
     /**
-     * Загружает конфигурацию базы данных из файла database.yml
-     * @return конфигурация базы данных или null, если файл не найден
+     * Loads database configuration from the database.yml file
+     * @return database configuration or null if file not found
      */
     private FileConfiguration loadDatabaseConfig() {
         File databaseConfigFile = new File(plugin.getDataFolder(), "database.yml");
         
         if (!databaseConfigFile.exists()) {
             plugin.saveResource("database.yml", false);
-            plugin.getPluginLogger().info("Создан файл конфигурации базы данных database.yml");
+            plugin.getPluginLogger().info("Created database configuration file database.yml");
         }
         
         FileConfiguration config = YamlConfiguration.loadConfiguration(databaseConfigFile);
         
         try {
-            // Получаем список исключений для конфигурации
+            // Get a list of configuration exceptions
             List<String> ignoredSections = new ArrayList<>();
             
-            // Обновляем конфигурацию с помощью библиотеки
+            // Update configuration using the library
             com.tchristofferson.configupdater.ConfigUpdater.update(plugin, "database.yml", databaseConfigFile, ignoredSections);
             
-            // Перезагружаем конфигурацию после обновления
+            // Reload configuration after update
             config = YamlConfiguration.loadConfiguration(databaseConfigFile);
-            plugin.getPluginLogger().info("Конфигурация базы данных была обновлена");
+            plugin.getPluginLogger().info("Database configuration has been updated");
         } catch (IOException e) {
-            plugin.getPluginLogger().severe("Ошибка при обновлении конфигурации базы данных: " + e.getMessage());
+            plugin.getPluginLogger().severe("Error updating database configuration: " + e.getMessage());
             e.printStackTrace();
         }
         
@@ -71,18 +71,18 @@ public class DatabaseManager {
     }
     
     public void initialize() {
-        // Загружаем конфигурацию базы данных из отдельного файла
+        // Load database configuration from a separate file
         FileConfiguration dbConfig = loadDatabaseConfig();
         
         if (dbConfig == null) {
-            plugin.getPluginLogger().severe("Не удалось загрузить конфигурацию базы данных");
+            plugin.getPluginLogger().severe("Failed to load database configuration");
             return;
         }
         
-        // База данных всегда включена
+        // Database is always enabled
         
         String type = dbConfig.getString("type", "sqlite").toLowerCase();
-        plugin.getPluginLogger().info("Тип базы данных из конфигурации: " + type);
+        plugin.getPluginLogger().info("Database type from configuration: " + type);
         
         try {
             switch (type) {
@@ -91,7 +91,7 @@ public class DatabaseManager {
                     int sqliteTimeout = dbConfig.getInt("sqlite.options.timeout", 30);
                     boolean sqliteAutoCreate = dbConfig.getBoolean("sqlite.options.auto-create", true);
                     
-                    plugin.getPluginLogger().info("Подключение к SQLite базе данных: " + sqliteDatabase);
+                    plugin.getPluginLogger().info("Connecting to SQLite database: " + sqliteDatabase);
                     provider = new SQLiteProvider(plugin, sqliteDatabase);
                     break;
                     
@@ -103,11 +103,11 @@ public class DatabaseManager {
                     String mysqlPassword = dbConfig.getString("mysql.password", "password");
                     boolean mysqlUseSSL = dbConfig.getBoolean("mysql.use-ssl", false);
                     
-                    // Дополнительные параметры подключения
+                    // Additional connection parameters
                     int mysqlMaxPoolSize = dbConfig.getInt("mysql.options.max-pool-size", 10);
                     int mysqlConnectionTimeout = dbConfig.getInt("mysql.options.connection-timeout", 30000);
                     
-                    plugin.getPluginLogger().info("Подключение к MySQL базе данных: " + mysqlHost + ":" + mysqlPort + "/" + mysqlDatabase);
+                    plugin.getPluginLogger().info("Connecting to MySQL database: " + mysqlHost + ":" + mysqlPort + "/" + mysqlDatabase);
                     provider = new MySQLProvider(plugin, mysqlHost, mysqlPort, mysqlDatabase, mysqlUsername, mysqlPassword, mysqlUseSSL);
                     break;
                     
@@ -120,67 +120,67 @@ public class DatabaseManager {
                     boolean pgUseSSL = dbConfig.getBoolean("postgresql.use-ssl", false);
                     String pgSchema = dbConfig.getString("postgresql.options.schema", "public");
                     
-                    plugin.getPluginLogger().info("Подключение к PostgreSQL базе данных: " + pgHost + ":" + pgPort + "/" + pgDatabase);
+                    plugin.getPluginLogger().info("Connecting to PostgreSQL database: " + pgHost + ":" + pgPort + "/" + pgDatabase);
                     provider = new PostgreSQLProvider(plugin, pgHost, pgPort, pgDatabase, pgUsername, pgPassword, pgUseSSL);
                     break;
                     
                 default:
-                    plugin.getPluginLogger().warning("Неизвестный тип базы данных: " + type + ". Используется SQLite.");
+                    plugin.getPluginLogger().warning("Unknown database type: " + type + ". Using SQLite.");
                     provider = new SQLiteProvider(plugin, "originchat");
                     break;
             }
-            // Проверяем, нужно ли выполнить миграцию
+            // Check if migration is needed
             boolean autoMigrate = dbConfig.getBoolean("migration.auto-migrate", true);
             boolean backupBeforeMigrate = dbConfig.getBoolean("migration.backup-before-migrate", true);
             
             provider.initialize();
             
             if (autoMigrate) {
-                plugin.getPluginLogger().info("Выполняется миграция базы данных...");
+                plugin.getPluginLogger().info("Performing database migration...");
                 if (backupBeforeMigrate) {
-                    plugin.getPluginLogger().info("Создание резервной копии базы данных перед миграцией...");
-                    // Здесь можно добавить код для создания резервной копии
+                    plugin.getPluginLogger().info("Creating database backup before migration...");
+                    // Code for creating backup can be added here
                 }
                 provider.migrate();
             }
             
-            plugin.getPluginLogger().info("База данных " + provider.getType() + " успешно инициализирована.");
+            plugin.getPluginLogger().info("Database " + provider.getType() + " successfully initialized.");
             
-            // Регистрируем команды для работы с базой данных после инициализации провайдера
+            // Register commands for database operations after provider initialization
             databaseCommands.registerCommands();
         } catch (SQLException e) {
-            plugin.getPluginLogger().severe("Ошибка при инициализации базы данных: " + e.getMessage());
+            plugin.getPluginLogger().severe("Error initializing database: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
     /**
-     * Закрыть соединение с базой данных
+     * Close the database connection
      */
     public void close() {
         if (provider != null) {
             provider.close();
         }
         
-        // Отменяем регистрацию команд
+        // Unregister commands
         databaseCommands.unregisterCommands();
     }
 
     /**
-     * Получить соединение с базой данных
-     * @return соединение с базой данных
-     * @throws SQLException при ошибке соединения
+     * Get database connection
+     * @return database connection
+     * @throws SQLException on connection error
      */
     public Connection getConnection() throws SQLException {
         if (provider == null) {
-            throw new SQLException("База данных не инициализирована");
+            throw new SQLException("Database is not initialized");
         }
         return provider.getConnection();
     }
 
     /**
-     * Проверить, включена ли база данных
-     * @return true, если база данных включена
+     * Check if database is enabled
+     * @return true if database is enabled
      */
     public boolean isEnabled() {
         if (provider == null) {
@@ -188,29 +188,29 @@ public class DatabaseManager {
         }
         
         try {
-            // Проверяем соединение более надежным способом
+            // Check connection in a more reliable way
             Connection conn = provider.getConnection();
             if (conn == null || conn.isClosed()) {
                 return false;
             }
-            // Проверяем работоспособность соединения простым запросом
+            // Check connection functionality with a simple query
             try (Statement stmt = conn.createStatement()) {
                 stmt.execute("SELECT 1");
                 return true;
             }
         } catch (SQLException e) {
-            plugin.getPluginLogger().warning("Ошибка при проверке состояния соединения с базой данных: " + e.getMessage());
+            plugin.getPluginLogger().warning("Error checking database connection status: " + e.getMessage());
             return false;
         }
     }
 
     /**
-     * Получить тип провайдера базы данных
-     * @return тип провайдера
+     * Get database provider type
+     * @return provider type
      */
     public String getProviderType() {
         if (provider == null) {
-            // Если провайдер еще не инициализирован, получаем тип из конфигурации
+            // If provider is not initialized, get type from configuration
             FileConfiguration dbConfig = loadDatabaseConfig();
             if (dbConfig != null) {
                 return dbConfig.getString("type", "sqlite").toLowerCase();
@@ -221,9 +221,9 @@ public class DatabaseManager {
     }
     
     /**
-     * Сохраняет изменения в конфигурации базы данных
-     * @param config конфигурация для сохранения
-     * @return true если сохранение прошло успешно
+     * Saves changes to database configuration
+     * @param config configuration to save
+     * @return true if saved successfully
      */
     public boolean saveDatabaseConfig(FileConfiguration config) {
         if (config == null) {
@@ -233,70 +233,70 @@ public class DatabaseManager {
         try {
             File databaseConfigFile = new File(plugin.getDataFolder(), "database.yml");
             config.save(databaseConfigFile);
-            plugin.getPluginLogger().info("Конфигурация базы данных успешно сохранена");
+            plugin.getPluginLogger().info("Database configuration saved successfully");
             return true;
         } catch (Exception e) {
-            plugin.getPluginLogger().severe("Ошибка при сохранении конфигурации базы данных: " + e.getMessage());
+            plugin.getPluginLogger().severe("Error saving database configuration: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
     }
     
     /**
-     * Получает текущую конфигурацию базы данных
-     * @return текущая конфигурация базы данных
+     * Gets the current database configuration
+     * @return current database configuration
      */
     public FileConfiguration getDatabaseConfig() {
         return loadDatabaseConfig();
     }
     
     /**
-     * Изменяет тип базы данных и перезагружает соединение
-     * @param type новый тип базы данных (sqlite, mysql, postgresql)
-     * @return true если изменение прошло успешно
+     * Changes database type and reloads connection
+     * @param type new database type (sqlite, mysql, postgresql)
+     * @return true if change was successful
      */
     public boolean changeDatabaseType(String type) {
         if (type == null || type.isEmpty()) {
             return false;
         }
         
-        // Проверяем, поддерживается ли указанный тип
+        // Check if the specified type is supported
         if (!type.equalsIgnoreCase("sqlite") && 
             !type.equalsIgnoreCase("mysql") && 
             !type.equalsIgnoreCase("postgresql")) {
-            plugin.getPluginLogger().warning("Неподдерживаемый тип базы данных: " + type);
+            plugin.getPluginLogger().warning("Unsupported database type: " + type);
             return false;
         }
         
-        // Получаем текущую конфигурацию
+        // Get current configuration
         FileConfiguration config = getDatabaseConfig();
         if (config == null) {
             return false;
         }
         
-        // Сохраняем новый тип
+        // Save new type
         config.set("type", type.toLowerCase());
         
-        // Сохраняем изменения
+        // Save changes
         if (!saveDatabaseConfig(config)) {
             return false;
         }
         
-        // Закрываем текущее соединение
+        // Close current connection
         close();
         
-        // Переинициализируем базу данных
+        // Reinitialize database
         initialize();
         
         return isEnabled();
     }
 
     /**
-     * Сохранить или обновить данные игрока
-     * @param uuid UUID игрока
-     * @param name имя игрока
-     * @param locale локаль игрока
-     * @param translateEnabled включен ли автоперевод
+     * Save or update player data
+     * @param uuid Player UUID
+     * @param name Player name
+     * @param locale Player locale
+     * @param translateEnabled whether auto-translate is enabled
      */
     public void savePlayerData(UUID uuid, String name, String locale, boolean translateEnabled) {
         if (!isEnabled()) return;
@@ -313,17 +313,17 @@ public class DatabaseManager {
             ps.setString(6, locale);
             ps.setInt(7, translateEnabled ? 1 : 0);
             ps.executeUpdate();
-            plugin.getPluginLogger().info("Таблица настроек автоперевода успешно создана или обновлена (savePlayerData). SQL: " + sql);
+            plugin.getPluginLogger().info("Auto-translate settings table successfully created or updated (savePlayerData). SQL: " + sql);
         } catch (SQLException e) {
-            plugin.getPluginLogger().severe("Не удалось создать или обновить таблицу для настроек автоперевода. Ошибка: " + e.getMessage() + ". SQL: " + sql);
+            plugin.getPluginLogger().severe("Failed to create or update table for auto-translate settings. Error: " + e.getMessage() + ". SQL: " + sql);
             e.printStackTrace();
         }
     }
 
     /**
-     * Получить локаль игрока из базы данных
-     * @param uuid UUID игрока
-     * @return локаль игрока или null, если игрок не найден
+     * Get player locale from database
+     * @param uuid Player UUID
+     * @return player locale or null if player not found
      */
     public String getPlayerLocale(UUID uuid) {
         if (!isEnabled()) return null;
@@ -339,16 +339,16 @@ public class DatabaseManager {
                 }
             }
         } catch (SQLException e) {
-            plugin.getPluginLogger().warning("Ошибка при получении локали игрока: " + e.getMessage());
+            plugin.getPluginLogger().warning("Error getting player locale: " + e.getMessage());
         }
         
         return null;
     }
 
     /**
-     * Проверить, включен ли автоперевод для игрока
-     * @param uuid UUID игрока
-     * @return true, если автоперевод включен
+     * Check if auto-translate is enabled for player
+     * @param uuid Player UUID
+     * @return true if auto-translate is enabled
      */
     public boolean isTranslateEnabled(UUID uuid) {
         if (!isEnabled()) return false;
@@ -364,16 +364,16 @@ public class DatabaseManager {
                 }
             }
         } catch (SQLException e) {
-            plugin.getPluginLogger().warning("Ошибка при получении статуса автоперевода: " + e.getMessage());
+            plugin.getPluginLogger().warning("Error getting auto-translate status: " + e.getMessage());
         }
         
         return false;
     }
 
     /**
-     * Установить статус автоперевода для игрока
-     * @param uuid UUID игрока
-     * @param enabled статус автоперевода
+     * Set auto-translate status for player
+     * @param uuid Player UUID
+     * @param enabled auto-translate status
      */
     public void setTranslateEnabled(UUID uuid, boolean enabled) {
         if (!isEnabled()) return;
@@ -386,21 +386,21 @@ public class DatabaseManager {
             
             ps.executeUpdate();
         } catch (SQLException e) {
-            plugin.getPluginLogger().warning("Ошибка при установке статуса автоперевода: " + e.getMessage());
+            plugin.getPluginLogger().warning("Error setting auto-translate status: " + e.getMessage());
         }
     }
     
     /**
-     * Сохранить данные игрока в базу данных
-     * @param player игрок
+     * Save player data to database
+     * @param player player
      */
     public void savePlayerData(Player player) {
         databaseCommands.savePlayerData(player);
     }
     
     /**
-     * Получить объект для работы с командами базы данных
-     * @return объект DatabaseCommands
+     * Get object for working with database commands
+     * @return DatabaseCommands object
      */
     public DatabaseCommands getDatabaseCommands() {
         return databaseCommands;

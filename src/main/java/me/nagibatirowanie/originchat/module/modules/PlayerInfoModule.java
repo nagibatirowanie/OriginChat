@@ -3,8 +3,8 @@ package me.nagibatirowanie.originchat.module.modules;
 import me.nagibatirowanie.originchat.OriginChat;
 import me.nagibatirowanie.originchat.module.AbstractModule;
 import me.nagibatirowanie.originchat.utils.ColorUtil;
-import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.TextComponent;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -13,14 +13,15 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 
 /**
- * Модуль для отображения информации о игроке при нажатии ПКМ
+ * Module that displays information about a player when right-clicked.
  */
 public class PlayerInfoModule extends AbstractModule implements Listener {
 
     private boolean enabled;
 
     public PlayerInfoModule(OriginChat plugin) {
-        super(plugin, "player_info", "Player Info", "Shows player information on right-click", "1.0");
+        super(plugin, "player_info", "Player Info", 
+              "Shows player information on right-click", "1.0");
     }
 
     @Override
@@ -31,6 +32,7 @@ public class PlayerInfoModule extends AbstractModule implements Listener {
         }
         loadConfig();
         if (!enabled) return;
+
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         log("PlayerInfoModule enabled");
     }
@@ -41,32 +43,35 @@ public class PlayerInfoModule extends AbstractModule implements Listener {
         log("PlayerInfoModule disabled");
     }
 
+    /**
+     * Loads configuration settings for this module.
+     */
     private void loadConfig() {
         enabled = config.getBoolean("enabled", true);
-        //format = config.getString("format", "&7Player: &f{player}");
     }
 
+    /**
+     * Handles right-click interactions on players to show their information.
+     *
+     * @param event the player interact entity event
+     */
     @EventHandler(priority = EventPriority.NORMAL)
     public void onPlayerInteract(PlayerInteractEntityEvent event) {
         if (!enabled) return;
-        
-        // Проверяем, что игрок кликнул по другому игроку
+
         if (!(event.getRightClicked() instanceof Player)) return;
-        
+
         Player clicker = event.getPlayer();
         Player target = (Player) event.getRightClicked();
-        
-        // Получаем локализованный формат actionbar-сообщения
-        String formattedText = getMessage(clicker, "format");
-        if (formattedText == null || formattedText.startsWith("§cMessage not found")) {
-            formattedText = "&7Player: &f{player}";
+
+        String template = getMessage(clicker, "format");
+        if (template == null || template.startsWith("§cMessage not found")) {
+            template = "&7Player: &f{player}";
         }
-        formattedText = formattedText.replace("{player}", target.getName());
-        
-        // Применяем форматирование и плейсхолдеры относительно игрока, на которого кликнули
-        String finalText = ColorUtil.format(target, formattedText, true, true, true);
-        
-        // Отправляем actionbar игроку, который кликнул
-        clicker.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(finalText));
+        String replaced = template.replace("{player}", target.getName());
+        String formatted = ColorUtil.format(target, replaced, true, true, true);
+
+        Component component = LegacyComponentSerializer.legacySection().deserialize(formatted);
+        clicker.sendActionBar(component);
     }
 }

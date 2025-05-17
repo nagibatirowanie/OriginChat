@@ -39,36 +39,36 @@ public class LocaleManager {
     }
     
     /**
-     * Добавляет путь к списку исключений, которые не будут восстанавливаться при обновлении
-     * @param localeName имя локализации без расширения .yml
-     * @param path путь к полю в локализации (например, "commands.help")
-     * @deprecated Метод устарел и не используется, так как все элементы должны восстанавливаться
+     * Adds a path to the exclusion list that won't be restored during updates
+     * @param localeName localization name without .yml extension
+     * @param path path to the field in localization (for example, "commands.help")
+     * @deprecated Method is deprecated and not used, as all elements should be restored
      */
     @Deprecated
     public void addExcludedPath(String localeName, String path) {
-        // Метод оставлен для обратной совместимости, но не используется
-        // Все элементы должны восстанавливаться при обновлении
-        plugin.getPluginLogger().info("[LocaleManager] Метод addExcludedPath устарел и не используется");
+        // Method kept for backward compatibility, but not used
+        // All elements should be restored during updates
+        plugin.getPluginLogger().info("[LocaleManager] Method addExcludedPath is deprecated and not used");
     }
     
     /**
-     * Добавляет несколько путей к списку исключений
-     * @param localeName имя локализации без расширения .yml
-     * @param paths список путей к полям
-     * @deprecated Метод устарел и не используется, так как все элементы должны восстанавливаться
+     * Adds multiple paths to the exclusion list
+     * @param localeName localization name without .yml extension
+     * @param paths list of paths to fields
+     * @deprecated Method is deprecated and not used, as all elements should be restored
      */
     @Deprecated
     public void addExcludedPaths(String localeName, List<String> paths) {
-        // Метод оставлен для обратной совместимости, но не используется
-        // Все элементы должны восстанавливаться при обновлении
-        plugin.getPluginLogger().info("[LocaleManager] Метод addExcludedPaths устарел и не используется");
+        // Method kept for backward compatibility, but not used
+        // All elements should be restored during updates
+        plugin.getPluginLogger().info("[LocaleManager] Method addExcludedPaths is deprecated and not used");
     }
     
     /**
      * Load all available locales
      */
     public void loadLocales() {
-        // Очищаем кэш локализаций перед загрузкой
+        // Clear localization cache before loading
         locales.clear();
         defaultLocale = null;
         // Create locale directory if it doesn't exist
@@ -77,7 +77,7 @@ public class LocaleManager {
             localeDir.mkdirs();
         }
         
-        plugin.getPluginLogger().info("[LocaleManager] Начало загрузки и обновления локализаций...");
+        plugin.getPluginLogger().info("[LocaleManager] Starting loading and updating localizations...");
         
         // Get all locale files from resources
         try {
@@ -98,23 +98,23 @@ public class LocaleManager {
             // This is a fallback method since we can't list directory contents in JAR
             try {
                 // Check if there are other locale files in resources
-                // Расширенный список поддерживаемых языков
+                // Extended list of supported languages
                 String[] commonLocales = {
-                    // Европейские языки
+                    // European languages
                     "de", "fr", "es", "it", "pt", "nl", "pl", "sv", "no", "fi", "da", "cs", "sk", "hu", "ro", "bg", "el", "tr",
-                    // Азиатские языки
+                    // Asian languages
                     "zh", "ja", "ko", "th", "vi", "id", "ms",
-                    // Другие языки
+                    // Other languages
                     "ar", "he", "hi", "uk", "fa", "af", "sq", "hy", "az", "eu", "be", "bn", "bs", "ca", "hr", "et", "tl", "gl", "ka",
                     "is", "kk", "km", "lo", "lv", "lt", "mk", "mn", "ne", "sr", "si", "sl", "sw", "ta", "te", "ur", "uz", "cy"
                 };
                 
-                plugin.getPluginLogger().info("[LocaleManager] Проверка доступных локализаций...");
+                plugin.getPluginLogger().info("[LocaleManager] Checking available localizations...");
                 for (String locale : commonLocales) {
                     try {
                         if (plugin.getResource("locales/" + locale + ".yml") != null) {
                             saveDefaultLocale(locale);
-                            plugin.getPluginLogger().info("[LocaleManager] Загружена локализация: " + locale);
+                            plugin.getPluginLogger().info("[LocaleManager] Loaded localization: " + locale);
                         }
                     } catch (Exception ignored) {
                         // Ignore if locale doesn't exist
@@ -136,7 +136,7 @@ public class LocaleManager {
                 
                 FileConfiguration localeConfig = YamlConfiguration.loadConfiguration(file);
                 
-                // Проверяем и обновляем локализационный файл
+                // Check and update localization file
                 checkAndUpdateLocale(file, "locales/" + localeName + ".yml");
                 
                 locales.put(localeName, localeConfig);
@@ -173,19 +173,19 @@ public class LocaleManager {
                 return false;
             }
         } else {
-            // Проверяем и обновляем существующий файл локализации
+            // Check and update existing localization file
             try {
-                // Используем пустой список исключений, чтобы все удаленные элементы восстанавливались
+                // Use empty exclusion list so all deleted elements are restored
                 List<String> ignoredSections = new ArrayList<>();
                 
-                // Обновляем локализацию с помощью библиотеки
+                // Update localization using the library
                 ConfigUpdater.update(plugin, "locales/" + locale + ".yml", localeFile, ignoredSections);
                 
-                // Перезагружаем файл после обновления
+                // Reload file after update
                 FileConfiguration updatedConfig = YamlConfiguration.loadConfiguration(localeFile);
                 locales.put(locale, updatedConfig);
                 
-                // Если это дефолтная локализация, обновляем её тоже
+                // If this is the default localization, update it too
                 if (locale.equals(defaultLanguage)) {
                     defaultLocale = updatedConfig;
                 }
@@ -200,9 +200,9 @@ public class LocaleManager {
     }
     
     /**
-     * Проверить наличие локализационного файла
-     * @param locale имя локализации
-     * @return true если файл существует
+     * Check if localization file exists
+     * @param locale localization name
+     * @return true if file exists
      */
     public boolean hasLocale(String locale) {
         return locales.containsKey(locale);
@@ -407,31 +407,31 @@ public class LocaleManager {
     }
     
     /**
-     * Проверяет и обновляет локализационный файл при необходимости
-     * @param localeFile файл локализации
-     * @param resourceName имя ресурса в jar
-     * @return true если локализация была обновлена
+     * Checks and updates localization file if necessary
+     * @param localeFile localization file
+     * @param resourceName resource name in jar
+     * @return true if localization was updated
      */
     private boolean checkAndUpdateLocale(File localeFile, String resourceName) {
         try {
-            // Получаем имя локализации без расширения .yml
+            // Get localization name without .yml extension
             String localeName = localeFile.getName();
             if (localeName.endsWith(".yml")) {
                 localeName = localeName.substring(0, localeName.length() - 4);
             }
             
-            // Используем пустой список исключений, чтобы все удаленные элементы восстанавливались
-            // Это позволит восстановить все удаленные элементы из исходных файлов
+            // Use empty exclusion list so all deleted elements are restored
+            // This will allow to restore all deleted elements from original files
             List<String> ignoredSections = new ArrayList<>();
             
-            // Обновляем локализацию с помощью библиотеки
+            // Update localization using the library
             ConfigUpdater.update(plugin, resourceName, localeFile, ignoredSections);
             
-            // Перезагружаем файл после обновления
+            // Reload file after update
             FileConfiguration updatedConfig = YamlConfiguration.loadConfiguration(localeFile);
             locales.put(localeName, updatedConfig);
             
-            // Если это дефолтная локализация, обновляем её тоже
+            // If this is the default localization, update it too
             if (localeName.equals(defaultLanguage)) {
                 defaultLocale = updatedConfig;
             }
@@ -446,9 +446,9 @@ public class LocaleManager {
     }
     
     /**
-     * Обновить локализацию
-     * @param locale имя локализации без расширения .yml
-     * @return обновленная конфигурация или null в случае ошибки
+     * Update localization
+     * @param locale localization name without .yml extension
+     * @return updated configuration or null in case of error
      */
     public FileConfiguration updateLocale(String locale) {
         if (!locales.containsKey(locale)) {
@@ -462,16 +462,16 @@ public class LocaleManager {
         
         FileConfiguration localeConfig = YamlConfiguration.loadConfiguration(localeFile);
         
-        // Проверяем и обновляем локализационный файл
+        // Check and update localization file
         boolean updated = checkAndUpdateLocale(localeFile, "locales/" + locale + ".yml");
         if (updated) {
-            // Перезагружаем конфигурацию после обновления
+            // Reload configuration after update
             localeConfig = YamlConfiguration.loadConfiguration(localeFile);
             
-            // Обновляем кэш
+            // Update cache
             locales.put(locale, localeConfig);
             
-            // Если это дефолтная локализация, обновляем её тоже
+            // If this is the default localization, update it too
             if (locale.equals(defaultLanguage)) {
                 defaultLocale = localeConfig;
             }
@@ -502,9 +502,9 @@ public class LocaleManager {
         
         java.util.List<String> messages = localeConfig.getStringList(key);
         
-        // Проверяем, если список пуст, но есть одиночное значение
+        // Check if list is empty but there's a single value
         if (messages.isEmpty() && localeConfig.contains(key)) {
-            // Проверяем, является ли значение строкой
+            // Check if value is a string
             if (localeConfig.isString(key)) {
                 String singleMessage = localeConfig.getString(key);
                 if (singleMessage != null) {
@@ -518,9 +518,9 @@ public class LocaleManager {
             if (localeConfig != defaultLocale && defaultLocale != null) {
                 messages = defaultLocale.getStringList(key);
                 
-                // Проверяем, если список пуст, но есть одиночное значение в дефолтной локализации
+                // Check if list is empty but there's a single value in default localization
                 if (messages.isEmpty() && defaultLocale.contains(key)) {
-                    // Проверяем, является ли значение строкой
+                    // Check if value is a string
                     if (defaultLocale.isString(key)) {
                         String singleMessage = defaultLocale.getString(key);
                         if (singleMessage != null) {

@@ -1,3 +1,24 @@
+/*
+ * This file is part of OriginChat, a Minecraft plugin.
+ *
+ * Copyright (c) 2025 nagibatirowanie
+ *
+ * OriginChat is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This plugin is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this plugin. If not, see <https://www.gnu.org/licenses/>.
+ *
+ * Created with ❤️ for the Minecraft community.
+ */
+
 package me.nagibatirowanie.originchat.translate;
 
 import me.nagibatirowanie.originchat.OriginChat;
@@ -9,7 +30,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Менеджер автоперевода сообщений для игроков
+ * Player auto-translation manager
  */
 public class TranslateManager {
 
@@ -27,57 +48,56 @@ public class TranslateManager {
     }
 
     /**
-     * Инициализирует таблицу в базе данных для хранения настроек автоперевода
+     * Initialises a table in the database to store the auto-translation settings
      */
     private void initDatabase() {
-        // Проверяем, что DatabaseManager существует и соединение активно
         if (plugin.getDatabaseManager() == null) {
-            plugin.getPluginLogger().warning("[TranslateManager] DatabaseManager не инициализирован, настройки автоперевода будут храниться только в памяти");
+            plugin.getPluginLogger().warning("[TranslateManager] DatabaseManager is not initialised, the autotranslation settings will only be stored in memory");
             return;
         }
         
-        // Проверяем состояние соединения с базой данных
+        // Check the database connection status
         try {
-            // Пробуем получить соединение для проверки его работоспособности
+            // Try to get a connection to check if it works.
             if (plugin.getDatabaseManager().getConnection() == null) {
-                plugin.getPluginLogger().warning("[TranslateManager] Не удалось получить соединение с базой данных, настройки автоперевода будут храниться только в памяти");
+                plugin.getPluginLogger().warning("[TranslateManager] Failed to obtain a database connection, the auto-translation settings will only be stored in memory");
                 return;
             }
         } catch (Exception e) {
-            plugin.getPluginLogger().warning("[TranslateManager] Ошибка при проверке соединения с базой данных: " + e.getMessage());
+            plugin.getPluginLogger().warning("[TranslateManager] Error when checking the connection to the database: " + e.getMessage());
             return;
         }
         
-        // Если соединение активно, но isEnabled() возвращает false, выводим предупреждение
+        // If the connection is active, but isEnabled() returns false, print a warning message
         if (!plugin.getDatabaseManager().isEnabled()) {
-            plugin.getPluginLogger().warning("[TranslateManager] DatabaseManager.isEnabled() вернул false, но соединение активно. Продолжаем инициализацию.");
+            plugin.getPluginLogger().warning("[TranslateManager] DatabaseManager.isEnabled() returned false, but the connection is active. Continue initialisation.");
         }
 
-        // Создаем таблицу для настроек автоперевода, если она не существует
+        // Create a table for auto-translation settings if it does not exist
         if (!dbHelper.tableExists(TRANSLATE_TABLE)) {
             try {
-                plugin.getPluginLogger().info("[TranslateManager] Попытка создания таблицы " + TRANSLATE_TABLE + " с полем player_uuid VARCHAR(36)");
+                plugin.getPluginLogger().info("[TranslateManager] Attempting to create a table " + TRANSLATE_TABLE + " on the field player_uuid VARCHAR(36)");
                 boolean created = dbHelper.createTable(TRANSLATE_TABLE, "player_uuid", "VARCHAR(36)", false);
                 if (created) {
-                    plugin.getPluginLogger().info("[TranslateManager] Таблица создана успешно, добавляем колонку enabled");
+                    //plugin.getPluginLogger().info("[TranslateManager] Table created successfully, add enabled column");
                     boolean columnAdded = dbHelper.addColumn(TRANSLATE_TABLE, "enabled", "INTEGER", "0");
                     if (columnAdded) {
-                        plugin.getPluginLogger().info("[TranslateManager] Таблица для настроек автоперевода успешно создана и инициализирована");
+                        //plugin.getPluginLogger().info("[TranslateManager] Table for auto-translation settings successfully created and initialised");
                     } else {
-                        plugin.getPluginLogger().severe("[TranslateManager] Ошибка при добавлении колонки enabled в таблицу " + TRANSLATE_TABLE);
+                        plugin.getPluginLogger().severe("[TranslateManager] Error when adding enabled column to the table " + TRANSLATE_TABLE);
                     }
                 } else {
-                    plugin.getPluginLogger().severe("[TranslateManager] Не удалось создать таблицу " + TRANSLATE_TABLE + ". Проверьте права доступа и состояние базы данных.");
+                    plugin.getPluginLogger().severe("[TranslateManager] Failed to create table " + TRANSLATE_TABLE + ". Check the access rights and status of the database.");
                 }
             } catch (Exception e) {
-                plugin.getPluginLogger().severe("[TranslateManager] Критическая ошибка при создании таблицы " + TRANSLATE_TABLE + ": " + e.getMessage());
+                plugin.getPluginLogger().severe("[TranslateManager] Critical error when creating a table " + TRANSLATE_TABLE + ": " + e.getMessage());
                 e.printStackTrace();
             }
         }
     }
 
     /**
-     * Загружает настройки автоперевода из базы данных
+     * Loads auto-translation settings from the database
      */
     public void loadFromDatabase() {
         if (!plugin.getDatabaseManager().isEnabled()) {
@@ -107,17 +127,17 @@ public class TranslateManager {
                     playerTranslateSettings.put(uuid, enabled);
                 }
             } catch (Exception e) {
-                plugin.getPluginLogger().warning("Ошибка при загрузке настроек автоперевода из базы данных: " + e.getMessage());
+                plugin.getPluginLogger().warning("Error loading auto-translation settings from the database: " + e.getMessage());
             }
         }
 
-        plugin.getPluginLogger().info("Загружены настройки автоперевода для " + playerTranslateSettings.size() + " игроков из базы данных");
+        plugin.getPluginLogger().debug("Loaded auto-translation settings for " + playerTranslateSettings.size() + " players");
     }
 
     /**
-     * Сохраняет настройку автоперевода для игрока в базу данных
-     * @param playerUuid UUID игрока
-     * @param enabled состояние настройки
+     * Saves the auto-translation setting for the player to the database
+     * @param playerUuid player UUID
+     * @param enabled setting state
      */
     private void saveToDatabase(UUID playerUuid, boolean enabled) {
         if (!plugin.getDatabaseManager().isEnabled()) {
@@ -131,67 +151,61 @@ public class TranslateManager {
     }
 
     /**
-     * Проверяет, включен ли автоперевод для игрока
-     * @param player игрок
-     * @return true если автоперевод включен, false если выключен
+     * Checks if auto-translation is enabled for a player
+     * @param player player
+     * @return true if auto-translate is enabled, false if disabled
      */
     public boolean isTranslateEnabled(Player player) {
         if (player == null) {
-            plugin.getPluginLogger().info("[TranslateManager] isTranslateEnabled: player is null, returning false");
             return false;
         }
         boolean enabled = playerTranslateSettings.getOrDefault(player.getUniqueId(), false);
-        plugin.getPluginLogger().info("[TranslateManager] isTranslateEnabled для игрока " + player.getName() + ": " + enabled);
         return enabled;
     }
 
     /**
-     * Включает или выключает автоперевод для игрока
-     * @param player игрок
-     * @param enabled true для включения, false для выключения
-     * @return новое состояние настройки
+     * Enables or disables auto-translation for a player
+     * @param player player
+     * @param enabled true to enable, false to disable
+     * @return new setting state
      */
     public boolean setTranslateEnabled(Player player, boolean enabled) {
         if (player == null) {
-            plugin.getPluginLogger().info("[TranslateManager] setTranslateEnabled: player is null, returning false");
+            plugin.getPluginLogger().debug("[TranslateManager] setTranslateEnabled: player is null, returning false");
             return false;
         }
         
-        plugin.getPluginLogger().info("[TranslateManager] Устанавливаем автоперевод для игрока " + player.getName() + ": " + enabled);
         playerTranslateSettings.put(player.getUniqueId(), enabled);
         saveToDatabase(player.getUniqueId(), enabled);
         return enabled;
     }
 
     /**
-     * Переключает состояние автоперевода для игрока
-     * @param player игрок
-     * @return новое состояние настройки
+     * Switches the auto-translation state for the player
+     * @param player player
+     * @return new setting state
      */
     public boolean toggleTranslate(Player player) {
-        plugin.getPluginLogger().info("[TranslateManager] Переключаем автоперевод для игрока " + player.getName());
         boolean currentState = isTranslateEnabled(player);
         boolean newState = !currentState;
-        plugin.getPluginLogger().info("[TranslateManager] Текущее состояние: " + currentState + ", новое состояние: " + newState);
         setTranslateEnabled(player, newState);
         return newState;
     }
 
     /**
-     * Пример использования перевода с расширенным логированием ошибок
-     * @param player игрок
-     * @param text текст для перевода
-     * @param toLang целевой язык
-     * @return переведённый текст или null при ошибке
+     * Example of using translation with advanced error logging
+     * @param player player
+     * @param text text to translate
+     * @param toLang target language
+     * @return translated text or null on error
      */
     public String tryTranslateWithLogging(Player player, String text, String toLang) {
         try {
             // Здесь предполагается вызов TranslateUtil.translate или translateAsync
             String translated = me.nagibatirowanie.originchat.utils.TranslateUtil.translate(text, toLang);
-            plugin.getPluginLogger().info(String.format("[TranslateManager] Перевод для игрока %s (%s) на язык %s выполнен успешно.", player != null ? player.getName() : "null", player != null ? player.getUniqueId() : "null", toLang));
             return translated;
         } catch (Exception e) {
-            plugin.getPluginLogger().severe(String.format("[TranslateManager] Ошибка перевода для игрока %s (%s) на язык %s. Текст: '%s'. Причина: %s", player != null ? player.getName() : "null", player != null ? player.getUniqueId() : "null", toLang, text, e.getMessage()));
+            plugin.getPluginLogger().severe(String.format("[TranslateManager] Translation error for player %s (%s) language %s. Text: '%s'. Reason: %s", player != null ? player.getName() : "null", player != null ? player.getUniqueId() : "null", toLang, text, e.getMessage()));
             e.printStackTrace();
             return null;
         }

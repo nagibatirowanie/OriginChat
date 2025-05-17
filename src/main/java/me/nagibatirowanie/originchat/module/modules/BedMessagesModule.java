@@ -24,7 +24,6 @@
  import me.nagibatirowanie.originchat.OriginChat;
  import me.nagibatirowanie.originchat.module.AbstractModule;
  import me.nagibatirowanie.originchat.utils.ColorUtil;
- 
  import org.bukkit.Bukkit;
  import org.bukkit.entity.Player;
  import org.bukkit.event.EventHandler;
@@ -36,7 +35,7 @@
  import net.md_5.bungee.api.chat.TextComponent;
  
  /**
-  * Module for customizing bed interaction messages
+  * Module that customizes messages and sounds for bed interactions.
   */
  public class BedMessagesModule extends AbstractModule implements Listener {
  
@@ -52,6 +51,11 @@
      private float leaveSoundVolume;
      private float leaveSoundPitch;
  
+     /**
+      * Constructs the BedMessagesModule.
+      *
+      * @param plugin the main OriginChat plugin instance
+      */
      public BedMessagesModule(OriginChat plugin) {
          super(plugin, "bed_messages", "Bed Messages", "Customizes messages when players interact with beds", "1.0");
      }
@@ -71,45 +75,47 @@
          log("Bed messages module disabled.");
      }
  
-     // Load settings from config
+     /**
+      * Loads configuration settings for the module.
+      */
      protected void loadConfig() {
          try {
              enabled = config.getBoolean("enabled", true);
              playSound = config.getBoolean("play_sound", true);
-             
-             // Загружаем настройки звуков
+ 
              successSoundName = config.getString("sounds.success.name", "BLOCK_NOTE_BLOCK_PLING");
              successSoundVolume = (float) config.getDouble("sounds.success.volume", 1.0);
              successSoundPitch = (float) config.getDouble("sounds.success.pitch", 1.0);
-             
+ 
              errorSoundName = config.getString("sounds.error.name", "BLOCK_NOTE_BLOCK_BASS");
              errorSoundVolume = (float) config.getDouble("sounds.error.volume", 1.0);
              errorSoundPitch = (float) config.getDouble("sounds.error.pitch", 0.8);
-             
+ 
              leaveSoundName = config.getString("sounds.leave.name", "BLOCK_NOTE_BLOCK_HARP");
              leaveSoundVolume = (float) config.getDouble("sounds.leave.volume", 1.0);
              leaveSoundPitch = (float) config.getDouble("sounds.leave.pitch", 1.2);
-             
-             
+ 
              saveModuleConfig("modules/bed_messages");
          } catch (Exception e) {
-             plugin.getPluginLogger().severe("❗ Error loading BedMessagesModule config: " + e.getMessage());
+             plugin.getPluginLogger().severe("Error loading BedMessagesModule config: " + e.getMessage());
              e.printStackTrace();
          }
      }
  
      /**
-      * Handle player entering a bed
+      * Handles player entering a bed and sends custom messages and sounds.
+      *
+      * @param event the bed enter event
       */
      @EventHandler(priority = EventPriority.HIGHEST)
      public void onPlayerBedEnter(PlayerBedEnterEvent event) {
          if (!enabled) return;
-         
+ 
          Player player = event.getPlayer();
+         PlayerBedEnterEvent.BedEnterResult result = event.getBedEnterResult();
          String messageKey;
-         
-         // Определяем ключ сообщения в зависимости от результата события
-         switch (event.getBedEnterResult()) {
+ 
+         switch (result) {
              case OK:
                  messageKey = "modules.bed_messages.messages.bed_enter_success";
                  break;
@@ -129,97 +135,79 @@
                  messageKey = "modules.bed_messages.messages.bed_enter_other_problem";
                  break;
              default:
-                 return; // Неизвестный результат, не обрабатываем
+                 return;
          }
-         
-         // Получаем локализованное сообщение из файла локализации
-         String locale = plugin.getLocaleManager().getPlayerLocale(player);
-         String message = plugin.getLocaleManager().getMessage(messageKey, locale);
-         
-         if (message != null && !message.isEmpty()) {
-             // Для неудачных попыток отменяем событие и отправляем кастомное сообщение
-             if (event.getBedEnterResult() != PlayerBedEnterEvent.BedEnterResult.OK) {
-                 // Отменяем стандартное сообщение
-                 event.setCancelled(true);
-                 
-                 // Отправляем сообщение в action bar (над инвентарем)
-                 player.spigot().sendMessage(
-                     net.md_5.bungee.api.ChatMessageType.ACTION_BAR,
-                     net.md_5.bungee.api.chat.TextComponent.fromLegacyText(ColorUtil.format(player, message))
-                 );
-                 
-                 // Также отправляем сообщение в чат для большей наглядности
-                 player.sendMessage(ColorUtil.format(player, message));
-             } else {
-                 // Для успешного входа не отменяем событие, но отправляем кастомное сообщение
-                 Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                     if (player.isSleeping()) {
-                         player.sendMessage(ColorUtil.format(player, message));
-                     }
-                 }, 5L); // 5 тиков (~0.25 секунды)
-             }
-             
-             // Воспроизводим звук, если эта опция включена
-             if (playSound) {
-                 try {
-                     // Выбираем звук в зависимости от результата
-                     String soundName;
-                     float volume;
-                     float pitch;
-                     
-                     if (event.getBedEnterResult() == PlayerBedEnterEvent.BedEnterResult.OK) {
-                         // Звук успешного входа в кровать
-                         soundName = successSoundName;
-                         volume = successSoundVolume;
-                         pitch = successSoundPitch;
-                     } else {
-                         // Звук ошибки
-                         soundName = errorSoundName;
-                         volume = errorSoundVolume;
-                         pitch = errorSoundPitch;
-                     }
-                     
-                     player.playSound(player.getLocation(), org.bukkit.Sound.valueOf(soundName), volume, pitch);
-                 } catch (Exception e) {
-                     log("Error playing sound: " + e.getMessage());
-                 }
-             }
-         }
-     }
  
-     /**
-      * Handle player leaving a bed
-      */
-     @EventHandler(priority = EventPriority.HIGHEST)
-     public void onPlayerBedLeave(PlayerBedLeaveEvent event) {
-         if (!enabled) return;
-         
-         Player player = event.getPlayer();
-         String messageKey = "modules.bed_messages.messages.bed_leave";
-         
-         // Получаем локализованное сообщение из файла локализации
          String locale = plugin.getLocaleManager().getPlayerLocale(player);
          String message = plugin.getLocaleManager().getMessage(messageKey, locale);
-         
-         if (message != null && !message.isEmpty()) {
-             // Отправляем сообщение в action bar
+ 
+         if (message == null || message.isEmpty()) return;
+ 
+         if (result != PlayerBedEnterEvent.BedEnterResult.OK) {
+             event.setCancelled(true);
              player.spigot().sendMessage(
                  ChatMessageType.ACTION_BAR,
                  TextComponent.fromLegacyText(ColorUtil.format(player, message))
              );
-             
-             // И также в обычный чат
              player.sendMessage(ColorUtil.format(player, message));
-             
-             // Воспроизводим звук при выходе из кровати, если эта опция включена
-             if (playSound) {
-                 try {
-                     // Используем звук для выхода из кровати
-                     player.playSound(player.getLocation(), org.bukkit.Sound.valueOf(leaveSoundName), leaveSoundVolume, leaveSoundPitch);
-                 } catch (Exception e) {
-                     log("Error playing sound: " + e.getMessage());
+         } else {
+             Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                 if (player.isSleeping()) {
+                     player.sendMessage(ColorUtil.format(player, message));
                  }
+             }, 5L);
+         }
+ 
+         if (playSound) {
+             playEnterSound(player, result == PlayerBedEnterEvent.BedEnterResult.OK);
+         }
+     }
+ 
+     /**
+      * Plays the appropriate sound when entering a bed.
+      *
+      * @param player the player
+      * @param success true if enter was successful, false otherwise
+      */
+     private void playEnterSound(Player player, boolean success) {
+         try {
+             String soundName = success ? successSoundName : errorSoundName;
+             float volume = success ? successSoundVolume : errorSoundVolume;
+             float pitch = success ? successSoundPitch : errorSoundPitch;
+             player.playSound(player.getLocation(), org.bukkit.Sound.valueOf(soundName), volume, pitch);
+         } catch (Exception e) {
+             log("Error playing sound: " + e.getMessage());
+         }
+     }
+ 
+     /**
+      * Handles player leaving a bed and sends custom messages and sounds.
+      *
+      * @param event the bed leave event
+      */
+     @EventHandler(priority = EventPriority.HIGHEST)
+     public void onPlayerBedLeave(PlayerBedLeaveEvent event) {
+         if (!enabled) return;
+ 
+         Player player = event.getPlayer();
+         String locale = plugin.getLocaleManager().getPlayerLocale(player);
+         String message = plugin.getLocaleManager().getMessage("modules.bed_messages.messages.bed_leave", locale);
+ 
+         if (message == null || message.isEmpty()) return;
+ 
+         player.spigot().sendMessage(
+             ChatMessageType.ACTION_BAR,
+             TextComponent.fromLegacyText(ColorUtil.format(player, message))
+         );
+         player.sendMessage(ColorUtil.format(player, message));
+ 
+         if (playSound) {
+             try {
+                 player.playSound(player.getLocation(), org.bukkit.Sound.valueOf(leaveSoundName), leaveSoundVolume, leaveSoundPitch);
+             } catch (Exception e) {
+                 log("Error playing sound: " + e.getMessage());
              }
          }
      }
  }
+ 

@@ -10,12 +10,12 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Класс для управления анимированными сообщениями в чате
+ * Class for managing animated chat messages
  */
 public class AnimatedMessage {
 
     private static final Map<UUID, AnimatedMessage> activeAnimations = new HashMap<>();
-    private static final Object animationLock = new Object(); // Объект для синхронизации
+    private static final Object animationLock = new Object(); // Object for synchronization
     
     private final OriginChat plugin;
     private final Player player;
@@ -24,10 +24,10 @@ public class AnimatedMessage {
     private int currentFrame = 0;
     
     /**
-     * Создает новое анимированное сообщение для игрока
-     * @param plugin экземпляр плагина
-     * @param player игрок, которому будет отправляться сообщение
-     * @param animation анимация для отображения
+     * Creates a new animated message for a player
+     * @param plugin instance of the plugin
+     * @param player the player to receive the message
+     * @param animation the animation to display
      */
     public AnimatedMessage(OriginChat plugin, Player player, Animation animation) {
         this.plugin = plugin;
@@ -36,72 +36,72 @@ public class AnimatedMessage {
     }
     
     /**
-     * Запускает отображение анимированного сообщения
-     * @param duration продолжительность показа в секундах (0 для бесконечного показа)
+     * Starts displaying the animated message
+     * @param duration display duration in seconds (0 for infinite)
      */
     public void start(int duration) {
         try {
-            // Остановить предыдущую анимацию для этого игрока, если она существует
+            // Stop the previous animation for this player, if it exists
             stop(player.getUniqueId());
             
-            // Сохраняем эту анимацию как активную для данного игрока
+            // Save this animation as the active one for this player
             synchronized (animationLock) {
                 activeAnimations.put(player.getUniqueId(), this);
             }
             
-            // Запускаем задачу обновления сообщения
+            // Start the task to update the message
             task = new BukkitRunnable() {
                 @Override
                 public void run() {
                     try {
-                        // Получаем язык игрока
+                        // Get the player's language
                         String locale = Animation.DEFAULT_LOCALE;
                         if (player != null && player.isOnline()) {
-                            // Получаем язык из LocaleManager
+                            // Retrieve language from LocaleManager
                             locale = plugin.getLocaleManager().getPlayerLocale(player);
-                            // Проверяем, есть ли кадры для этого языка
+                            // Check if frames exist for this locale
                             if (!animation.hasLocale(locale)) {
-                                locale = Animation.DEFAULT_LOCALE; // Используем язык по умолчанию, если нет перевода
+                                locale = Animation.DEFAULT_LOCALE; // Fallback to default locale if no translation
                             }
                         }
                         
-                        // Получаем текущий кадр для языка игрока и отправляем его
+                        // Get the current frame for the player's language and send it
                         String frame = animation.getCurrentFrame(locale);
-                        // Заменяем плейсхолдер игрока, если он есть
+                        // Replace the player placeholder if present
                         if (frame != null && frame.contains("{player}")) {
                             frame = frame.replace("{player}", player.getName());
                         }
                         if (player != null && player.isOnline()) {
                             player.sendMessage(frame);
                         } else {
-                            // Если игрок оффлайн, останавливаем анимацию
+                            // If the player is offline, stop the animation
                             stop(player.getUniqueId());
                         }
                     } catch (Exception e) {
-                        plugin.getPluginLogger().warning("Ошибка при отображении анимации: " + e.getMessage());
-                        stop(player.getUniqueId()); // Останавливаем анимацию при ошибке
+                        plugin.getPluginLogger().warning("Error displaying animation: " + e.getMessage());
+                        stop(player.getUniqueId()); // Stop animation on error
                     }
                 }
             }.runTaskTimer(plugin, 0, animation.getInterval());
             
-            // Если указана продолжительность, останавливаем анимацию через указанное время
+            // If a duration is specified, stop the animation after the given time
             if (duration > 0) {
                 new BukkitRunnable() {
                     @Override
                     public void run() {
                         stop(player.getUniqueId());
                     }
-                }.runTaskLater(plugin, duration * 20L); // Переводим секунды в тики (20 тиков = 1 секунда)
+                }.runTaskLater(plugin, duration * 20L); // Convert seconds to ticks (20 ticks = 1 second)
             }
         } catch (Exception e) {
-            plugin.getPluginLogger().severe("Ошибка при запуске анимации: " + e.getMessage());
+            plugin.getPluginLogger().severe("Error starting animation: " + e.getMessage());
             e.printStackTrace();
         }
     }
     
     /**
-     * Останавливает анимированное сообщение для указанного игрока
-     * @param playerId UUID игрока
+     * Stops the animated message for the specified player
+     * @param playerId Player UUID
      */
     public static void stop(UUID playerId) {
         if (playerId == null) return;
@@ -116,12 +116,12 @@ public class AnimatedMessage {
                 }
             }
         } catch (Exception e) {
-            OriginChat.getInstance().getPluginLogger().warning("Ошибка при остановке анимации: " + e.getMessage());
+            OriginChat.getInstance().getPluginLogger().warning("Error stopping animation: " + e.getMessage());
         }
     }
     
     /**
-     * Останавливает все активные анимированные сообщения
+     * Stops all active animated messages
      */
     public static void stopAll() {
         try {
@@ -134,15 +134,15 @@ public class AnimatedMessage {
                 activeAnimations.clear();
             }
         } catch (Exception e) {
-            OriginChat.getInstance().getPluginLogger().severe("Ошибка при остановке всех анимаций: " + e.getMessage());
+            OriginChat.getInstance().getPluginLogger().severe("Error stopping all animations: " + e.getMessage());
             e.printStackTrace();
         }
     }
     
     /**
-     * Проверяет, есть ли активная анимация для указанного игрока
-     * @param playerId UUID игрока
-     * @return true, если у игрока есть активная анимация
+     * Checks if there is an active animation for the specified player
+     * @param playerId Player UUID
+     * @return true if the player has an active animation
      */
     public static boolean hasActiveAnimation(UUID playerId) {
         if (playerId == null) return false;

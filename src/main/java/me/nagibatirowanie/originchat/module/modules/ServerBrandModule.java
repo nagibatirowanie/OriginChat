@@ -1,3 +1,24 @@
+/*
+ * This file is part of OriginChat, a Minecraft plugin.
+ *
+ * Copyright (c) 2025 nagibatirowanie
+ *
+ * OriginChat is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This plugin is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this plugin. If not, see <https://www.gnu.org/licenses/>.
+ *
+ * Created with ❤️ for the Minecraft community.
+ */
+
 package me.nagibatirowanie.originchat.module.modules;
 
 import com.comphenix.protocol.PacketType;
@@ -12,8 +33,8 @@ import me.nagibatirowanie.originchat.utils.ColorUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.player.PlayerJoinEvent;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -22,91 +43,91 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Module for broadcasting custom server brand names in the F3 menu using ProtocolLib.
+ */
 public class ServerBrandModule extends AbstractModule implements Listener {
-    // Конфигурируемые поля
-    private List<String> serverBrands;
+
+    private static final String CHANNEL = "minecraft:brand";
+    private final List<String> serverBrands = new ArrayList<>();
     private long updatePeriod;
     private boolean enabled;
-
-    // ProtocolLib
     private ProtocolManager protocolManager;
-
-    // Для цикличного обновления
     private ScheduledFuture<?> updateTask;
     private int currentIndex = 0;
 
-    // Название канала Custom Payload
-    private static final String CHANNEL = "minecraft:brand";
-
+    /**
+     * Constructs the ServerBrandModule.
+     *
+     * @param plugin the main OriginChat plugin instance
+     */
     public ServerBrandModule(OriginChat plugin) {
         super(plugin, "server_brand", "Server Brand",
-              "Изменяет название ядра сервера в F3 меню", "2.0");
+              "Broadcasts custom server brands via custom payload packets", "2.0");
     }
 
+    /**
+     * Called when the module is enabled.
+     * Loads configuration, initializes ProtocolLib, registers events, broadcasts the brand,
+     * and schedules periodic updates if multiple brands are configured.
+     */
     @Override
     public void onEnable() {
-        // 1) Загрузка конфига модуля
         loadModuleConfig("modules/server_brand");
         if (config == null) {
-            log("Не удалось загрузить конфигурацию модуля ServerBrand");
+            log("Failed to load ServerBrand configuration.");
             return;
         }
         loadConfigValues();
-
         if (!enabled) {
-            log("Модуль ServerBrand отключен в конфигурации");
+            log("ServerBrand module is disabled in configuration.");
             return;
         }
 
-        // 2) Инициализация ProtocolLib
         try {
             protocolManager = ProtocolLibrary.getProtocolManager();
             if (protocolManager == null) {
-                log("❗ ProtocolLib не найден. ServerBrand отключён.");
+                log("ProtocolLib not found, disabling ServerBrand module.");
                 enabled = false;
                 return;
             }
         } catch (Exception e) {
-            log("❗ Ошибка при инициализации ProtocolLib: " + e.getMessage());
+            log("Error initializing ProtocolLib: " + e.getMessage());
             enabled = false;
             return;
         }
 
-        // 3) Регистрируем слушатель для новых заходов
         Bukkit.getPluginManager().registerEvents(this, plugin);
-
-        // 4) Моментальная рассылка всем онлайн
         broadcastBrand();
 
-        // 5) Запускаем задачу цикличного обновления
         if (serverBrands.size() > 1) {
-            updateTask = Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(
-                this::broadcastBrand,
-                updatePeriod,
-                updatePeriod,
-                TimeUnit.MILLISECONDS
-            );
-            log("Запущено обновление бренда каждые " + updatePeriod + "мс");
+            updateTask = Executors.newSingleThreadScheduledExecutor()
+                .scheduleAtFixedRate(this::broadcastBrand, updatePeriod, updatePeriod, TimeUnit.MILLISECONDS);
+            log("Scheduled brand update every " + updatePeriod + " ms.");
         }
 
-        log("Модуль ServerBrand успешно включен");
+        log("ServerBrand module enabled successfully.");
     }
 
+    /**
+     * Called when the module is disabled.
+     * Cancels any scheduled tasks.
+     */
     @Override
     public void onDisable() {
         if (updateTask != null) {
             updateTask.cancel(true);
             updateTask = null;
         }
-        log("Модуль ServerBrand отключен");
+        log("ServerBrand module disabled.");
     }
 
-    /** Загружает значения enabled, serverBrands и updatePeriod из конфига */
+    /**
+     * Loads the 'enabled', 'serverBrands', and 'updatePeriod' values from the module config.
+     */
     private void loadConfigValues() {
         enabled = config.getBoolean("enabled", true);
 
-        // Поддержка старого и нового форматов
-        serverBrands = new ArrayList<>();
         if (config.contains("server_brand")) {
             serverBrands.add(config.getString("server_brand", "&bOriginChat"));
         } else if (config.contains("server_brands")) {
@@ -117,71 +138,92 @@ public class ServerBrandModule extends AbstractModule implements Listener {
         }
 
         updatePeriod = config.getLong("update_period", 5000L);
-        log("Конфиг: enabled=" + enabled +
-            ", brands=" + serverBrands +
-            ", updatePeriod=" + updatePeriod + "мс");
+        log("Config values: enabled=" + enabled
+            + ", brands=" + serverBrands
+            + ", updatePeriod=" + updatePeriod + " ms");
     }
 
-    /** При входе нового игрока досылаем текущий бренд */
-    @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent event) {
-        if (!enabled) return;
-        Player p = event.getPlayer();
-        Bukkit.getScheduler().runTask(plugin, () -> sendBrand(p));
-    }
-
-    /** Рассылает текущий бренд всем онлайн и инкрементит index */
+    /**
+     * Sends the current brand to all online players and advances the index.
+     */
     private void broadcastBrand() {
-        for (Player p : Bukkit.getOnlinePlayers()) {
-            sendBrand(p);
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            sendBrand(player);
         }
         currentIndex = (currentIndex + 1) % serverBrands.size();
     }
 
-    /** Формирует и отправляет WirePacket для замены F3-бренда конкретному игроку */
+    /**
+     * Sends the current brand packet to a single player.
+     *
+     * @param player the player to receive the brand packet
+     */
     private void sendBrand(Player player) {
-        if (!player.isOnline() || !enabled) return;
-
+        if (!player.isOnline() || !enabled) {
+            return;
+        }
         try {
-            // 1) Берём строку, подставляем {name}/{displayname}, красим
             String raw = serverBrands.get(currentIndex)
                 .replace("{name}", player.getName())
                 .replace("{displayname}", player.getDisplayName());
             String formatted = ColorUtil.format(raw, true, true, true) + "§r";
 
-            // 2) Пишем в ByteBuf: сначала канал, затем текст
-            ByteBuf buf = Unpooled.buffer();
-            writeString(buf, CHANNEL);
-            writeString(buf, formatted);
+            ByteBuf buffer = Unpooled.buffer();
+            writeString(buffer, CHANNEL);
+            writeString(buffer, formatted);
 
-            // 3) Копируем данные
-            byte[] data = new byte[buf.readableBytes()];
-            buf.readBytes(data);
+            byte[] data = new byte[buffer.readableBytes()];
+            buffer.readBytes(data);
 
-            // 4) Шлём пакет
-            WirePacket wp = new WirePacket(PacketType.Play.Server.CUSTOM_PAYLOAD, data);
-            protocolManager.sendWirePacket(player, wp);
+            WirePacket packet = new WirePacket(PacketType.Play.Server.CUSTOM_PAYLOAD, data);
+            protocolManager.sendWirePacket(player, packet);
 
             debug("Sent brand to " + player.getName() + ": " + formatted);
         } catch (Throwable t) {
-            log("Ошибка при отправке бренда игроку " + player.getName() + ": " + t.getMessage());
-            if (config.getBoolean("debug", false)) t.printStackTrace();
+            log("Error sending brand to " + player.getName() + ": " + t.getMessage());
+            if (config.getBoolean("debug", false)) {
+                t.printStackTrace();
+            }
         }
     }
 
-    /** Записывает Minecraft-строку (VarInt длина + UTF-8) */
+    /**
+     * Writes a Minecraft string to the buffer (VarInt length + UTF-8 bytes).
+     *
+     * @param buf the target ByteBuf
+     * @param s   the string to write
+     */
     private void writeString(ByteBuf buf, String s) {
         byte[] bytes = s.getBytes(StandardCharsets.UTF_8);
         writeVarInt(buf, bytes.length);
         buf.writeBytes(bytes);
     }
 
-    /** Стандартный алгоритм VarInt для протокола */
+    /**
+     * Writes a VarInt to the buffer according to the Minecraft protocol.
+     *
+     * @param buf   the target ByteBuf
+     * @param value the integer value to write
+     */
     private void writeVarInt(ByteBuf buf, int value) {
         while ((value & 0xFFFFFF80) != 0) {
             buf.writeByte((value & 0x7F) | 0x80);
             value >>>= 7;
         }
         buf.writeByte(value & 0x7F);
+    }
+
+    /**
+     * Sends the current brand to a player when they join.
+     *
+     * @param event the PlayerJoinEvent triggered when a player joins
+     */
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        if (!enabled) {
+            return;
+        }
+        Player player = event.getPlayer();
+        Bukkit.getScheduler().runTask(plugin, () -> sendBrand(player));
     }
 }

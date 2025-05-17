@@ -19,116 +19,107 @@
  * Created with ❤️ for the Minecraft community.
  */
 
-package me.nagibatirowanie.originchat.module.modules;
+ package me.nagibatirowanie.originchat.module.modules;
 
-import me.nagibatirowanie.originchat.OriginChat;
-import me.nagibatirowanie.originchat.module.AbstractModule;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.HandlerList;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
-
-import java.util.HashMap;
-import java.util.Map;
-
-/**
- * Модуль для замены текстовых эмодзи на UTF символы в сообщениях чата
- */
-
-public class EmojiModule extends AbstractModule implements Listener {
-
-    private boolean enabled;
-    private final Map<String, String> emojiMap = new HashMap<>();
-
-    public EmojiModule(OriginChat plugin) {
-        super(plugin, "emoji", "Emoji Module", "Replaces text emoticons with UTF emoji symbols", "1.0");
-    }
-
-    @Override
-    public void onEnable() {
-        loadModuleConfig("modules/emoji");
-        loadConfig();
-        if (!enabled) {
-            return;
-        }
-
-        // Регистрируем обработчик событий
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        log("The emoji module has been successfully enabled. Loading " + emojiMap.size() + " emoji.");
-    }
-
-    @Override
-    public void onDisable() {
-        HandlerList.unregisterAll(this);
-        emojiMap.clear();
-        //log("Модуль эмодзи выключен.");
-    }
-
-    /**
-     * Загружает настройки из конфигурации
-     */
-    private void loadConfig() {
-        try {
-            enabled = config.getBoolean("enabled", true);
-            emojiMap.clear();
-
-            // Загружаем эмодзи из конфигурации
-            ConfigurationSection emojiSection = config.getConfigurationSection("emojis");
-            if (emojiSection != null) {
-                for (String key : emojiSection.getKeys(false)) {
-                    String value = emojiSection.getString(key);
-                    if (value != null && !value.isEmpty()) {
-                        emojiMap.put(key, value);
-                        //debug("Загружен эмодзи: " + key + " -> " + value);
-                    }
-                }
-            }
-
-            if (emojiMap.isEmpty()) {
-                //log("Не найдено ни одного эмодзи в конфигурации. Модуль не будет работать.");
-            }
-        } catch (Exception e) {
-            log("❗ Ошибка при загрузке конфигурации эмодзи: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Заменяет текстовые эмодзи на UTF символы в сообщении
-     * @param message исходное сообщение
-     * @return сообщение с замененными эмодзи
-     */
-    public String replaceEmojis(String message) {
-        if (message == null || message.isEmpty() || emojiMap.isEmpty()) {
-            return message;
-        }
-
-        String result = message;
-        for (Map.Entry<String, String> entry : emojiMap.entrySet()) {
-            result = result.replace(entry.getKey(), entry.getValue());
-        }
-        return result;
-    }
-
-    /**
-     * Обработчик события отправки сообщения в чат
-     * Приоритет LOWEST, чтобы обработать сообщение до других модулей
-     */
-    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-    public void onPlayerChat(AsyncPlayerChatEvent event) {
-        if (!enabled || emojiMap.isEmpty()) {
-            return;
-        }
-
-        String message = event.getMessage();
-        String modifiedMessage = replaceEmojis(message);
-        
-        // Если сообщение было изменено, обновляем его
-        if (!modifiedMessage.equals(message)) {
-            event.setMessage(modifiedMessage);
-            //debug("Заменены эмодзи в сообщении игрока " + event.getPlayer().getName() + ": " + message + " -> " + modifiedMessage);
-        }
-    }
-}
+ import me.nagibatirowanie.originchat.OriginChat;
+ import me.nagibatirowanie.originchat.module.AbstractModule;
+ import org.bukkit.configuration.ConfigurationSection;
+ import org.bukkit.event.EventHandler;
+ import org.bukkit.event.EventPriority;
+ import org.bukkit.event.HandlerList;
+ import org.bukkit.event.Listener;
+ import org.bukkit.event.player.AsyncPlayerChatEvent;
+ 
+ import java.util.HashMap;
+ import java.util.Map;
+ 
+ /**
+  * Module that replaces textual emoticons with Unicode emoji characters in chat messages.
+  */
+ public class EmojiModule extends AbstractModule implements Listener {
+ 
+     private boolean enabled;
+     private final Map<String, String> emojiMap = new HashMap<>();
+ 
+     public EmojiModule(OriginChat plugin) {
+         super(plugin, "emoji", "Emoji Module", "Replaces textual emoticons with Unicode emoji characters", "1.0");
+     }
+ 
+     @Override
+     public void onEnable() {
+         loadModuleConfig("modules/emoji");
+         loadConfig();
+         if (!enabled) {
+             return;
+         }
+ 
+         plugin.getServer().getPluginManager().registerEvents(this, plugin);
+         log("Emoji Module enabled, loaded " + emojiMap.size() + " entries.");
+     }
+ 
+     @Override
+     public void onDisable() {
+         HandlerList.unregisterAll(this);
+         emojiMap.clear();
+     }
+ 
+     /**
+      * Loads configuration settings and populates the emoji map.
+      */
+     private void loadConfig() {
+         try {
+             enabled = config.getBoolean("enabled", true);
+             emojiMap.clear();
+ 
+             ConfigurationSection section = config.getConfigurationSection("emojis");
+             if (section != null) {
+                 for (String key : section.getKeys(false)) {
+                     String value = section.getString(key);
+                     if (value != null && !value.isEmpty()) {
+                         emojiMap.put(key, value);
+                     }
+                 }
+             }
+         } catch (Exception e) {
+             log("Error loading emoji configuration: " + e.getMessage());
+             e.printStackTrace();
+         }
+     }
+ 
+     /**
+      * Replaces all configured textual emoticons in the message with Unicode emojis.
+      *
+      * @param message the original chat message
+      * @return the modified message with emojis, or the original if no replacements were made
+      */
+     public String replaceEmojis(String message) {
+         if (message == null || message.isEmpty() || emojiMap.isEmpty()) {
+             return message;
+         }
+ 
+         String result = message;
+         for (Map.Entry<String, String> entry : emojiMap.entrySet()) {
+             result = result.replace(entry.getKey(), entry.getValue());
+         }
+         return result;
+     }
+ 
+     /**
+      * Handles the AsyncPlayerChatEvent to apply emoji replacements at the lowest priority.
+      *
+      * @param event the chat event
+      */
+     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+     public void onPlayerChat(AsyncPlayerChatEvent event) {
+         if (!enabled || emojiMap.isEmpty()) {
+             return;
+         }
+ 
+         String original = event.getMessage();
+         String modified = replaceEmojis(original);
+         if (!modified.equals(original)) {
+             event.setMessage(modified);
+         }
+     }
+ }
+ 
