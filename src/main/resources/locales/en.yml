@@ -108,7 +108,7 @@ modules:
       translate-disabled: "&cAutomatic message translation disabled."
   server_messages:
     name: "Server Messages"
-    description: "Manage player join/leave messages"
+    description: "Manage player in/leave messages"
     join_messages:
       - "&a+ &f{player} &7joined the server"
       - "&aWelcome, &f{player}!"
@@ -121,6 +121,14 @@ modules:
       - "&6Welcome to the server, &f{player}&6!"
       - "&6Enjoy your game, &f{player}&6!"
       - "&6Glad to see you again, &f{player}&6!"
+    op_messages:
+      sender: "&aYou have granted operator privileges to &f{target}&a!"
+      target: "&aYou have been granted operator privileges by &f{sender}&a!"
+      broadcast: "&f{sender} &ahas granted operator privileges to &f{target}&a!"
+    deop_messages:
+      sender: "&aYou have revoked operator privileges from &f{target}&a!"
+      target: "&cYour operator privileges have been revoked by &f{sender}&c!"
+      broadcast: "&f{sender} &ahas revoked operator privileges from &f{target}&a!"
   private_messages:
     name: "Private Messages"
     description: "Module for sending private messages between players"
@@ -202,3 +210,14 @@ modules:
     messages:
       player_now_afk: "&7{player} &eis now AFK"
       player_no_longer_afk: "&7{player} &eis no longer AFK"
+  bed_messages:
+    name: "Bed Messages"
+    description: "Customizes messages when players interact with beds"
+    messages:
+      bed_enter_success: "&aSpawn point set"
+      bed_enter_not_possible_now: "&cYou can only sleep at night"
+      bed_enter_not_possible_here: "&cYou can't sleep here"
+      bed_enter_too_far_away: "&cThis bed is too far away"
+      bed_enter_not_safe: "&cYou can't sleep now, there are monsters nearby"
+      bed_enter_other_problem: "&cYou can't sleep now"
+      bed_leave: "&eYou left the bed"

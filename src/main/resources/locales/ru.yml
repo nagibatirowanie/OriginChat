@@ -110,6 +110,14 @@ modules:
       - "&6Добро пожаловать на сервер, &f{player}&6!"
       - "&6Приятной игры, &f{player}&6!"
       - "&6Рады видеть вас снова, &f{player}&6!"
+    op_messages:
+      sender: "&aВы выдали права оператора игроку &f{target}&a!"
+      target: "&aВам выданы права оператора игроком &f{sender}&a!"
+      broadcast: "&f{sender} &aвыдал права оператора игроку &f{target}&a!"
+    deop_messages:
+      sender: "&aВы сняли права оператора с игрока &f{target}&a!"
+      target: "&cВаши права оператора были сняты игроком &f{sender}&c!"
+      broadcast: "&f{sender} &aснял права оператора с игрока &f{target}&a!"
   private_messages:
     name: "Приватные сообщения"
     description: "Модуль для отправки личных сообщений между игроками"
@@ -191,3 +199,14 @@ modules:
     messages:
       player_now_afk: "&7{player} &eтеперь AFK"
       player_no_longer_afk: "&7{player} &eбольше не AFK"
+  bed_messages:
+    name: "Сообщения кровати"
+    description: "Настраивает сообщения при взаимодействии игроков с кроватями"
+    messages:
+      bed_enter_success: "&aТочка возрождения установлена"
+      bed_enter_not_possible_now: "&cСпать можно только ночью"
+      bed_enter_not_possible_here: "&cВы не можете спать здесь"
+      bed_enter_too_far_away: "&cЭта кровать слишком далеко"
+      bed_enter_not_safe: "&cВы не можете уснуть, пока рядом есть монстры"
+      bed_enter_other_problem: "&cВы не можете спать сейчас"
+      bed_leave: "&eВы встали с кровати"

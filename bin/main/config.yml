@@ -34,3 +34,4 @@ modules:
     - 'player_info'
     - 'emoji'
     - 'chat_bubbles'
+    - 'bed_messages'

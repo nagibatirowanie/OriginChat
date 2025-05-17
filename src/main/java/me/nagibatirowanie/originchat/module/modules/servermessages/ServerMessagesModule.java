@@ -20,7 +20,7 @@
  */
 
 
-package me.nagibatirowanie.originchat.module.modules;
+package me.nagibatirowanie.originchat.module.modules.servermessages;
 
 import me.nagibatirowanie.originchat.OriginChat;
 import me.nagibatirowanie.originchat.module.AbstractModule;
@@ -46,6 +46,9 @@ public class ServerMessagesModule extends AbstractModule implements Listener {
     private List<String> joinMessages;
     private List<String> leaveMessages;
     private List<String> personalWelcomeMessages;
+    
+    // Подмодуль для обработки сообщений о выдаче прав оператора
+    private OpMessagesSubmodule opMessagesSubmodule;
 
     public ServerMessagesModule(OriginChat plugin) {
         super(plugin, "server_messages", "Server Messages", "Manage player join/leave messages", "1.0");
@@ -56,6 +59,12 @@ public class ServerMessagesModule extends AbstractModule implements Listener {
         loadModuleConfig("modules/server_messages");
         loadConfig();
         Bukkit.getPluginManager().registerEvents(this, plugin);
+        
+        // Инициализация подмодуля сообщений о выдаче прав оператора
+        opMessagesSubmodule = new OpMessagesSubmodule(plugin, this);
+        opMessagesSubmodule.loadConfig();
+        opMessagesSubmodule.initialize();
+        
         log("Server messages module loaded.");
     }
 
@@ -63,6 +72,12 @@ public class ServerMessagesModule extends AbstractModule implements Listener {
     public void onDisable() {
         PlayerJoinEvent.getHandlerList().unregister(this);
         PlayerQuitEvent.getHandlerList().unregister(this);
+        
+        // Отключение подмодуля сообщений о выдаче прав оператора
+        if (opMessagesSubmodule != null) {
+            opMessagesSubmodule.shutdown();
+        }
+        
         log("Server messages module disabled.");
     }
 
@@ -92,6 +107,17 @@ public class ServerMessagesModule extends AbstractModule implements Listener {
                 personalWelcomeMessages.add("&6Welcome to the server, &f{player}&6!");
                 config.set("personal_welcome_messages", personalWelcomeMessages);
             }
+            
+            // Проверяем наличие настроек для подмодуля сообщений о выдаче прав оператора
+            if (!config.contains("op_message_enabled")) {
+                config.set("op_message_enabled", true);
+            }
+            
+            // Настройка для отключения ванильных сообщений о выдаче прав оператора
+            if (!config.contains("disable_vanilla_op_messages")) {
+                config.set("disable_vanilla_op_messages", true);
+            }
+            
             saveModuleConfig("modules/server_messages");
         } catch (Exception e) {
             plugin.getPluginLogger().severe("❗ Error loading ServerMessagesModule config: " + e.getMessage());
@@ -176,11 +202,12 @@ public class ServerMessagesModule extends AbstractModule implements Listener {
         if (messages == null || messages.isEmpty()) {
             return "";
         }
+        // Если в списке только одно сообщение, возвращаем его без рандома
+        if (messages.size() == 1) {
+            return messages.get(0);
+        }
+        // Иначе выбираем случайное сообщение из списка
         return messages.get(new Random().nextInt(messages.size()));
     }
 
-    // Get random message from list
-    //private String getRandomMessage(List<String> messages) {
-        //return messages.get(new Random().nextInt(messages.size()));
-    //}
 }

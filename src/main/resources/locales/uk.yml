@@ -144,6 +144,14 @@ modules:
       - '&6Ласкаво просимо на сервер, &f{player}&6!'
       - '&6Приємної гри, &f{player}&6!'
       - '&6Раді вас знову бачити, &f{player}&6!'
+    op_messages:
+      sender: '&aВи надали права оператора гравцю &f{target}&a!'
+      target: '&aВам надано права оператора гравцем &f{sender}&a!'
+      broadcast: '&f{sender} &aнадав права оператора гравцю &f{target}&a!'
+    deop_messages:
+      sender: '&aВи зняли права оператора з гравця &f{target}&a!'
+      target: '&cВаші права оператора були зняті гравцем &f{sender}&c!'
+      broadcast: '&f{sender} &aзняв права оператора з гравця &f{target}&a!'
   private_messages:
     name: 'Приватні повідомлення'
     description: 'Модуль для надсилання особистих повідомлень між гравцями'
@@ -221,3 +229,14 @@ modules:
     messages:
       player_now_afk: '&7{player} &eтепер AFK'
       player_no_longer_afk: '&7{player} &eбільше не AFK'
+  bed_messages:
+    name: 'Повідомлення ліжка'
+    description: 'Налаштовує повідомлення при взаємодії гравців з ліжками'
+    messages:
+      bed_enter_success: '&aТочка відродження встановлена'
+      bed_enter_not_possible_now: '&cСпати можна тільки вночі'
+      bed_enter_not_possible_here: '&cВи не можете спати тут'
+      bed_enter_too_far_away: '&cЦе ліжко занадто далеко'
+      bed_enter_not_safe: '&cВи не можете заснути, поки поруч є монстри'
+      bed_enter_other_problem: '&cВи не можете спати зараз'
+      bed_leave: '&eВи встали з ліжка'

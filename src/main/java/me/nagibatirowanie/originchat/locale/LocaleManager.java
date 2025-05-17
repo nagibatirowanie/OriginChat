@@ -502,10 +502,32 @@ public class LocaleManager {
         
         java.util.List<String> messages = localeConfig.getStringList(key);
         
+        // Проверяем, если список пуст, но есть одиночное значение
+        if (messages.isEmpty() && localeConfig.contains(key)) {
+            // Проверяем, является ли значение строкой
+            if (localeConfig.isString(key)) {
+                String singleMessage = localeConfig.getString(key);
+                if (singleMessage != null) {
+                    return java.util.Collections.singletonList(ColorUtil.format(singleMessage));
+                }
+            }
+        }
+        
         if (messages.isEmpty()) {
             // If messages not found in specified locale, try to find in default locale
             if (localeConfig != defaultLocale && defaultLocale != null) {
                 messages = defaultLocale.getStringList(key);
+                
+                // Проверяем, если список пуст, но есть одиночное значение в дефолтной локализации
+                if (messages.isEmpty() && defaultLocale.contains(key)) {
+                    // Проверяем, является ли значение строкой
+                    if (defaultLocale.isString(key)) {
+                        String singleMessage = defaultLocale.getString(key);
+                        if (singleMessage != null) {
+                            return java.util.Collections.singletonList(ColorUtil.format(singleMessage));
+                        }
+                    }
+                }
             }
             
             // If messages still not found, return key as error message

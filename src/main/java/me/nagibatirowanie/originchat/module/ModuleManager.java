@@ -2,6 +2,7 @@ package me.nagibatirowanie.originchat.module;
 
 import me.nagibatirowanie.originchat.OriginChat;
 import me.nagibatirowanie.originchat.module.modules.AfkModule;
+import me.nagibatirowanie.originchat.module.modules.BedMessagesModule;
 import me.nagibatirowanie.originchat.module.modules.ChatBubblesModule;
 import me.nagibatirowanie.originchat.module.modules.ChatModule;
 import me.nagibatirowanie.originchat.module.modules.EmojiModule;
@@ -13,7 +14,7 @@ import me.nagibatirowanie.originchat.module.modules.PrivateMessageModule;
 import me.nagibatirowanie.originchat.module.modules.RoleplayModule;
 import me.nagibatirowanie.originchat.module.modules.ScoreboardModule;
 import me.nagibatirowanie.originchat.module.modules.ServerBrandModule;
-import me.nagibatirowanie.originchat.module.modules.ServerMessagesModule;
+import me.nagibatirowanie.originchat.module.modules.servermessages.ServerMessagesModule;
 import me.nagibatirowanie.originchat.module.modules.TabModule;
 
 import java.util.ArrayList;
@@ -55,6 +56,7 @@ public class ModuleManager {
         registerModule(new PlayerInfoModule(plugin));
         registerModule(new EmojiModule(plugin));
         registerModule(new ChatBubblesModule(plugin));
+        registerModule(new BedMessagesModule(plugin));
 
         List<String> enabledFromConfig = plugin.getConfigManager().getMainConfig().getStringList("modules.enabled");
         
