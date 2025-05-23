@@ -2,9 +2,8 @@ package me.nagibatirowanie.originchat.module.modules;
 
 import me.nagibatirowanie.originchat.OriginChat;
 import me.nagibatirowanie.originchat.module.AbstractModule;
-import me.nagibatirowanie.originchat.utils.ColorUtil;
+import me.nagibatirowanie.originchat.utils.FormatUtil;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -69,9 +68,7 @@ public class PlayerInfoModule extends AbstractModule implements Listener {
             template = "&7Player: &f{player}";
         }
         String replaced = template.replace("{player}", target.getName());
-        String formatted = ColorUtil.format(target, replaced, true, true, true);
-
-        Component component = LegacyComponentSerializer.legacySection().deserialize(formatted);
+        Component component = FormatUtil.format(target, replaced, true, true, true);
         clicker.sendActionBar(component);
     }
 }

@@ -2,7 +2,8 @@ package me.nagibatirowanie.originchat.module.modules;
 
 import me.nagibatirowanie.originchat.OriginChat;
 import me.nagibatirowanie.originchat.module.AbstractModule;
-import me.nagibatirowanie.originchat.utils.ColorUtil;
+import me.nagibatirowanie.originchat.utils.FormatUtil;
+import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
@@ -168,9 +169,9 @@ public class MentionsModule extends AbstractModule implements Listener {
                                         .getLocalizedMessage("mentions", "actionbar", mentioned)
                                         .replace("{player}", sender.getName());
 
-            String title = ColorUtil.format(mentioned, rawTitle, true, true, true, true);
-            String subtitle = ColorUtil.format(mentioned, rawSubtitle, true, true, true, true);
-            String actionBar = ColorUtil.format(mentioned, rawActionBar, true, true, true, true);
+            String title = FormatUtil.formatLegacy(mentioned, rawTitle, true, true, true);
+            String subtitle = FormatUtil.formatLegacy(mentioned, rawSubtitle, true, true, true);
+            String actionBar = FormatUtil.formatLegacy(mentioned, rawActionBar, true, true, true);
 
             switch (titleDisplayMode) {
                 case "title":
@@ -191,7 +192,7 @@ public class MentionsModule extends AbstractModule implements Listener {
             String rawChat = plugin.getConfigManager()
                                     .getLocalizedMessage("mentions", "chat_message", mentioned)
                                     .replace("{player}", sender.getName());
-            String chatMsg = ColorUtil.format(mentioned, rawChat, true, true, true, true);
+            Component chatMsg = FormatUtil.format(mentioned, rawChat, true, true, true);
             mentioned.sendMessage(chatMsg);
         }
     }

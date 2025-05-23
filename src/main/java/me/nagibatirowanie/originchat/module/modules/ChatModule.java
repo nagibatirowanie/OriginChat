@@ -24,10 +24,9 @@
  import me.nagibatirowanie.originchat.OriginChat;
  import me.nagibatirowanie.originchat.locale.LocaleManager;
  import me.nagibatirowanie.originchat.module.AbstractModule;
- import me.nagibatirowanie.originchat.module.modules.ChatBubblesModule;
- import me.nagibatirowanie.originchat.translate.TranslateManager;
- import me.nagibatirowanie.originchat.utils.ColorUtil;
+ import me.nagibatirowanie.originchat.utils.FormatUtil;
  import me.nagibatirowanie.originchat.utils.TranslateUtil;
+ import net.kyori.adventure.text.Component;
  import org.bukkit.Bukkit;
  import org.bukkit.command.Command;
  import org.bukkit.command.CommandExecutor;
@@ -406,8 +405,8 @@
                  
                  // Save final message for use in lambdas
                  final String finalMessage = message;
-                 String formattedMessage = formatChatMessage(player, finalMessage, chatConfig, chatName);
-                 
+                 Component formattedMessage = formatChatMessage(player, finalMessage, chatConfig, chatName);
+                
                  // Create chat bubble if module is available
                  if (chatBubblesModule != null) {
                      // Call createChatBubble method in main thread with chat name
@@ -515,7 +514,7 @@
                              for (Player target : playersWithTranslation) {
                                  String locale = plugin.getLocaleManager().getPlayerLocaleRaw(target);
                                  String translatedMessage = translatedMessages.getOrDefault(locale, finalMessage);
-                                 String translatedFormattedMessage = formatChatMessage(player, translatedMessage, chatConfig, chatName);
+                                 Component translatedFormattedMessage = formatChatMessage(player, translatedMessage, chatConfig, chatName);
                                  target.sendMessage(translatedFormattedMessage);
                              }
                          });
@@ -533,7 +532,7 @@
       * @param formattedMessage formatted message
       * @param chatConfig chat configuration
       */
-     private void sendMessageToPlayers(Player sender, String formattedMessage, ChatConfig chatConfig) {
+     private void sendMessageToPlayers(Player sender, Component formattedMessage, ChatConfig chatConfig) {
          if (chatConfig.getRadius() > 0) {
              boolean heard = false;
              for (Player target : sender.getWorld().getPlayers()) {
@@ -565,7 +564,7 @@
       * @param chatName the name of the chat
       * @return formatted message string
       */
-     private String formatChatMessage(Player player, String message, ChatConfig config, String chatName) {
+     private Component formatChatMessage(Player player, String message, ChatConfig config, String chatName) {
          // 1) Raw format from config with immutable placeholders
          String raw = config.getFormat()
              .replace("{player}", player.getName())
@@ -580,7 +579,7 @@
          //    - allowColors = true -> all color tags from config,
          //    - useMiniMessage = miniMessage,
          //    - allowPlaceholders = true -> all %...% are expanded
-         String allConfigFormatted = ColorUtil.format(
+         String allConfigFormatted = FormatUtil.formatLegacy(
              player,
              withMarker,
              /* allowColors= */ true,
@@ -602,7 +601,7 @@
          //      and expand %...% only if allowPlaceholders is true
          //    - if no permission for colors -> disable any colors/MiniMessage,
          //      but still can expand %...% if allowPlaceholders is true
-         String msgFormatted = ColorUtil.format(
+         String msgFormatted = FormatUtil.formatLegacy(
              player,
              message,
              /* allowColors=       */ canColors && hexColors,
@@ -611,7 +610,7 @@
          );
      
          // 7) Glue everything together and return
-         return prefix + msgFormatted + suffix;
+         return FormatUtil.format(player, prefix + msgFormatted + suffix);
      }
      
      /**
@@ -622,7 +621,10 @@
       * @return formatted message
       */
      private String formatMessage(String message) {
-         return ColorUtil.format(message, true, true, true);
+         if (message == null || message.isEmpty()) {
+             return "";
+         }
+         return FormatUtil.formatLegacy(message);
      }
  
      /**

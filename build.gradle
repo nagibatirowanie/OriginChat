@@ -48,6 +48,7 @@ dependencies {
     implementation 'io.netty:netty-codec:4.1.107.Final'
     
     //implementation("org.ahocorasick:ahocorasick:0.4.0")
+    implementation("io.github.milkdrinkers:colorparser:3.0.1")
     //implementation("com.github.retrooper:packetevents-spigot:2.7.0")
 }
 
@@ -68,6 +69,7 @@ tasks {
         
         // Перемещаем классы Netty в наше пространство имен
         relocate 'io.netty', 'me.nagibatirowanie.originchat.libs.netty'
+        relocate("io.github.milkdrinkers.colorparser", "me.nagibatirowanie.originchat.libs.colorparser")
 
         minimize()
         

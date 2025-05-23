@@ -22,8 +22,8 @@
  package me.nagibatirowanie.originchat.module.modules;
 
  import me.nagibatirowanie.originchat.OriginChat;
- import me.nagibatirowanie.originchat.module.AbstractModule;
- import me.nagibatirowanie.originchat.utils.ColorUtil;
+import me.nagibatirowanie.originchat.module.AbstractModule;
+import me.nagibatirowanie.originchat.utils.FormatUtil;
  import org.bukkit.Bukkit;
  import org.bukkit.command.Command;
  import org.bukkit.command.CommandExecutor;
@@ -153,7 +153,7 @@
      public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
          if (!(sender instanceof Player)) {
              String localizedMessage = plugin.getConfigManager().getLocalizedMessage("roleplay", "errors.not-a-player", (Player)null);
-             sender.sendMessage(ColorUtil.format(localizedMessage));
+             sender.sendMessage(FormatUtil.toComponent(localizedMessage));
              return true;
          }
          Player player = (Player) sender;
@@ -163,7 +163,7 @@
          if (args.length == 0 && requiresTextArgument(commandName)) {
              String errorKey = "errors.not-enough-arguments";
              String localizedMessage = plugin.getConfigManager().getLocalizedMessage("roleplay", errorKey, player);
-             player.sendMessage(ColorUtil.format(localizedMessage));
+             player.sendMessage(FormatUtil.toComponent(player, localizedMessage, true, true, true, true));
              return true;
          }
          String message = String.join(" ", args);
@@ -231,7 +231,7 @@
      private void handleRollCommand(Player player, int range, boolean isGlobal, String[] args) {
          if (args.length < 2) {
              String localizedMessage = plugin.getConfigManager().getLocalizedMessage("roleplay", "errors.not-enough-arguments", player);
-             player.sendMessage(ColorUtil.format(localizedMessage));
+             player.sendMessage(FormatUtil.toComponent(player, localizedMessage, true, true, true, true));
              return;
          }
          try {
@@ -260,7 +260,7 @@
                              .replace("{min}", String.valueOf(min))
                              .replace("{max}", String.valueOf(max))
                              .replace("{result}", String.valueOf(result));
-                     target.sendMessage(ColorUtil.format(target, targetFormatted));
+                     target.sendMessage(FormatUtil.format(target, targetFormatted));
                  }
              } else {
                  for (Player target : player.getWorld().getPlayers()) {
@@ -270,13 +270,13 @@
                                  .replace("{min}", String.valueOf(min))
                                  .replace("{max}", String.valueOf(max))
                                  .replace("{result}", String.valueOf(result));
-                         target.sendMessage(ColorUtil.format(target, targetFormatted));
+                         target.sendMessage(FormatUtil.toComponent(target, targetFormatted, true, true, true, true));
                      }
                  }
              }
          } catch (NumberFormatException e) {
              String localizedMessage = plugin.getConfigManager().getLocalizedMessage("roleplay", "errors.not-enough-arguments", player);
-             player.sendMessage(ColorUtil.format(localizedMessage));
+             player.sendMessage(FormatUtil.toComponent(player, localizedMessage, true, true, true, true));
          }
      }
  
@@ -312,7 +312,7 @@
                  String formatted = localizedFormat.replace("{player}", player.getName())
                          .replace("{message}", message)
                          .replace("{result}", answer);
-                 target.sendMessage(ColorUtil.format(target, formatted));
+                 target.sendMessage(FormatUtil.toComponent(target, formatted, true, true, true, true));
              }
          } else {
              for (Player target : player.getWorld().getPlayers()) {
@@ -335,7 +335,7 @@
                      String formatted = localizedFormat.replace("{player}", player.getName())
                              .replace("{message}", message)
                              .replace("{result}", answer);
-                     target.sendMessage(ColorUtil.format(target, formatted));
+                     target.sendMessage(FormatUtil.toComponent(target, formatted, true, true, true, true));
                  }
              }
          }
@@ -372,16 +372,14 @@
              for (Player target : Bukkit.getOnlinePlayers()) {
                  String localizedFormat = plugin.getConfigManager().getLocalizedMessage("roleplay", formatKey, target);
                  String formatted = localizedFormat.replace("{player}", player.getName()).replace("{message}", message);
-                 formatted = ColorUtil.format(target, formatted);
-                 target.sendMessage(formatted);
+                 target.sendMessage(FormatUtil.toComponent(target, formatted, true, true, true, true));
              }
          } else {
              for (Player target : player.getWorld().getPlayers()) {
                  if (target.getLocation().distance(player.getLocation()) <= range) {
                      String localizedFormat = plugin.getConfigManager().getLocalizedMessage("roleplay", formatKey, target);
                      String formatted = localizedFormat.replace("{player}", player.getName()).replace("{message}", message);
-                     formatted = ColorUtil.format(target, formatted);
-                     target.sendMessage(formatted);
+                     target.sendMessage(FormatUtil.format(target, formatted));
                  }
              }
          }

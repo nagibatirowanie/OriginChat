@@ -1,7 +1,7 @@
 package me.nagibatirowanie.originchat.module.modules.servermessages;
 
 import me.nagibatirowanie.originchat.OriginChat;
-import me.nagibatirowanie.originchat.utils.ColorUtil;
+import me.nagibatirowanie.originchat.utils.FormatUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -139,7 +139,7 @@ public class OpMessagesSubmodule implements Listener {
         List<String> senderMsgs = plugin.getConfigManager().getLocalizedMessageList(
                 "server_messages", "op_messages.sender", sender);
         if (!senderMsgs.isEmpty()) {
-            sender.sendMessage(ColorUtil.toComponent(sender,
+            sender.sendMessage(FormatUtil.toComponent(sender,
                     senderMsgs.get(0).replace("{target}", targetName)));
         }
 
@@ -148,7 +148,7 @@ public class OpMessagesSubmodule implements Listener {
             List<String> targetMsgs = plugin.getConfigManager().getLocalizedMessageList(
                     "server_messages", "op_messages.target", target);
             if (!targetMsgs.isEmpty()) {
-                target.sendMessage(ColorUtil.toComponent(target,
+                target.sendMessage(FormatUtil.toComponent(target,
                         targetMsgs.get(0).replace("{sender}", sender.getName())));
             }
 
@@ -158,7 +158,7 @@ public class OpMessagesSubmodule implements Listener {
             if (broadcast != null) {
                 for (Player p : Bukkit.getOnlinePlayers()) {
                     if (p.isOp() && !p.equals(sender) && !p.equals(target)) {
-                        p.sendMessage(ColorUtil.toComponent(p,
+                        p.sendMessage(FormatUtil.toComponent(p,
                                 broadcast.replace("{sender}", sender.getName())
                                          .replace("{target}", targetName)));
                     }
@@ -174,7 +174,7 @@ public class OpMessagesSubmodule implements Listener {
         List<String> senderMsgs = plugin.getConfigManager().getLocalizedMessageList(
                 "server_messages", "deop_messages.sender", sender);
         if (!senderMsgs.isEmpty()) {
-            sender.sendMessage(ColorUtil.toComponent(sender,
+            sender.sendMessage(FormatUtil.toComponent(sender,
                     senderMsgs.get(0).replace("{target}", targetName)));
         }
 
@@ -183,7 +183,7 @@ public class OpMessagesSubmodule implements Listener {
             List<String> targetMsgs = plugin.getConfigManager().getLocalizedMessageList(
                     "server_messages", "deop_messages.target", target);
             if (!targetMsgs.isEmpty()) {
-                target.sendMessage(ColorUtil.toComponent(target,
+                target.sendMessage(FormatUtil.toComponent(target,
                         targetMsgs.get(0).replace("{sender}", sender.getName())));
             }
 
@@ -193,7 +193,7 @@ public class OpMessagesSubmodule implements Listener {
             if (broadcast != null) {
                 for (Player p : Bukkit.getOnlinePlayers()) {
                     if (p.isOp() && !p.equals(sender)) {
-                        p.sendMessage(ColorUtil.toComponent(p,
+                        p.sendMessage(FormatUtil.toComponent(p,
                                 broadcast.replace("{sender}", sender.getName())
                                          .replace("{target}", targetName)));
                     }

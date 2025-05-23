@@ -1,6 +1,7 @@
 package me.nagibatirowanie.originchat.animation;
 
 import me.nagibatirowanie.originchat.OriginChat;
+import me.nagibatirowanie.originchat.utils.FormatUtil;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -72,7 +73,7 @@ public class AnimatedMessage {
                             frame = frame.replace("{player}", player.getName());
                         }
                         if (player != null && player.isOnline()) {
-                            player.sendMessage(frame);
+                            player.sendMessage(FormatUtil.format(player, frame, true, true, true));
                         } else {
                             // If the player is offline, stop the animation
                             stop(player.getUniqueId());

@@ -1,7 +1,7 @@
 package me.nagibatirowanie.originchat.module.modules.servermessages;
 
 import me.nagibatirowanie.originchat.OriginChat;
-import me.nagibatirowanie.originchat.utils.ColorUtil;
+import me.nagibatirowanie.originchat.utils.FormatUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -90,7 +90,7 @@ public class SeedMessagesSubmodule implements Listener {
                             "server_messages", "seed_messages.console", "en");
                     if (formattedMessage != null) {
                         formattedMessage = formattedMessage.replace("{seed}", String.valueOf(seed));
-                        Bukkit.getConsoleSender().sendMessage(ColorUtil.toComponent(null, formattedMessage));
+                        Bukkit.getConsoleSender().sendMessage(FormatUtil.toComponent(null, formattedMessage));
                     } else {
                         // Fallback message
                         Bukkit.getConsoleSender().sendMessage("Seed: " + seed);
@@ -108,7 +108,7 @@ public class SeedMessagesSubmodule implements Listener {
                         "server_messages", "seed_messages.player", player);
                 if (formattedMessage != null) {
                     formattedMessage = formattedMessage.replace("{seed}", String.valueOf(seed));
-                    player.sendMessage(ColorUtil.toComponent(player, formattedMessage));
+                    player.sendMessage(FormatUtil.toComponent(player, formattedMessage));
                 } else {
                     // Fallback message
                     player.sendMessage("Seed: " + seed);

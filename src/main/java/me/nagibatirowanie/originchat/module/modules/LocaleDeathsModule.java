@@ -2,7 +2,7 @@ package me.nagibatirowanie.originchat.module.modules;
 
 import me.nagibatirowanie.originchat.OriginChat;
 import me.nagibatirowanie.originchat.module.AbstractModule;
-import me.nagibatirowanie.originchat.utils.ColorUtil;
+import me.nagibatirowanie.originchat.utils.FormatUtil;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.translation.GlobalTranslator;
 import org.bukkit.Sound;
@@ -109,8 +109,8 @@ public class LocaleDeathsModule extends AbstractModule implements Listener {
      * @return the message with prefix and suffix applied
      */
     private Component formatMessage(Component message) {
-        Component pre = ColorUtil.toComponent(prefix);
-        Component suf = ColorUtil.toComponent(suffix);
+        Component pre = FormatUtil.format(prefix);
+        Component suf = FormatUtil.format(suffix);
         return pre.append(message).append(suf);
     }
 

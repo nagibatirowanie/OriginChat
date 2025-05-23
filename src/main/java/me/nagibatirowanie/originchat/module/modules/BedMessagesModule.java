@@ -23,16 +23,17 @@
 
  import me.nagibatirowanie.originchat.OriginChat;
  import me.nagibatirowanie.originchat.module.AbstractModule;
- import me.nagibatirowanie.originchat.utils.ColorUtil;
+ import me.nagibatirowanie.originchat.utils.FormatUtil;
+ import net.kyori.adventure.text.Component;
  import org.bukkit.Bukkit;
+ import org.bukkit.Sound;
  import org.bukkit.entity.Player;
  import org.bukkit.event.EventHandler;
  import org.bukkit.event.EventPriority;
+ import org.bukkit.event.HandlerList;
  import org.bukkit.event.Listener;
  import org.bukkit.event.player.PlayerBedEnterEvent;
  import org.bukkit.event.player.PlayerBedLeaveEvent;
- import net.md_5.bungee.api.ChatMessageType;
- import net.md_5.bungee.api.chat.TextComponent;
  
  /**
   * Module that customizes messages and sounds for bed interactions.
@@ -64,14 +65,18 @@
      public void onEnable() {
          loadModuleConfig("modules/bed_messages");
          loadConfig();
+         
+         if (!enabled) {
+             return;
+         }
+         
          Bukkit.getPluginManager().registerEvents(this, plugin);
          log("Bed messages module loaded.");
      }
  
      @Override
      public void onDisable() {
-         PlayerBedEnterEvent.getHandlerList().unregister(this);
-         PlayerBedLeaveEvent.getHandlerList().unregister(this);
+         HandlerList.unregisterAll(this);
          log("Bed messages module disabled.");
      }
  
@@ -96,9 +101,15 @@
              leaveSoundPitch = (float) config.getDouble("sounds.leave.pitch", 1.2);
  
              saveModuleConfig("modules/bed_messages");
+             
+             debug(String.format(
+                 "Loaded configuration: enabled=%s, playSound=%s",
+                 enabled, playSound
+             ));
          } catch (Exception e) {
-             plugin.getPluginLogger().severe("Error loading BedMessagesModule config: " + e.getMessage());
+             log("Error loading BedMessagesModule config: " + e.getMessage());
              e.printStackTrace();
+             enabled = false;
          }
      }
  
@@ -113,29 +124,10 @@
  
          Player player = event.getPlayer();
          PlayerBedEnterEvent.BedEnterResult result = event.getBedEnterResult();
-         String messageKey;
- 
-         switch (result) {
-             case OK:
-                 messageKey = "modules.bed_messages.messages.bed_enter_success";
-                 break;
-             case NOT_POSSIBLE_NOW:
-                 messageKey = "modules.bed_messages.messages.bed_enter_not_possible_now";
-                 break;
-             case NOT_POSSIBLE_HERE:
-                 messageKey = "modules.bed_messages.messages.bed_enter_not_possible_here";
-                 break;
-             case TOO_FAR_AWAY:
-                 messageKey = "modules.bed_messages.messages.bed_enter_too_far_away";
-                 break;
-             case NOT_SAFE:
-                 messageKey = "modules.bed_messages.messages.bed_enter_not_safe";
-                 break;
-             case OTHER_PROBLEM:
-                 messageKey = "modules.bed_messages.messages.bed_enter_other_problem";
-                 break;
-             default:
-                 return;
+         String messageKey = getMessageKeyForResult(result);
+         
+         if (messageKey == null) {
+             return;
          }
  
          String locale = plugin.getLocaleManager().getPlayerLocale(player);
@@ -143,23 +135,51 @@
  
          if (message == null || message.isEmpty()) return;
  
+         // Create formatted component using FormatUtil
+         Component formattedMessage = FormatUtil.format(player, message);
+ 
          if (result != PlayerBedEnterEvent.BedEnterResult.OK) {
              event.setCancelled(true);
-             player.spigot().sendMessage(
-                 ChatMessageType.ACTION_BAR,
-                 TextComponent.fromLegacyText(ColorUtil.format(player, message))
-             );
-             player.sendMessage(ColorUtil.format(player, message));
+             // Send action bar message
+             player.sendActionBar(formattedMessage);
+             // Also send regular chat message
+             player.sendMessage(formattedMessage);
          } else {
+             // Delay message for successful bed entry
              Bukkit.getScheduler().runTaskLater(plugin, () -> {
                  if (player.isSleeping()) {
-                     player.sendMessage(ColorUtil.format(player, message));
+                     player.sendMessage(formattedMessage);
                  }
              }, 5L);
          }
  
          if (playSound) {
              playEnterSound(player, result == PlayerBedEnterEvent.BedEnterResult.OK);
+         }
+     }
+     
+     /**
+      * Gets the message key for the bed enter result.
+      *
+      * @param result the bed enter result
+      * @return the message key or null if no message should be sent
+      */
+     private String getMessageKeyForResult(PlayerBedEnterEvent.BedEnterResult result) {
+         switch (result) {
+             case OK:
+                 return "modules.bed_messages.messages.bed_enter_success";
+             case NOT_POSSIBLE_NOW:
+                 return "modules.bed_messages.messages.bed_enter_not_possible_now";
+             case NOT_POSSIBLE_HERE:
+                 return "modules.bed_messages.messages.bed_enter_not_possible_here";
+             case TOO_FAR_AWAY:
+                 return "modules.bed_messages.messages.bed_enter_too_far_away";
+             case NOT_SAFE:
+                 return "modules.bed_messages.messages.bed_enter_not_safe";
+             case OTHER_PROBLEM:
+                 return "modules.bed_messages.messages.bed_enter_other_problem";
+             default:
+                 return null;
          }
      }
  
@@ -174,7 +194,11 @@
              String soundName = success ? successSoundName : errorSoundName;
              float volume = success ? successSoundVolume : errorSoundVolume;
              float pitch = success ? successSoundPitch : errorSoundPitch;
-             player.playSound(player.getLocation(), org.bukkit.Sound.valueOf(soundName), volume, pitch);
+             
+             Sound sound = Sound.valueOf(soundName);
+             player.playSound(player.getLocation(), sound, volume, pitch);
+         } catch (IllegalArgumentException e) {
+             log("Invalid sound name: " + (success ? successSoundName : errorSoundName));
          } catch (Exception e) {
              log("Error playing sound: " + e.getMessage());
          }
@@ -195,19 +219,32 @@
  
          if (message == null || message.isEmpty()) return;
  
-         player.spigot().sendMessage(
-             ChatMessageType.ACTION_BAR,
-             TextComponent.fromLegacyText(ColorUtil.format(player, message))
-         );
-         player.sendMessage(ColorUtil.format(player, message));
+         // Create formatted component using FormatUtil
+         Component formattedMessage = FormatUtil.format(player, message);
+         
+         // Send action bar message
+         player.sendActionBar(formattedMessage);
+         // Also send regular chat message
+         player.sendMessage(formattedMessage);
  
          if (playSound) {
-             try {
-                 player.playSound(player.getLocation(), org.bukkit.Sound.valueOf(leaveSoundName), leaveSoundVolume, leaveSoundPitch);
-             } catch (Exception e) {
-                 log("Error playing sound: " + e.getMessage());
-             }
+             playLeaveSound(player);
+         }
+     }
+     
+     /**
+      * Plays the sound when leaving a bed.
+      *
+      * @param player the player
+      */
+     private void playLeaveSound(Player player) {
+         try {
+             Sound sound = Sound.valueOf(leaveSoundName);
+             player.playSound(player.getLocation(), sound, leaveSoundVolume, leaveSoundPitch);
+         } catch (IllegalArgumentException e) {
+             log("Invalid sound name: " + leaveSoundName);
+         } catch (Exception e) {
+             log("Error playing sound: " + e.getMessage());
          }
      }
  }
- 

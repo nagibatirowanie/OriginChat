@@ -22,8 +22,8 @@
  package me.nagibatirowanie.originchat.module.modules;
 
  import me.nagibatirowanie.originchat.OriginChat;
- import me.nagibatirowanie.originchat.module.AbstractModule;
- import me.nagibatirowanie.originchat.utils.ColorUtil;
+import me.nagibatirowanie.originchat.module.AbstractModule;
+import me.nagibatirowanie.originchat.utils.FormatUtil;
  import org.bukkit.Bukkit;
  import org.bukkit.command.Command;
  import org.bukkit.command.CommandExecutor;
@@ -111,7 +111,7 @@
      public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
          if (!(sender instanceof Player)) {
              String localizedMessage = plugin.getConfigManager().getLocalizedMessage("private_messages", "messages.not-a-player", (Player)null);
-             sender.sendMessage(ColorUtil.format(localizedMessage));
+             sender.sendMessage(FormatUtil.format(localizedMessage));
              return true;
          }
  
@@ -120,13 +120,13 @@
          if (command.getName().equalsIgnoreCase("msg")) {
              if (args.length == 0) {
                  String msg = plugin.getConfigManager().getLocalizedMessage("private_messages", "messages.player-not-specified", player);
-                 player.sendMessage(ColorUtil.format(player, msg));
+                 player.sendMessage(FormatUtil.format(player, msg));
                  return true;
              }
  
              if (args.length == 1) {
                  String msg = plugin.getConfigManager().getLocalizedMessage("private_messages", "messages.message-not-specified", player);
-                 player.sendMessage(ColorUtil.format(player, msg));
+                 player.sendMessage(FormatUtil.format(player, msg));
                  return true;
              }
  
@@ -135,13 +135,13 @@
              if (target == null || !target.isOnline()) {
                  String msg = plugin.getConfigManager().getLocalizedMessage("private_messages", "messages.player-not-found", player);
                  msg = msg.replace("{player}", args[0]);
-                 player.sendMessage(ColorUtil.format(player, msg));
+                 player.sendMessage(FormatUtil.format(player, msg));
                  return true;
              }
  
              if (target.getUniqueId().equals(player.getUniqueId())) {
                  String msg = plugin.getConfigManager().getLocalizedMessage("private_messages", "messages.cannot-message-yourself", player);
-                 player.sendMessage(ColorUtil.format(player, msg));
+                 player.sendMessage(FormatUtil.format(player, msg));
                  return true;
              }
  
@@ -153,14 +153,14 @@
          if (command.getName().equalsIgnoreCase("r")) {
              if (args.length == 0) {
                  String msg = plugin.getConfigManager().getLocalizedMessage("private_messages", "messages.message-not-specified", player);
-                 player.sendMessage(ColorUtil.format(player, msg));
+                 player.sendMessage(FormatUtil.format(player, msg));
                  return true;
              }
  
              Player lastTarget = lastMessageMap.get(player);
              if (lastTarget == null || !lastTarget.isOnline()) {
                  String msg = plugin.getConfigManager().getLocalizedMessage("private_messages", "messages.no-reply-target", player);
-                 player.sendMessage(ColorUtil.format(player, msg));
+                 player.sendMessage(FormatUtil.format(player, msg));
                  return true;
              }
  
@@ -193,8 +193,8 @@
          String formattedSenderMessage = formatMessage(senderLocalizedFormat, sender, receiver, message);
          String formattedReceiverMessage = formatMessage(receiverLocalizedFormat, sender, receiver, message);
  
-         sender.sendMessage(ColorUtil.toComponent(sender, formattedSenderMessage));
-         receiver.sendMessage(ColorUtil.toComponent(receiver, formattedReceiverMessage));
+         sender.sendMessage(FormatUtil.toComponent(sender, formattedSenderMessage));
+         receiver.sendMessage(FormatUtil.toComponent(receiver, formattedReceiverMessage));
  
          lastMessageMap.put(sender, receiver);
          lastMessageMap.put(receiver, sender);

@@ -1,0 +1,80 @@
+# Конфигурация модуля автоматических сообщений
+
+# Включить/выключить модуль
+enabled: true
+
+# Настройки сообщений
+messages:
+  # Пример простого сообщения в чат
+  welcome:
+    type: chat                # Тип сообщения: chat, actionbar, title, subtitle
+    interval: 300            # Интервал отправки в секундах (5 минут)
+    random: false            # Случайный порядок сообщений
+    message: "&aДобро пожаловать на сервер! Приятной игры!"  # Текст сообщения
+
+  # Пример сообщения с несколькими вариантами
+  tips:
+    type: chat
+    interval: 600            # 10 минут
+    random: true             # Случайный выбор из списка
+    message:
+      tip1:
+        ru:
+          - "&eСовет: &7Используйте команду &f/help &7для получения списка команд."
+        en:
+          - "&eTip: &7Use the &f/help &7command to get a list of commands."
+      tip2:
+        ru:
+          - "&eСовет: &7Попробуйте использовать команду &f/weather &7для изменения погоды."
+        en:
+          - "&eTip: &7Try using the &f/weather &7command to change the weather."
+  # Пример локализованного сообщения
+  greeting:
+    type: chat
+    interval: 900            # 15 минут
+    random: false
+    message:
+      ru:
+        - "&bПривет! &7Как дела? Хорошей игры!"
+        - "&bДобро пожаловать! &7Надеемся, вам нравится на нашем сервере."
+      en:
+        - "&bHello! &7How are you? Have a good game!"
+        - "&bWelcome! &7We hope you're enjoying our server."
+
+  # Пример сообщения в action bar
+  actionbar_message:
+    type: actionbar
+    interval: 180            # 3 минуты
+    random: true
+    message:
+      ru: 
+        - "&6Не забудьте посетить наш сайт!"
+        - "&6Используйте команду &f/help &6для получения помощи."
+      en:
+        - "&6Don't forget to visit our website!"
+        - "&6Use &f/help &6command to get assistance."
+
+  # Пример заголовка (title)
+  title_message:
+    type: title
+    interval: 1200           # 20 минут
+    random: false
+    fade_in: 10              # Время появления (тики)
+    stay: 70                 # Время отображения (тики)
+    fade_out: 20             # Время исчезновения (тики)
+    message:
+      ru: "&c&lВажное сообщение!"
+      en: "&c&lImportant message!"
+
+  # Пример подзаголовка (subtitle)
+  subtitle_message:
+    type: subtitle
+    interval: 1200           # 20 минут
+    random: false
+    fade_in: 10
+    stay: 70
+    fade_out: 20
+    title: "&6&lВнимание!"   # Заголовок для подзаголовка
+    message:
+      ru: "&eНе забудьте проголосовать за наш сервер!"
+      en: "&eDon't forget to vote for our server!"

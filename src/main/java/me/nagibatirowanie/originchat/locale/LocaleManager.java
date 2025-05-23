@@ -2,7 +2,7 @@ package me.nagibatirowanie.originchat.locale;
 
 import com.tchristofferson.configupdater.ConfigUpdater;
 import me.nagibatirowanie.originchat.OriginChat;
-import me.nagibatirowanie.originchat.utils.ColorUtil;
+import me.nagibatirowanie.originchat.utils.FormatUtil;
 
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -242,7 +242,7 @@ public class LocaleManager {
             }
         }
         
-        return ColorUtil.format(message);
+        return FormatUtil.formatLegacy(message);
     }
     
     /**
@@ -253,9 +253,10 @@ public class LocaleManager {
      */
     public void sendMessage(CommandSender sender, String key, Object... args) {
         String locale = defaultLanguage;
+        Player player = null;
         
         if (sender instanceof Player) {
-            Player player = (Player) sender;
+            player = (Player) sender;
             locale = getPlayerLocale(player);
         }
         
@@ -270,7 +271,8 @@ public class LocaleManager {
             }
         }
         
-        sender.sendMessage(message);
+        // Send formatted message using Adventure API
+        sender.sendMessage(FormatUtil.format(player, message, true, true, true));
     }
     
     /**
@@ -508,7 +510,7 @@ public class LocaleManager {
             if (localeConfig.isString(key)) {
                 String singleMessage = localeConfig.getString(key);
                 if (singleMessage != null) {
-                    return java.util.Collections.singletonList(ColorUtil.format(singleMessage));
+                    return java.util.Collections.singletonList(FormatUtil.formatLegacy(singleMessage));
                 }
             }
         }
@@ -524,7 +526,7 @@ public class LocaleManager {
                     if (defaultLocale.isString(key)) {
                         String singleMessage = defaultLocale.getString(key);
                         if (singleMessage != null) {
-                            return java.util.Collections.singletonList(ColorUtil.format(singleMessage));
+                            return java.util.Collections.singletonList(FormatUtil.formatLegacy(singleMessage));
                         }
                     }
                 }
@@ -538,7 +540,7 @@ public class LocaleManager {
         
         // Format colors for each message
         return messages.stream()
-                .map(ColorUtil::format)
+                .map(FormatUtil::formatLegacy)
                 .collect(java.util.stream.Collectors.toList());
     }
     
@@ -550,9 +552,10 @@ public class LocaleManager {
      */
     public void sendMessageList(CommandSender sender, String key, Object... args) {
         String locale = defaultLanguage;
+        Player player = null;
         
         if (sender instanceof Player) {
-            Player player = (Player) sender;
+            player = (Player) sender;
             locale = getPlayerLocale(player);
         }
         
@@ -571,7 +574,9 @@ public class LocaleManager {
             }
         }
         
-        // Send each message
-        messages.forEach(sender::sendMessage);
+        // Send each message with proper formatting
+        for (String message : messages) {
+            sender.sendMessage(FormatUtil.format(player, message, true, true, true));
+        }
     }
 }

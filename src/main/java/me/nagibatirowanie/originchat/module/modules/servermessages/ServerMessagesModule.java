@@ -24,7 +24,7 @@ package me.nagibatirowanie.originchat.module.modules.servermessages;
 
 import me.nagibatirowanie.originchat.OriginChat;
 import me.nagibatirowanie.originchat.module.AbstractModule;
-import me.nagibatirowanie.originchat.utils.ColorUtil;
+import me.nagibatirowanie.originchat.utils.FormatUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -195,7 +195,7 @@ public class ServerMessagesModule extends AbstractModule implements Listener {
             if (!localizedWelcomeMessages.isEmpty()) {
                 String welcomeMessage = getRandomMessage(localizedWelcomeMessages);
                 welcomeMessage = welcomeMessage.replace("{player}", player.getName());
-                player.sendMessage(ColorUtil.toComponent(player, welcomeMessage));
+                player.sendMessage(FormatUtil.toComponent(player, welcomeMessage));
             }
         }
 
@@ -214,10 +214,10 @@ public class ServerMessagesModule extends AbstractModule implements Listener {
                 if (!localizedJoinMessages.isEmpty()) {
                     String localizedMessage = getRandomMessage(localizedJoinMessages);
                     localizedMessage = localizedMessage.replace("{player}", player.getName());
-                    onlinePlayer.sendMessage(ColorUtil.toComponent(onlinePlayer, localizedMessage));
+                    onlinePlayer.sendMessage(FormatUtil.toComponent(onlinePlayer, localizedMessage));
                 } else {
                     // Fallback to config message if localization is not available
-                    onlinePlayer.sendMessage(ColorUtil.toComponent(onlinePlayer, baseJoinMessage));
+                    onlinePlayer.sendMessage(FormatUtil.toComponent(onlinePlayer, baseJoinMessage));
                 }
             }
         } else {
@@ -251,10 +251,10 @@ public class ServerMessagesModule extends AbstractModule implements Listener {
                 if (!localizedLeaveMessages.isEmpty()) {
                     String localizedMessage = getRandomMessage(localizedLeaveMessages);
                     localizedMessage = localizedMessage.replace("{player}", player.getName());
-                    onlinePlayer.sendMessage(ColorUtil.toComponent(onlinePlayer, localizedMessage));
+                    onlinePlayer.sendMessage(FormatUtil.toComponent(onlinePlayer, localizedMessage));
                 } else {
                     // Fallback to config message if localization is not available
-                    onlinePlayer.sendMessage(ColorUtil.toComponent(onlinePlayer, baseLeaveMessage));
+                    onlinePlayer.sendMessage(FormatUtil.toComponent(onlinePlayer, baseLeaveMessage));
                 }
             }
         } else {

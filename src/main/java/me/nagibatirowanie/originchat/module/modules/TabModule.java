@@ -23,7 +23,7 @@ package me.nagibatirowanie.originchat.module.modules;
 
 import me.nagibatirowanie.originchat.OriginChat;
 import me.nagibatirowanie.originchat.module.AbstractModule;
-import me.nagibatirowanie.originchat.utils.ColorUtil;
+import me.nagibatirowanie.originchat.utils.FormatUtil;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.model.group.Group;
 import net.luckperms.api.model.user.User;
@@ -302,10 +302,10 @@ public class TabModule extends AbstractModule {
         header = applyPlaceholders(player, header);
         footer = applyPlaceholders(player, footer);
         
-        header = ColorUtil.format(player, header, true, true, true);
-        footer = ColorUtil.format(player, footer, true, true, true);
-        
-        player.setPlayerListHeaderFooter(header, footer);
+        player.sendPlayerListHeaderAndFooter(
+            FormatUtil.format(player, header, true, true, true),
+            FormatUtil.format(player, footer, true, true, true)
+        );
     }
 
     /**
@@ -319,9 +319,8 @@ public class TabModule extends AbstractModule {
         name = applyPlaceholders(player, name);
         name = name.replace("{player}", player.getName());
         
-        name = ColorUtil.format(player, name, true, true, true);
-        
-        return name;
+        return FormatUtil.formatLegacy(player, name, true, true, true);
+
     }
 
     /**
@@ -342,7 +341,7 @@ public class TabModule extends AbstractModule {
         text = text.replace("{ping}", String.valueOf(player.getPing()));
         text = text.replace("{group}", getPlayerGroup(player));
         
-        text = ColorUtil.setPlaceholders(player, text);
+        text = FormatUtil.setPlaceholders(player, text);
         
         return text;
     }

@@ -2,7 +2,7 @@ package me.nagibatirowanie.originchat.commands;
 
 import me.nagibatirowanie.originchat.OriginChat;
 import me.nagibatirowanie.originchat.locale.LocaleManager;
-import me.nagibatirowanie.originchat.utils.ColorUtil;
+import me.nagibatirowanie.originchat.utils.FormatUtil;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -358,9 +358,9 @@ public class CommandManager implements CommandExecutor, TabCompleter {
                         if (formattedFrame.contains("{player}")) {
                             formattedFrame = formattedFrame.replace("{player}", player.getName());
                         }
-                        formattedFrame = ColorUtil.format(player, formattedFrame);
+                        formattedFrame = FormatUtil.formatLegacy(player, formattedFrame);
                     } else {
-                        formattedFrame = ColorUtil.format(formattedFrame);
+                        formattedFrame = FormatUtil.formatLegacy(formattedFrame);
                     }
                     String frameNumberMsg = localeManager.getMessage("commands.animation.frame_number", locale).replace("{number}", String.valueOf(index + 1));
                     sender.sendMessage("§7" + frameNumberMsg + "§r" + formattedFrame);
@@ -402,7 +402,7 @@ public class CommandManager implements CommandExecutor, TabCompleter {
                         frame = frame.replace("{player}", player.getName());
                     }
                     // Применяем форматирование цветов
-                    frame = ColorUtil.format(player, frame);
+                    frame = FormatUtil.formatLegacy(player, frame);
                     String frameNumberMsg = localeManager.getMessage("commands.animation.frame_number", locale).replace("{number}", String.valueOf(i + 1));
                     sender.sendMessage("§7" + frameNumberMsg + "§r" + frame);
                 }

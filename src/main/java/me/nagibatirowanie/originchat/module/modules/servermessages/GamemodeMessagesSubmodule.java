@@ -1,7 +1,7 @@
 package me.nagibatirowanie.originchat.module.modules.servermessages;
 
 import me.nagibatirowanie.originchat.OriginChat;
-import me.nagibatirowanie.originchat.utils.ColorUtil;
+import me.nagibatirowanie.originchat.utils.FormatUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
@@ -190,7 +190,7 @@ public class GamemodeMessagesSubmodule implements Listener {
         String message = plugin.getConfigManager().getLocalizedMessage(
                 "server_messages", "gamemode_messages.player_not_found", sender);
         if (message != null) {
-            sender.sendMessage(ColorUtil.toComponent(sender, 
+            sender.sendMessage(FormatUtil.toComponent(sender, 
                     message.replace("{player}", targetName)));
         } else {
             // Fallback message if localization is not available
@@ -205,7 +205,7 @@ public class GamemodeMessagesSubmodule implements Listener {
         String message = plugin.getConfigManager().getLocalizedMessage(
                 "server_messages", "gamemode_messages.already_in_gamemode", sender);
         if (message != null) {
-            sender.sendMessage(ColorUtil.toComponent(sender, 
+            sender.sendMessage(FormatUtil.toComponent(sender, 
                     message.replace("{player}", target.getName())
                            .replace("{gamemode}", getLocalizedGamemodeName(gamemode, sender))));
         } else {
@@ -221,7 +221,7 @@ public class GamemodeMessagesSubmodule implements Listener {
             String senderMsg = plugin.getConfigManager().getLocalizedMessage(
                     "server_messages", "gamemode_messages.sender", sender);
             if (senderMsg != null) {
-                sender.sendMessage(ColorUtil.toComponent(sender,
+                sender.sendMessage(FormatUtil.toComponent(sender,
                         senderMsg.replace("{target}", target.getName())
                                 .replace("{gamemode}", getLocalizedGamemodeName(gamemode, sender))));
             }
@@ -231,7 +231,7 @@ public class GamemodeMessagesSubmodule implements Listener {
         String targetMsg = plugin.getConfigManager().getLocalizedMessage(
                 "server_messages", "gamemode_messages.target", target);
         if (targetMsg != null) {
-            target.sendMessage(ColorUtil.toComponent(target,
+            target.sendMessage(FormatUtil.toComponent(target,
                     targetMsg.replace("{sender}", sender.getName())
                             .replace("{gamemode}", getLocalizedGamemodeName(gamemode, target))));
         }
@@ -242,7 +242,7 @@ public class GamemodeMessagesSubmodule implements Listener {
         if (broadcast != null) {
             for (Player p : Bukkit.getOnlinePlayers()) {
                 if (p.isOp() && !p.equals(sender) && !p.equals(target)) {
-                    p.sendMessage(ColorUtil.toComponent(p,
+                    p.sendMessage(FormatUtil.toComponent(p,
                             broadcast.replace("{sender}", sender.getName())
                                     .replace("{target}", target.getName())
                                     .replace("{gamemode}", getLocalizedGamemodeName(gamemode, p))));

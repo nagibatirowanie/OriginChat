@@ -2,6 +2,8 @@ package me.nagibatirowanie.originchat.config;
 
 import com.tchristofferson.configupdater.ConfigUpdater;
 import me.nagibatirowanie.originchat.OriginChat;
+import me.nagibatirowanie.originchat.utils.FormatUtil;
+import net.kyori.adventure.text.Component;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -235,6 +237,36 @@ public class ConfigManager {
     }
     
     /**
+     * Get localized message as Adventure Component from module config
+     * @param moduleName module name without .yml extension
+     * @param path path to message in config
+     * @param locale locale code (e.g. "en", "ru")
+     * @return localized message as Component or message from default locale if not found
+     */
+    public Component getLocalizedComponent(String moduleName, String path, String locale) {
+        String message = getLocalizedMessage(moduleName, path, locale);
+        return FormatUtil.format(message);
+    }
+    
+    /**
+     * Get localized message as Adventure Component from module config
+     * @param moduleName module name without .yml extension
+     * @param path path to message in config
+     * @param player player to get locale from, can be null (will use default locale)
+     * @return localized message as Component
+     */
+    public Component getLocalizedComponent(String moduleName, String path, Player player) {
+        String locale;
+        if (player != null) {
+            locale = plugin.getLocaleManager().getPlayerLocale(player);
+        } else {
+            locale = plugin.getLocaleManager().getDefaultLanguage();
+        }
+        
+        return getLocalizedComponent(moduleName, path, locale);
+    }
+    
+    /**
      * Get localized message from module config
      * @param moduleName module name without .yml extension
      * @param path path to message in config
@@ -322,5 +354,37 @@ public class ConfigManager {
         }
         
         return getLocalizedMessageList(moduleName, path, locale);
+    }
+    
+    /**
+     * Get localized message list as Adventure Components from module config
+     * @param moduleName module name without .yml extension
+     * @param path path to message list in config
+     * @param locale locale code (e.g. "en", "ru")
+     * @return list of localized messages as Components
+     */
+    public List<Component> getLocalizedComponentList(String moduleName, String path, String locale) {
+        List<String> messages = getLocalizedMessageList(moduleName, path, locale);
+        return messages.stream()
+                .map(FormatUtil::format)
+                .collect(java.util.stream.Collectors.toList());
+    }
+    
+    /**
+     * Get localized message list as Adventure Components from module config
+     * @param moduleName module name without .yml extension
+     * @param path path to message list in config
+     * @param player player to get locale from, can be null (will use default locale)
+     * @return list of localized messages as Components
+     */
+    public List<Component> getLocalizedComponentList(String moduleName, String path, Player player) {
+        String locale;
+        if (player != null) {
+            locale = plugin.getLocaleManager().getPlayerLocale(player);
+        } else {
+            locale = plugin.getLocaleManager().getDefaultLanguage();
+        }
+        
+        return getLocalizedComponentList(moduleName, path, locale);
     }
 }

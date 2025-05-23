@@ -24,7 +24,7 @@ package me.nagibatirowanie.originchat.module.modules;
 import fr.mrmicky.fastboard.FastBoard;
 import me.nagibatirowanie.originchat.OriginChat;
 import me.nagibatirowanie.originchat.module.AbstractModule;
-import me.nagibatirowanie.originchat.utils.ColorUtil;
+import me.nagibatirowanie.originchat.utils.FormatUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -182,14 +182,10 @@ public class ScoreboardModule extends AbstractModule implements Listener {
         }
 
         String processed = applyPlaceholders(player, text);
-        processed = ColorUtil.setPlaceholders(player, processed);
+        processed = FormatUtil.setPlaceholders(player, processed);
 
-        if (processed.contains("#")) {
-            processed = processed.replace('&', '§');
-            return ColorUtil.processHexColorsToLegacy(processed);
-        }
-
-        return ColorUtil.format(player, processed, true, true, true);
+        // Используем FormatUtil.formatLegacy, так как FastBoard требует строки, а не Component
+        return FormatUtil.formatLegacy(player, processed, true, true, true);
     }
 
     /**

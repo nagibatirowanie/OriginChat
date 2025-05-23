@@ -2,11 +2,8 @@ package me.nagibatirowanie.originchat.module.modules;
 
 import me.nagibatirowanie.originchat.OriginChat;
 import me.nagibatirowanie.originchat.module.AbstractModule;
-import me.nagibatirowanie.originchat.utils.ColorUtil;
+import me.nagibatirowanie.originchat.utils.FormatUtil;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.TextColor;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
-import org.bukkit.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.advancement.Advancement;
@@ -151,38 +148,39 @@ public class LocaleAdvancementsModule extends AbstractModule implements Listener
         for (MessagePart part : parts) {
             if (part instanceof TextPart) {
                 String text = ((TextPart) part).text;
-                String colored = ChatColor.translateAlternateColorCodes('&', ColorUtil.format(text));
-                Component comp = LegacyComponentSerializer.legacySection().deserialize(colored);
+                Component comp = FormatUtil.format(text, true, true, true);
                 result = result.append(comp);
 
             } else if (part instanceof PlaceholderPart) {
                 String ph = ((PlaceholderPart) part).placeholder;
                 Component comp;
                 switch (ph) {
-                    case "player": comp = Component.text(player.getName())
-                                                .color(parseColor(playerNameColor)); break;
-                    case "title":  comp = titleComponent.color(parseColor(titleColor)); break;
-                    case "goal":   comp = Component.text("goal").color(parseColor(goalColor)); break;
-                    default:        comp = Component.text("{" + ph + "}");
+                    case "player": {
+                        Component playerName = Component.text(player.getName());
+                        Component coloredName = FormatUtil.format(playerNameColor)
+                                .append(playerName);
+                        comp = coloredName;
+                        break;
+                    }
+                    case "title": {
+                        Component coloredTitle = FormatUtil.format(titleColor)
+                                .append(titleComponent);
+                        comp = coloredTitle;
+                        break;
+                    }
+                    case "goal": {
+                        Component goalText = Component.text("goal");
+                        Component coloredGoal = FormatUtil.format(goalColor)
+                                .append(goalText);
+                        comp = coloredGoal;
+                        break;
+                    }
+                    default: comp = Component.text("{" + ph + "}");
                 }
                 result = result.append(comp);
             }
         }
         return result;
-    }
-
-    /**
-     * Parses a hex or alternate-format color string into a TextColor.
-     *
-     * @param color the color string (e.g., #rrggbb or '&' codes)
-     * @return a TextColor instance
-     */
-    private TextColor parseColor(String color) {
-        if (color.startsWith("#")) {
-            return TextColor.fromHexString(color);
-        }
-        String translated = ChatColor.translateAlternateColorCodes('&', color);
-        return TextColor.fromHexString(translated.replace("§", ""));
     }
 
     /**

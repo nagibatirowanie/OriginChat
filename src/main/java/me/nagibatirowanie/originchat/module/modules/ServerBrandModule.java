@@ -29,7 +29,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import me.nagibatirowanie.originchat.OriginChat;
 import me.nagibatirowanie.originchat.module.AbstractModule;
-import me.nagibatirowanie.originchat.utils.ColorUtil;
+import me.nagibatirowanie.originchat.utils.FormatUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -166,7 +166,7 @@ public class ServerBrandModule extends AbstractModule implements Listener {
             String raw = serverBrands.get(currentIndex)
                 .replace("{name}", player.getName())
                 .replace("{displayname}", player.getDisplayName());
-            String formatted = ColorUtil.format(raw, true, true, true) + "§r";
+            String formatted = FormatUtil.formatLegacy(raw) + "§r";
 
             ByteBuf buffer = Unpooled.buffer();
             writeString(buffer, CHANNEL);

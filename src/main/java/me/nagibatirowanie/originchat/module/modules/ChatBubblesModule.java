@@ -25,7 +25,9 @@
  import eu.decentsoftware.holograms.api.holograms.Hologram;
  import me.nagibatirowanie.originchat.OriginChat;
  import me.nagibatirowanie.originchat.module.AbstractModule;
- import me.nagibatirowanie.originchat.utils.ColorUtil;
+ import me.nagibatirowanie.originchat.utils.FormatUtil;
+ import net.kyori.adventure.text.Component;
+ import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
  import org.bukkit.Location;
  import org.bukkit.entity.Player;
  import org.bukkit.event.EventHandler;
@@ -55,6 +57,11 @@
      private final Map<UUID, BukkitTask> activeBubbles;
      private final Map<UUID, String> activeHolograms;
      private List<String> allowedChats;
+     
+     private static final LegacyComponentSerializer LEGACY_SERIALIZER = LegacyComponentSerializer.builder()
+            .hexColors()
+            // Using builder instead of legacySection to properly handle hex colors
+            .build();
  
      /**
       * Constructs the ChatBubblesModule.
@@ -183,20 +190,26 @@
              DHAPI.removeHologram(activeHolograms.remove(playerUuid));
          }
  
-         String formatted = ColorUtil.format(
-             truncate(format.replace("{message}", message), maxLength)
-         );
- 
+         // Format the message using FormatUtil with Component support
+         String rawMessage = format.replace("{message}", message);
+         String truncatedMessage = truncate(rawMessage, maxLength);
+         
+         // Create formatted component with placeholder support
+         Component formattedComponent = FormatUtil.format(player, truncatedMessage);
+         
+         // Convert to legacy string for DecentHolograms compatibility
+         String formattedText = LEGACY_SERIALIZER.serialize(formattedComponent);
+
          String holoName = "chat_bubble_" + playerUuid.toString().substring(0, 8);
          Location loc = player.getLocation().add(0, bubbleHeight, 0);
- 
+
          Hologram existing = DHAPI.getHologram(holoName);
          if (existing != null) {
              DHAPI.removeHologram(holoName);
          }
- 
+
          try {
-             DHAPI.createHologram(holoName, loc, List.of(formatted));
+             DHAPI.createHologram(holoName, loc, List.of(formattedText));
              activeHolograms.put(playerUuid, holoName);
          } catch (Exception e) {
              log("Error creating hologram: " + e.getMessage());
@@ -242,7 +255,10 @@
                  DHAPI.removeHologram(holoName);
              }
          }
-         activeBubbles.remove(playerUuid).cancel();
+         BukkitTask task = activeBubbles.remove(playerUuid);
+         if (task != null) {
+             task.cancel();
+         }
      }
  
      /**
@@ -259,4 +275,3 @@
          return input.substring(0, maxLen - 3) + "...";
      }
  }
- 

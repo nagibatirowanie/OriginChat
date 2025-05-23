@@ -23,6 +23,7 @@
 
  import me.nagibatirowanie.originchat.OriginChat;
  import me.nagibatirowanie.originchat.module.AbstractModule;
+ import me.nagibatirowanie.originchat.utils.FormatUtil;
  import org.bukkit.configuration.ConfigurationSection;
  import org.bukkit.event.EventHandler;
  import org.bukkit.event.EventPriority;

@@ -22,6 +22,7 @@
 package me.nagibatirowanie.originchat.utils;
 
 import me.nagibatirowanie.originchat.OriginChat;
+import me.nagibatirowanie.originchat.utils.FormatUtil;
 import org.bukkit.ChatColor;
 
 import java.util.logging.Level;
@@ -86,7 +87,7 @@ public class LoggerUtil {
         String prefix = "";
         
         if (plugin.getConfig().contains("settings.prefix")) {
-            prefix = ColorUtil.format(plugin.getConfig().getString("settings.prefix")) + " ";
+            prefix = FormatUtil.formatLegacy(plugin.getConfig().getString("settings.prefix")) + " ";
         }
         
         return prefix + message;
