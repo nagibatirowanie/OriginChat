@@ -195,7 +195,7 @@ public class ServerMessagesModule extends AbstractModule implements Listener {
             if (!localizedWelcomeMessages.isEmpty()) {
                 String welcomeMessage = getRandomMessage(localizedWelcomeMessages);
                 welcomeMessage = welcomeMessage.replace("{player}", player.getName());
-                player.sendMessage(FormatUtil.toComponent(player, welcomeMessage));
+                player.sendMessage(FormatUtil.format(player, welcomeMessage));
             }
         }
 
@@ -214,10 +214,10 @@ public class ServerMessagesModule extends AbstractModule implements Listener {
                 if (!localizedJoinMessages.isEmpty()) {
                     String localizedMessage = getRandomMessage(localizedJoinMessages);
                     localizedMessage = localizedMessage.replace("{player}", player.getName());
-                    onlinePlayer.sendMessage(FormatUtil.toComponent(onlinePlayer, localizedMessage));
+                    onlinePlayer.sendMessage(FormatUtil.format(onlinePlayer, localizedMessage));
                 } else {
                     // Fallback to config message if localization is not available
-                    onlinePlayer.sendMessage(FormatUtil.toComponent(onlinePlayer, baseJoinMessage));
+                    onlinePlayer.sendMessage(FormatUtil.format(onlinePlayer, baseJoinMessage));
                 }
             }
         } else {
@@ -251,10 +251,10 @@ public class ServerMessagesModule extends AbstractModule implements Listener {
                 if (!localizedLeaveMessages.isEmpty()) {
                     String localizedMessage = getRandomMessage(localizedLeaveMessages);
                     localizedMessage = localizedMessage.replace("{player}", player.getName());
-                    onlinePlayer.sendMessage(FormatUtil.toComponent(onlinePlayer, localizedMessage));
+                    onlinePlayer.sendMessage(FormatUtil.format(onlinePlayer, localizedMessage));
                 } else {
                     // Fallback to config message if localization is not available
-                    onlinePlayer.sendMessage(FormatUtil.toComponent(onlinePlayer, baseLeaveMessage));
+                    onlinePlayer.sendMessage(FormatUtil.format(onlinePlayer, baseLeaveMessage));
                 }
             }
         } else {

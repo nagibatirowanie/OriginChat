@@ -124,12 +124,12 @@ public class ScoreboardModule extends AbstractModule implements Listener {
     private void updateBoard(FastBoard board) {
         Player player = board.getPlayer();
 
-        String title = applyColorFormatting(player, getLocalizedTitle(player));
+        String title = FormatUtil.formatLegacy(player, applyPlaceholders(player, getLocalizedTitle(player)));
         board.updateTitle(title);
 
         List<String> rawLines = getLocalizedLines(player);
         String[] formattedLines = rawLines.stream()
-            .map(line -> applyColorFormatting(player, line))
+            .map(line -> FormatUtil.formatLegacy(player, applyPlaceholders(player, line)))
             .toArray(String[]::new);
         board.updateLines(formattedLines);
     }
@@ -176,17 +176,6 @@ public class ScoreboardModule extends AbstractModule implements Listener {
      * @param text   raw text containing placeholders and color codes
      * @return fully formatted text
      */
-    private String applyColorFormatting(Player player, String text) {
-        if (text == null) {
-            return "";
-        }
-
-        String processed = applyPlaceholders(player, text);
-        processed = FormatUtil.setPlaceholders(player, processed);
-
-        // Используем FormatUtil.formatLegacy, так как FastBoard требует строки, а не Component
-        return FormatUtil.formatLegacy(player, processed, true, true, true);
-    }
 
     /**
      * Replaces basic placeholders in the text with player and server values.

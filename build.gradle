@@ -39,6 +39,7 @@ dependencies {
     compileOnly 'me.clip:placeholderapi:2.11.6'
     compileOnly 'com.comphenix.protocol:ProtocolLib:5.1.0'
     compileOnly 'com.github.decentsoftware-eu:decentholograms:2.8.17'
+    compileOnly 'com.github.DevLeoko:AdvancedBan:2.3.0'
 
     implementation 'fr.mrmicky:fastboard:2.1.4'
     implementation 'com.tchristofferson:ConfigUpdater:2.2-SNAPSHOT'

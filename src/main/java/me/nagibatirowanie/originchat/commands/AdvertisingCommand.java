@@ -71,7 +71,7 @@ public class AdvertisingCommand implements CommandExecutor {
                     .replace("{sender}", senderName)
                     .replace("{message}", messageText);
             // Используем FormatUtil для консоли
-            Bukkit.getConsoleSender().sendMessage(FormatUtil.format(null, formattedMessage, true, true, true, true));
+            Bukkit.getConsoleSender().sendMessage(FormatUtil.format(formattedMessage));
         }
         
         // Логируем действие

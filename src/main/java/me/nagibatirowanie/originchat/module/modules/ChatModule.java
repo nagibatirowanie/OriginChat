@@ -592,7 +592,7 @@
          String prefix = parts.length > 0 ? parts[0] : "";
          String suffix = parts.length > 1 ? parts[1] : "";
      
-         // 5) Check player permissions for colors and placeholders
+         // 5) Check player permissions for colors and placeholders in CHAT MESSAGES ONLY
          boolean canColors       = player.hasPermission("originchat.format.colors");
          boolean canPlaceholders = player.hasPermission("originchat.format.placeholders");
      
@@ -604,13 +604,14 @@
          String msgFormatted = FormatUtil.formatLegacy(
              player,
              message,
-             /* allowColors=       */ canColors && hexColors,
-             /* useMiniMessage=    */ canColors && miniMessage,
+             /* allowColors=       */ canColors,
+             /* useMiniMessage=    */ canColors,
              /* allowPlaceholders= */ canPlaceholders
          );
      
          // 7) Glue everything together and return
-         return FormatUtil.format(player, prefix + msgFormatted + suffix);
+         // Для префикса и суффикса используем полное форматирование, но для плейсхолдеров учитываем права игрока
+         return FormatUtil.format(player, prefix + msgFormatted + suffix, true, canPlaceholders, true);
      }
      
      /**

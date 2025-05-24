@@ -3,6 +3,8 @@
 
 .TestModule/
 
+.trae/
+
 *.iml
 *.ipr
 *.iws

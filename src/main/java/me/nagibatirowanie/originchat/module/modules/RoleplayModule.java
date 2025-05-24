@@ -153,7 +153,7 @@ import me.nagibatirowanie.originchat.utils.FormatUtil;
      public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
          if (!(sender instanceof Player)) {
              String localizedMessage = plugin.getConfigManager().getLocalizedMessage("roleplay", "errors.not-a-player", (Player)null);
-             sender.sendMessage(FormatUtil.toComponent(localizedMessage));
+             sender.sendMessage(FormatUtil.format(localizedMessage));
              return true;
          }
          Player player = (Player) sender;
@@ -163,7 +163,7 @@ import me.nagibatirowanie.originchat.utils.FormatUtil;
          if (args.length == 0 && requiresTextArgument(commandName)) {
              String errorKey = "errors.not-enough-arguments";
              String localizedMessage = plugin.getConfigManager().getLocalizedMessage("roleplay", errorKey, player);
-             player.sendMessage(FormatUtil.toComponent(player, localizedMessage, true, true, true, true));
+             player.sendMessage(FormatUtil.format(player, localizedMessage));
              return true;
          }
          String message = String.join(" ", args);
@@ -231,7 +231,7 @@ import me.nagibatirowanie.originchat.utils.FormatUtil;
      private void handleRollCommand(Player player, int range, boolean isGlobal, String[] args) {
          if (args.length < 2) {
              String localizedMessage = plugin.getConfigManager().getLocalizedMessage("roleplay", "errors.not-enough-arguments", player);
-             player.sendMessage(FormatUtil.toComponent(player, localizedMessage, true, true, true, true));
+             player.sendMessage(FormatUtil.format(player, localizedMessage));
              return;
          }
          try {
@@ -270,13 +270,13 @@ import me.nagibatirowanie.originchat.utils.FormatUtil;
                                  .replace("{min}", String.valueOf(min))
                                  .replace("{max}", String.valueOf(max))
                                  .replace("{result}", String.valueOf(result));
-                         target.sendMessage(FormatUtil.toComponent(target, targetFormatted, true, true, true, true));
+                         target.sendMessage(FormatUtil.format(target, targetFormatted));
                      }
                  }
              }
          } catch (NumberFormatException e) {
              String localizedMessage = plugin.getConfigManager().getLocalizedMessage("roleplay", "errors.not-enough-arguments", player);
-             player.sendMessage(FormatUtil.toComponent(player, localizedMessage, true, true, true, true));
+             player.sendMessage(FormatUtil.format(player, localizedMessage));
          }
      }
  
@@ -312,7 +312,7 @@ import me.nagibatirowanie.originchat.utils.FormatUtil;
                  String formatted = localizedFormat.replace("{player}", player.getName())
                          .replace("{message}", message)
                          .replace("{result}", answer);
-                 target.sendMessage(FormatUtil.toComponent(target, formatted, true, true, true, true));
+                 target.sendMessage(FormatUtil.format(target, formatted));
              }
          } else {
              for (Player target : player.getWorld().getPlayers()) {
@@ -335,7 +335,7 @@ import me.nagibatirowanie.originchat.utils.FormatUtil;
                      String formatted = localizedFormat.replace("{player}", player.getName())
                              .replace("{message}", message)
                              .replace("{result}", answer);
-                     target.sendMessage(FormatUtil.toComponent(target, formatted, true, true, true, true));
+                     target.sendMessage(FormatUtil.format(target, formatted));
                  }
              }
          }
@@ -372,7 +372,7 @@ import me.nagibatirowanie.originchat.utils.FormatUtil;
              for (Player target : Bukkit.getOnlinePlayers()) {
                  String localizedFormat = plugin.getConfigManager().getLocalizedMessage("roleplay", formatKey, target);
                  String formatted = localizedFormat.replace("{player}", player.getName()).replace("{message}", message);
-                 target.sendMessage(FormatUtil.toComponent(target, formatted, true, true, true, true));
+                 target.sendMessage(FormatUtil.format(target, formatted));
              }
          } else {
              for (Player target : player.getWorld().getPlayers()) {

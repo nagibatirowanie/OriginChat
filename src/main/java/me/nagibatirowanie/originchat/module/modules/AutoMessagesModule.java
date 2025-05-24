@@ -224,15 +224,15 @@
  
              switch (message.getType()) {
                  case "chat":
-                     Component chatComponent = FormatUtil.toComponent(player, processedText);
+                     Component chatComponent = FormatUtil.format(player, processedText);
                      player.sendMessage(chatComponent);
                      break;
                  case "actionbar":
-                     Component actionbarComponent = FormatUtil.toComponent(player, processedText);
+                     Component actionbarComponent = FormatUtil.format(player, processedText);
                      player.sendActionBar(actionbarComponent);
                      break;
                  case "title":
-                     Component titleComponent = FormatUtil.toComponent(player, processedText);
+                     Component titleComponent = FormatUtil.format(player, processedText);
                      Title title = Title.title(
                          titleComponent,
                          Component.empty(),
@@ -245,8 +245,8 @@
                      player.showTitle(title);
                      break;
                  case "subtitle":
-                     Component titleTextComponent = FormatUtil.toComponent(player, message.getTitle().replace("{player}", player.getName()));
-                     Component subtitleComponent = FormatUtil.toComponent(player, processedText);
+                     Component titleTextComponent = FormatUtil.format(player, message.getTitle().replace("{player}", player.getName()));
+                     Component subtitleComponent = FormatUtil.format(player, processedText);
                      Title subtitleTitle = Title.title(
                          titleTextComponent,
                          subtitleComponent,
@@ -259,7 +259,7 @@
                      player.showTitle(subtitleTitle);
                      break;
                  default:
-                     Component defaultComponent = FormatUtil.toComponent(player, processedText);
+                     Component defaultComponent = FormatUtil.format(player, processedText);
                      player.sendMessage(defaultComponent);
                      break;
              }

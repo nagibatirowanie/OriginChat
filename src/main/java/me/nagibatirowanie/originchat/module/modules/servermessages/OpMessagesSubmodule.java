@@ -139,7 +139,7 @@ public class OpMessagesSubmodule implements Listener {
         List<String> senderMsgs = plugin.getConfigManager().getLocalizedMessageList(
                 "server_messages", "op_messages.sender", sender);
         if (!senderMsgs.isEmpty()) {
-            sender.sendMessage(FormatUtil.toComponent(sender,
+            sender.sendMessage(FormatUtil.format(sender,
                     senderMsgs.get(0).replace("{target}", targetName)));
         }
 
@@ -148,7 +148,7 @@ public class OpMessagesSubmodule implements Listener {
             List<String> targetMsgs = plugin.getConfigManager().getLocalizedMessageList(
                     "server_messages", "op_messages.target", target);
             if (!targetMsgs.isEmpty()) {
-                target.sendMessage(FormatUtil.toComponent(target,
+                target.sendMessage(FormatUtil.format(target,
                         targetMsgs.get(0).replace("{sender}", sender.getName())));
             }
 
@@ -158,7 +158,7 @@ public class OpMessagesSubmodule implements Listener {
             if (broadcast != null) {
                 for (Player p : Bukkit.getOnlinePlayers()) {
                     if (p.isOp() && !p.equals(sender) && !p.equals(target)) {
-                        p.sendMessage(FormatUtil.toComponent(p,
+                        p.sendMessage(FormatUtil.format(p,
                                 broadcast.replace("{sender}", sender.getName())
                                          .replace("{target}", targetName)));
                     }
@@ -174,7 +174,7 @@ public class OpMessagesSubmodule implements Listener {
         List<String> senderMsgs = plugin.getConfigManager().getLocalizedMessageList(
                 "server_messages", "deop_messages.sender", sender);
         if (!senderMsgs.isEmpty()) {
-            sender.sendMessage(FormatUtil.toComponent(sender,
+            sender.sendMessage(FormatUtil.format(sender,
                     senderMsgs.get(0).replace("{target}", targetName)));
         }
 
@@ -183,7 +183,7 @@ public class OpMessagesSubmodule implements Listener {
             List<String> targetMsgs = plugin.getConfigManager().getLocalizedMessageList(
                     "server_messages", "deop_messages.target", target);
             if (!targetMsgs.isEmpty()) {
-                target.sendMessage(FormatUtil.toComponent(target,
+                target.sendMessage(FormatUtil.format(target,
                         targetMsgs.get(0).replace("{sender}", sender.getName())));
             }
 
@@ -193,7 +193,7 @@ public class OpMessagesSubmodule implements Listener {
             if (broadcast != null) {
                 for (Player p : Bukkit.getOnlinePlayers()) {
                     if (p.isOp() && !p.equals(sender)) {
-                        p.sendMessage(FormatUtil.toComponent(p,
+                        p.sendMessage(FormatUtil.format(p,
                                 broadcast.replace("{sender}", sender.getName())
                                          .replace("{target}", targetName)));
                     }

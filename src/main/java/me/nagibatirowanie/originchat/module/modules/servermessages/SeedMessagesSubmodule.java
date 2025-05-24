@@ -90,7 +90,7 @@ public class SeedMessagesSubmodule implements Listener {
                             "server_messages", "seed_messages.console", "en");
                     if (formattedMessage != null) {
                         formattedMessage = formattedMessage.replace("{seed}", String.valueOf(seed));
-                        Bukkit.getConsoleSender().sendMessage(FormatUtil.toComponent(null, formattedMessage));
+                        Bukkit.getConsoleSender().sendMessage(FormatUtil.format(formattedMessage));
                     } else {
                         // Fallback message
                         Bukkit.getConsoleSender().sendMessage("Seed: " + seed);
@@ -108,7 +108,7 @@ public class SeedMessagesSubmodule implements Listener {
                         "server_messages", "seed_messages.player", player);
                 if (formattedMessage != null) {
                     formattedMessage = formattedMessage.replace("{seed}", String.valueOf(seed));
-                    player.sendMessage(FormatUtil.toComponent(player, formattedMessage));
+                    player.sendMessage(FormatUtil.format(player, formattedMessage));
                 } else {
                     // Fallback message
                     player.sendMessage("Seed: " + seed);

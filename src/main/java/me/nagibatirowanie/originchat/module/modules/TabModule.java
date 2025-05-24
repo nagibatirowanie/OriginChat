@@ -341,8 +341,6 @@ public class TabModule extends AbstractModule {
         text = text.replace("{ping}", String.valueOf(player.getPing()));
         text = text.replace("{group}", getPlayerGroup(player));
         
-        text = FormatUtil.setPlaceholders(player, text);
-        
         return text;
     }
 

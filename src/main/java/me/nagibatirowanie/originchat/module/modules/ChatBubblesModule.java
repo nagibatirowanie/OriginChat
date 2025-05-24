@@ -194,8 +194,10 @@
          String rawMessage = format.replace("{message}", message);
          String truncatedMessage = truncate(rawMessage, maxLength);
          
-         // Create formatted component with placeholder support
-         Component formattedComponent = FormatUtil.format(player, truncatedMessage);
+         // Format the message using FormatUtil with Component support
+         // For chat bubbles, we always want to show full formatting regardless of permissions
+         // This ensures placeholders in tab and other places work correctly
+         Component formattedComponent = FormatUtil.format(player, truncatedMessage, true, true, false);
          
          // Convert to legacy string for DecentHolograms compatibility
          String formattedText = LEGACY_SERIALIZER.serialize(formattedComponent);

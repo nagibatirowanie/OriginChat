@@ -193,8 +193,8 @@ import me.nagibatirowanie.originchat.utils.FormatUtil;
          String formattedSenderMessage = formatMessage(senderLocalizedFormat, sender, receiver, message);
          String formattedReceiverMessage = formatMessage(receiverLocalizedFormat, sender, receiver, message);
  
-         sender.sendMessage(FormatUtil.toComponent(sender, formattedSenderMessage));
-         receiver.sendMessage(FormatUtil.toComponent(receiver, formattedReceiverMessage));
+         sender.sendMessage(FormatUtil.format(sender, formattedSenderMessage));
+         receiver.sendMessage(FormatUtil.format(receiver, formattedReceiverMessage));
  
          lastMessageMap.put(sender, receiver);
          lastMessageMap.put(receiver, sender);
